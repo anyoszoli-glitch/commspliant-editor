@@ -1,59 +1,80 @@
-import { Puck, type Config } from '@puckeditor/core'
+import { useMemo, useRef, useState } from 'react'
+import { Puck } from '@puckeditor/core'
 import '@puckeditor/core/puck.css'
 
-import { HeadingBlock } from '../HeadingBlock/HeadingBlock'
-import { TextBlock } from '../TextBlock/TextBlock'
-
-type EditorComponents = {
-  HeadingBlock: {
-    text: string
-  }
-  TextBlock: {
-    text: string
-  }
-}
-
-const config: Config<EditorComponents> = {
-  components: {
-    HeadingBlock: {
-      fields: {
-        text: {
-          type: 'text',
-        },
-      },
-      defaultProps: {
-        text: 'New heading',
-      },
-      render: ({ text }) => <HeadingBlock text={text} />,
-    },
-
-    TextBlock: {
-      fields: {
-        text: {
-          type: 'textarea',
-        },
-      },
-      defaultProps: {
-        text: 'Write your text here.',
-      },
-      render: ({ text }) => <TextBlock text={text} />,
-    },
-  },
-}
-
-const initialData = {
-  content: [],
-  root: {},
-}
+import { loadDocument, saveDocument } from '../../document/documentStorage'
+import {
+  changeDocumentLayout,
+  defaultFluidLayout,
+  defaultPagedLayout,
+  type DocumentData,
+  type DocumentLayout,
+  type FluidDocumentLayout,
+  type PagedDocumentLayout,
+} from '../../document/document'
+import { createEditorConfig } from '../../editor/editorConfig'
 
 export function DocumentEditor() {
+  const [document, setDocument] = useState(loadDocument)
+  const currentData = useRef<DocumentData>(document.data)
+  const lastPagedLayout = useRef<PagedDocumentLayout>(
+    document.layout.mode === 'paged' ? document.layout : defaultPagedLayout,
+  )
+  const lastFluidLayout = useRef<FluidDocumentLayout>(
+    document.layout.mode === 'fluid' ? document.layout : defaultFluidLayout,
+  )
+  const config = useMemo(() => createEditorConfig(document.layout), [document.layout])
+
+  const selectLayout = (mode: DocumentLayout['mode']) => {
+    if (mode === document.layout.mode) return
+    if (document.layout.mode === 'paged') lastPagedLayout.current = document.layout
+    if (document.layout.mode === 'fluid') lastFluidLayout.current = document.layout
+
+    setDocument((currentDocument) =>
+      changeDocumentLayout(
+        { ...currentDocument, data: currentData.current },
+        mode,
+        lastPagedLayout.current,
+        lastFluidLayout.current,
+      ),
+    )
+  }
+
   return (
-    <Puck
-      config={config}
-      data={initialData}
-      onPublish={(data) => {
-        console.log('Document saved:', data)
-      }}
-    />
+    <div className="document-editor">
+      <div className="document-editor__layout-switch" aria-label="Document layout">
+        <span>Document layout:</span>
+        <button
+          type="button"
+          aria-pressed={document.layout.mode === 'paged'}
+          onClick={() => selectLayout('paged')}
+        >
+          Paged / A4
+        </button>
+        <button
+          type="button"
+          aria-pressed={document.layout.mode === 'fluid'}
+          onClick={() => selectLayout('fluid')}
+        >
+          Fluid
+        </button>
+      </div>
+      <Puck
+        key={document.layout.mode}
+        config={config}
+        data={document.data}
+        height="calc(100vh - 57px)"
+        headerTitle="CommsPliant document editor"
+        onChange={(data) => {
+          currentData.current = data
+        }}
+        onPublish={(data) => {
+          currentData.current = data
+          const savedDocument = { ...document, data }
+          saveDocument(savedDocument)
+          setDocument(savedDocument)
+        }}
+      />
+    </div>
   )
 }

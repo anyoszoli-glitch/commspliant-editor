@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { DocumentCanvas } from '../DocumentCanvas/DocumentCanvas'
 
 type LetterCanvasProps = {
   children?: ReactNode
@@ -16,18 +17,9 @@ export function LetterCanvas({ children }: LetterCanvasProps) {
         alignItems: 'flex-start',
       }}
     >
-      <div
-        style={{
-          width: '210mm',
-          minHeight: '297mm',
-          background: '#ffffff',
-          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
-          padding: '20mm',
-          boxSizing: 'border-box',
-        }}
-      >
+      <DocumentCanvas style={{ boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)' }}>
         {children}
-      </div>
+      </DocumentCanvas>
     </div>
   )
 }

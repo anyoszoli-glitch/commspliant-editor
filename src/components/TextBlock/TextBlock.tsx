@@ -1,5 +1,7 @@
+import type { ReactNode } from 'react'
+
 type TextBlockProps = {
-  text: string
+  text: string | ReactNode
 }
 
 export function TextBlock({ text }: TextBlockProps) {

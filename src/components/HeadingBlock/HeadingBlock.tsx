@@ -1,5 +1,7 @@
+import type { ReactNode } from 'react'
+
 type HeadingBlockProps = {
-  text: string
+  text: string | ReactNode
 }
 
 export function HeadingBlock({ text }: HeadingBlockProps) {
