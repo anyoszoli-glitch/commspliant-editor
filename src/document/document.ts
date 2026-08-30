@@ -31,6 +31,7 @@ export type RichTextValue = string | RichTextDocument
 export type EditorComponents = {
   HeadingBlock: { text: string }
   TextBlock: { text: RichTextValue }
+  NoticeBlock: { heading: string; text: RichTextValue }
   PageBreakBlock: {}
 }
 

@@ -55,6 +55,19 @@ const populatedContent: DocumentData['content'] = [
   },
 ]
 
+const noticeContent: DocumentData['content'] = [
+  ...populatedContent.slice(0, 2),
+  {
+    type: 'NoticeBlock',
+    props: {
+      id: 'notice-important-change',
+      heading: 'Important notice',
+      text: 'Please read this information carefully before the change takes effect.',
+    },
+  },
+  ...populatedContent.slice(2),
+]
+
 const longContent: DocumentData['content'] = [
   ...populatedContent,
   {
@@ -161,6 +174,18 @@ export const PopulatedPagedA4: Story = {
 export const PopulatedFluid: Story = {
   args: {
     document: createStoryDocument(defaultFluidLayout),
+  },
+}
+
+export const NoticePagedA4: Story = {
+  args: {
+    document: createStoryDocument(defaultPagedLayout, noticeContent),
+  },
+}
+
+export const NoticeFluid: Story = {
+  args: {
+    document: createStoryDocument(defaultFluidLayout, noticeContent),
   },
 }
 

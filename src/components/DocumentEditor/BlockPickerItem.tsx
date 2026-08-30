@@ -20,6 +20,15 @@ function BlockIcon({ name }: BlockPickerItemProps) {
     )
   }
 
+  if (name === 'NoticeBlock') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 4l8 15H4L12 4z" />
+        <path d="M12 9v4m0 3h.01" />
+      </svg>
+    )
+  }
+
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M5 7h14M5 12h11M5 17h13" />
@@ -30,6 +39,7 @@ function BlockIcon({ name }: BlockPickerItemProps) {
 const labels: Record<string, string> = {
   HeadingBlock: 'Heading',
   TextBlock: 'Text',
+  NoticeBlock: 'Important notice',
   PageBreakBlock: 'Page break',
 }
 

@@ -316,6 +316,46 @@ describe('document storage', () => {
     expect(loadDocument(storage).data.content[0]).toMatchObject({ props: { text: richText } })
   })
 
+  it('serializes and restores NoticeBlock content', () => {
+    const storage = createStorage()
+    const noticeText = {
+      type: 'doc' as const,
+      content: [
+        {
+          type: 'paragraph' as const,
+          content: [{ type: 'text' as const, text: 'Please read this carefully.' }],
+        },
+      ],
+    }
+    const document = createDocument('notice-letter')
+    document.data.content.push({
+      type: 'NoticeBlock',
+      props: { id: 'notice-1', heading: 'Important notice', text: noticeText },
+    })
+
+    saveDocument(document, storage)
+
+    expect(loadDocument(storage).data.content).toContainEqual({
+      type: 'NoticeBlock',
+      props: { id: 'notice-1', heading: 'Important notice', text: noticeText },
+    })
+  })
+
+  it('preserves NoticeBlock and existing content through paged and fluid switching', () => {
+    const document = createDocument('switching-notice-letter')
+    document.data.content.push(
+      { type: 'HeadingBlock', props: { id: 'heading-1', text: 'Existing heading' } },
+      {
+        type: 'NoticeBlock',
+        props: { id: 'notice-1', heading: 'Action required', text: 'Please take action.' },
+      },
+    )
+
+    const restored = changeDocumentLayout(changeDocumentLayout(document, 'fluid'), 'paged')
+
+    expect(restored.data.content).toEqual(document.data.content)
+  })
+
   it('preserves rich TextBlock formatting through layout switching', () => {
     const document = createDocument('switching-rich-text-letter')
     const richText = {

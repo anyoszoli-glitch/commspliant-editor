@@ -391,6 +391,34 @@
   text-underline-offset: 2px;
 }
 
+.commspliant-notice-block {
+  margin: 0 0 16px;
+  border-left: 4px solid #526473;
+  padding: 14px 16px;
+  background: #f3f6f8;
+  color: #18181b;
+}
+
+.commspliant-notice-block__heading {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.commspliant-notice-block__body {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.commspliant-notice-block__body > :first-child {
+  margin-top: 0;
+}
+
+.commspliant-notice-block__body > :last-child {
+  margin-bottom: 0;
+}
+
 .commspliant-richtext-toolbar {
   --puck-actionbar-color-bg: #263442;
   --puck-actionbar-color-text: #eef2f5;

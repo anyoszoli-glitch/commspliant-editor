@@ -1,11 +1,38 @@
-import type { Config } from '@puckeditor/core'
+import type { Config, RichtextField } from '@puckeditor/core'
 import { DocumentCanvas } from '../components/DocumentCanvas/DocumentCanvas'
 import { LayoutBlock } from '../components/DocumentCanvas/LayoutBlock'
 import { HeadingBlock } from '../components/HeadingBlock/HeadingBlock'
 import { TextBlock } from '../components/TextBlock/TextBlock'
 import { PageBreakBlock } from '../components/PageBreakBlock/PageBreakBlock'
+import { NoticeBlock } from '../components/NoticeBlock/NoticeBlock'
 import { RichTextToolbar } from './RichTextToolbar'
 import type { DocumentLayout, EditorComponents } from '../document/document'
+
+export const constrainedRichTextField = {
+  type: 'richtext' as const,
+  contentEditable: true,
+  options: {
+    blockquote: false,
+    code: false,
+    codeBlock: false,
+    heading: { levels: [2, 3] },
+    horizontalRule: false,
+    strike: false,
+    textAlign: false,
+  },
+  renderMenu: (props: Parameters<typeof RichTextToolbar>[0]) => <RichTextToolbar {...props} />,
+  renderInlineMenu: (props: Parameters<typeof RichTextToolbar>[0]) => <RichTextToolbar {...props} />,
+} satisfies RichtextField
+
+export const defaultRichTextValue = {
+  type: 'doc' as const,
+  content: [
+    {
+      type: 'paragraph' as const,
+      content: [{ type: 'text' as const, text: 'Write your text here.' }],
+    },
+  ],
+}
 
 export function createEditorConfig(layout: DocumentLayout): Config<EditorComponents> {
   return {
@@ -31,35 +58,39 @@ export function createEditorConfig(layout: DocumentLayout): Config<EditorCompone
         label: 'Text',
         fields: {
           text: {
-            type: 'richtext',
-            contentEditable: true,
-            options: {
-              blockquote: false,
-              code: false,
-              codeBlock: false,
-              heading: { levels: [2, 3] },
-              horizontalRule: false,
-              strike: false,
-              textAlign: false,
-            },
-            renderMenu: (props) => <RichTextToolbar {...props} />,
-            renderInlineMenu: (props) => <RichTextToolbar {...props} />,
+            ...constrainedRichTextField,
           },
         },
         defaultProps: {
+          text: defaultRichTextValue,
+        },
+        render: ({ id, text }) => (
+          <LayoutBlock id={id}>
+            <TextBlock text={text as React.ReactNode} />
+          </LayoutBlock>
+        ),
+      },
+      NoticeBlock: {
+        label: 'Important notice',
+        fields: {
+          heading: { type: 'text', contentEditable: true },
+          text: { ...constrainedRichTextField },
+        },
+        defaultProps: {
+          heading: 'Important notice',
           text: {
             type: 'doc',
             content: [
               {
                 type: 'paragraph',
-                content: [{ type: 'text', text: 'Write your text here.' }],
+                content: [{ type: 'text', text: 'Add important information here.' }],
               },
             ],
           },
         },
-        render: ({ id, text }) => (
+        render: ({ id, heading, text }) => (
           <LayoutBlock id={id}>
-            <TextBlock text={text as React.ReactNode} />
+            <NoticeBlock heading={heading} text={text as React.ReactNode} />
           </LayoutBlock>
         ),
       },

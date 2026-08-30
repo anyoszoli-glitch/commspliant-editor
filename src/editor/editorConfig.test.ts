@@ -26,6 +26,28 @@ describe('editor config', () => {
     expect(config.components.PageBreakBlock.label).toBe('Page break')
   })
 
+  it('registers an Important notice with the constrained rich-text body editor', () => {
+    const config = createEditorConfig(defaultPagedLayout)
+    const notice = config.components.NoticeBlock
+
+    expect(notice.label).toBe('Important notice')
+    expect(notice.defaultProps).toEqual({
+      heading: 'Important notice',
+      text: {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [{ type: 'text', text: 'Add important information here.' }],
+          },
+        ],
+      },
+    })
+    expect(JSON.parse(JSON.stringify(notice.defaultProps))).toEqual(notice.defaultProps)
+    expect(notice.fields?.heading).toMatchObject({ type: 'text', contentEditable: true })
+    expect(notice.fields?.text).toMatchObject(config.components.TextBlock.fields?.text ?? {})
+  })
+
   it('keeps the page break component available in fluid mode', () => {
     const config = createEditorConfig(defaultFluidLayout)
 

@@ -9,6 +9,19 @@ const originalHeading = 'Original customer heading'
 const editedHeading = 'Updated customer heading'
 const editedName = 'Updated customer letter'
 const editedDescription = 'Customer notice for the September update'
+const originalNoticeHeading = 'Original important notice'
+const editedNoticeHeading = 'Updated important notice'
+const originalNoticeBody = 'Read this important information.'
+const editedNoticeBody = 'Please review this updated important information.'
+const noticeText = {
+  type: 'doc' as const,
+  content: [
+    {
+      type: 'paragraph' as const,
+      content: [{ type: 'text' as const, text: originalNoticeBody }],
+    },
+  ],
+}
 
 let root: Root | undefined
 let container: HTMLDivElement | undefined
@@ -54,6 +67,17 @@ async function puckContent() {
   return page.frameLocator(page.elementLocator(frame!)).getByLabelText('Document content')
 }
 
+async function puckText(text: string) {
+  let frame: HTMLIFrameElement | undefined
+
+  await expect.poll(() => {
+    frame = document.querySelector<HTMLIFrameElement>('#preview-frame') ?? undefined
+    return frame?.contentDocument?.readyState
+  }).toBe('complete')
+
+  return page.frameLocator(page.elementLocator(frame!)).getByText(text, { exact: true })
+}
+
 afterEach(() => {
   unmountApp()
   localStorage.removeItem(DOCUMENT_STORAGE_KEY)
@@ -81,6 +105,10 @@ describe('App persistence', () => {
             type: 'HeadingBlock',
             props: { id: 'heading-1', text: originalHeading },
           },
+          {
+            type: 'NoticeBlock',
+            props: { id: 'notice-1', heading: originalNoticeHeading, text: noticeText },
+          },
         ],
         root: {},
       },
@@ -98,6 +126,17 @@ describe('App persistence', () => {
     await heading.hover()
     await expect.element(heading).toHaveAttribute('contenteditable', 'plaintext-only')
     await heading.fill(editedHeading)
+    await userEvent.tab()
+
+    const noticeHeading = await puckHeading(originalNoticeHeading)
+    await noticeHeading.hover()
+    await expect.element(noticeHeading).toHaveAttribute('contenteditable', 'plaintext-only')
+    await noticeHeading.fill(editedNoticeHeading)
+    await userEvent.tab()
+
+    const noticeBody = await puckText(originalNoticeBody)
+    await noticeBody.hover()
+    await noticeBody.fill(editedNoticeBody)
     await userEvent.tab()
 
     const nameInput = page.getByRole('textbox', { name: 'Document name' })
@@ -169,6 +208,14 @@ describe('App persistence', () => {
       type: 'HeadingBlock',
       props: { id: 'heading-1', text: editedHeading },
     })
+    expect(savedDocument.data.content[1]).toMatchObject({
+      type: 'NoticeBlock',
+      props: {
+        id: 'notice-1',
+        heading: editedNoticeHeading,
+        text: `<p>${editedNoticeBody}</p>`,
+      },
+    })
     expect(savedDocument.createdAt).toMatch(/Z$/)
     expect(savedDocument.updatedAt).toMatch(/Z$/)
     expect(Date.parse(savedDocument.updatedAt)).toBeGreaterThan(Date.parse(savedDocument.createdAt))
@@ -189,6 +236,8 @@ describe('App persistence', () => {
     await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
     await expect.element(page.getByRole('spinbutton', { name: 'Content width' })).toHaveValue(760)
     await puckHeading(editedHeading)
+    await puckHeading(editedNoticeHeading)
+    await puckText(editedNoticeBody)
     expect(loadDocument()).toEqual(savedDocument)
   })
 })
