@@ -58,3 +58,13 @@ export const Link: Story = {
     ),
   },
 }
+
+export const VariableAndLiteralBraces: Story = {
+  args: {
+    text: (
+      <p>
+        Dear <span className="commspliant-variable-token">Customer name</span>, literal {'{{customerName}}'}
+      </p>
+    ),
+  },
+}

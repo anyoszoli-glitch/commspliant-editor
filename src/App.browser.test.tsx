@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import App from './App'
 import { DOCUMENT_SCHEMA_VERSION, DOCUMENT_STORAGE_KEY, type LetterDocument } from './document/document'
 import { DOCUMENT_NAME_STORAGE_KEY, loadDocument } from './document/documentStorage'
+import { sanitizeRichTextHtml } from './document/richTextSanitizer'
 
 const originalHeading = 'Original customer heading'
 const editedHeading = 'Updated customer heading'
@@ -13,6 +14,7 @@ const originalNoticeHeading = 'Original important notice'
 const editedNoticeHeading = 'Updated important notice'
 const originalNoticeBody = 'Read this important information.'
 const editedNoticeBody = 'Please review this updated important information.'
+const greetingText = 'Dear '
 const noticeText = {
   type: 'doc' as const,
   content: [
@@ -78,6 +80,17 @@ async function puckText(text: string) {
   return page.frameLocator(page.elementLocator(frame!)).getByText(text, { exact: true })
 }
 
+async function puckVariable(label: string) {
+  let frame: HTMLIFrameElement | undefined
+
+  await expect.poll(() => {
+    frame = document.querySelector<HTMLIFrameElement>('#preview-frame') ?? undefined
+    return frame?.contentDocument?.readyState
+  }).toBe('complete')
+
+  return page.frameLocator(page.elementLocator(frame!)).getByRole('img', { name: `Variable: ${label}` })
+}
+
 afterEach(() => {
   unmountApp()
   localStorage.removeItem(DOCUMENT_STORAGE_KEY)
@@ -85,6 +98,61 @@ afterEach(() => {
 })
 
 describe('App persistence', () => {
+  it('sanitizes rich-text HTML while preserving variable spans and literal braces', () => {
+    expect(sanitizeRichTextHtml('<p onclick="alert(1)">Hello<script>alert(1)</script></p>')).toBe(
+      '<p>Hello</p>',
+    )
+    expect(sanitizeRichTextHtml('<img src=x onerror="alert(1)"><a href="javascript:alert(1)">click</a>')).toBe(
+      '<a>click</a>',
+    )
+    expect(
+      sanitizeRichTextHtml(
+        '<span data-commspliant-variable="customerName" onclick="alert(1)" data-other="x">{{customerName}}</span>',
+      ),
+    ).toBe('<span data-commspliant-variable="customerName">{{customerName}}</span>')
+    expect(sanitizeRichTextHtml('<p>{{customerName}}</p>')).toBe('<p>{{customerName}}</p>')
+    expect(
+      sanitizeRichTextHtml('<span data-commspliant-variable="oldVariable">{{oldVariable}}</span>'),
+    ).toBe('<span data-commspliant-variable="oldVariable">{{oldVariable}}</span>')
+  })
+
+  it('sanitizes rich text returned from the real schema 3 migration path', () => {
+    localStorage.setItem(
+      DOCUMENT_STORAGE_KEY,
+      JSON.stringify({
+        id: 'legacy-unsafe-document',
+        schemaVersion: 3,
+        documentType: 'letter',
+        data: {
+          content: [
+            {
+              type: 'TextBlock',
+              props: {
+                id: 'legacy-text',
+                text: '<p onclick="alert(1)">Hello<script>alert(2)</script></p><span data-commspliant-variable="customerName">{{customerName}}</span>',
+              },
+            },
+          ],
+          root: {},
+        },
+        layout: {
+          mode: 'paged',
+          pageSize: 'A4',
+          margins: { top: 20, right: 20, bottom: 20, left: 20, unit: 'mm' },
+        },
+      }),
+    )
+
+    const migratedDocument = loadDocument()
+    const textBlock = migratedDocument.data.content[0]
+    if (textBlock.type !== 'TextBlock') throw new Error('Expected migrated text block')
+
+    expect(migratedDocument.schemaVersion).toBe(DOCUMENT_SCHEMA_VERSION)
+    expect(textBlock.props.text).toBe(
+      '<p>Hello</p><span data-commspliant-variable="customerName">{{customerName}}</span>',
+    )
+  })
+
   it('saves and restores one canonical draft after editing content, metadata, and layout', async () => {
     await page.viewport(1440, 900)
     localStorage.removeItem(DOCUMENT_STORAGE_KEY)
@@ -109,6 +177,14 @@ describe('App persistence', () => {
             type: 'NoticeBlock',
             props: { id: 'notice-1', heading: originalNoticeHeading, text: noticeText },
           },
+          {
+            type: 'TextBlock',
+            props: { id: 'greeting', text: `<p>${greetingText}</p>` },
+          },
+          {
+            type: 'TextBlock',
+            props: { id: 'literal-braces', text: '<p>{{customerName}}</p>' },
+          },
         ],
         root: {},
       },
@@ -121,6 +197,8 @@ describe('App persistence', () => {
     localStorage.setItem(DOCUMENT_STORAGE_KEY, JSON.stringify(schemaFourDocument))
 
     mountApp()
+
+    await puckText('{{customerName}}')
 
     const heading = await puckHeading(originalHeading)
     await heading.hover()
@@ -138,6 +216,13 @@ describe('App persistence', () => {
     await noticeBody.hover()
     await noticeBody.fill(editedNoticeBody)
     await userEvent.tab()
+
+    const greeting = await puckText('Dear')
+    await greeting.hover()
+    await greeting.click()
+    await greeting.fill(greetingText)
+    await userEvent.selectOptions(page.getByRole('combobox', { name: 'Insert variable' }), 'customerName')
+    await (await puckVariable('Customer name')).hover()
 
     const nameInput = page.getByRole('textbox', { name: 'Document name' })
     await userEvent.fill(nameInput, editedName)
@@ -216,6 +301,13 @@ describe('App persistence', () => {
         text: `<p>${editedNoticeBody}</p>`,
       },
     })
+    expect(savedDocument.data.content[2]).toMatchObject({
+      type: 'TextBlock',
+      props: {
+        id: 'greeting',
+        text: '<p>Dear <span data-commspliant-variable="customerName">{{customerName}}</span></p>',
+      },
+    })
     expect(savedDocument.createdAt).toMatch(/Z$/)
     expect(savedDocument.updatedAt).toMatch(/Z$/)
     expect(Date.parse(savedDocument.updatedAt)).toBeGreaterThan(Date.parse(savedDocument.createdAt))
@@ -238,6 +330,8 @@ describe('App persistence', () => {
     await puckHeading(editedHeading)
     await puckHeading(editedNoticeHeading)
     await puckText(editedNoticeBody)
+    await (await puckVariable('Customer name')).hover()
+    await puckText('{{customerName}}')
     expect(loadDocument()).toEqual(savedDocument)
   })
 })

@@ -7,8 +7,13 @@ import { PageBreakBlock } from '../components/PageBreakBlock/PageBreakBlock'
 import { NoticeBlock } from '../components/NoticeBlock/NoticeBlock'
 import { RichTextToolbar } from './RichTextToolbar'
 import type { DocumentLayout, EditorComponents } from '../document/document'
+import { VariableNode } from './VariableNode'
+import type { VariableDefinition } from './variables'
 
-export const constrainedRichTextField = {
+export function createConstrainedRichTextField(
+  variableDefinitions: readonly VariableDefinition[] = [],
+) {
+  return {
   type: 'richtext' as const,
   contentEditable: true,
   options: {
@@ -20,9 +25,17 @@ export const constrainedRichTextField = {
     strike: false,
     textAlign: false,
   },
-  renderMenu: (props: Parameters<typeof RichTextToolbar>[0]) => <RichTextToolbar {...props} />,
-  renderInlineMenu: (props: Parameters<typeof RichTextToolbar>[0]) => <RichTextToolbar {...props} />,
-} satisfies RichtextField
+    tiptap: {
+      extensions: [VariableNode.configure({ variableDefinitions })],
+    },
+    renderMenu: (props: Parameters<typeof RichTextToolbar>[0]) => (
+      <RichTextToolbar {...props} variableDefinitions={variableDefinitions} />
+    ),
+    renderInlineMenu: (props: Parameters<typeof RichTextToolbar>[0]) => (
+      <RichTextToolbar {...props} variableDefinitions={variableDefinitions} />
+    ),
+  } satisfies RichtextField
+}
 
 export const defaultRichTextValue = {
   type: 'doc' as const,
@@ -34,7 +47,11 @@ export const defaultRichTextValue = {
   ],
 }
 
-export function createEditorConfig(layout: DocumentLayout): Config<EditorComponents> {
+export function createEditorConfig(
+  layout: DocumentLayout,
+  variableDefinitions: readonly VariableDefinition[] = [],
+): Config<EditorComponents> {
+  const constrainedRichTextField = createConstrainedRichTextField(variableDefinitions)
   return {
     root: {
       render: ({ children }) => (

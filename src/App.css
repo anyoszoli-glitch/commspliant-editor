@@ -391,6 +391,25 @@
   text-underline-offset: 2px;
 }
 
+.commspliant-variable-token {
+  display: inline-block;
+  border: 1px solid #526473;
+  border-radius: 3px;
+  padding: 0 4px;
+  background: #eef2f5;
+  color: #263442;
+  font-size: 0.9em;
+  font-weight: 650;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.commspliant-variable-token--unknown {
+  border-style: dashed;
+  background: #fff7ed;
+  color: #8a3b12;
+}
+
 .commspliant-notice-block {
   margin: 0 0 16px;
   border-left: 4px solid #526473;

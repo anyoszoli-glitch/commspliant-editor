@@ -4,6 +4,7 @@ import {
   createDocument,
   defaultFluidLayout,
   isLetterDocument,
+  sanitizeDocumentRichText,
   type LetterDocument,
 } from './document'
 import { normalizeDocumentName } from './documentMetadata'
@@ -88,13 +89,14 @@ export function loadDocument(
 
   try {
     const parsedDocument: unknown = JSON.parse(storedDocument)
-    return isLetterDocument(parsedDocument)
+    const canonicalDocument = isLetterDocument(parsedDocument)
       ? parsedDocument
       : (migrateDocument(
           parsedDocument,
           storage?.getItem(DOCUMENT_NAME_STORAGE_KEY) ?? undefined,
           now,
         ) ?? createDocument('current-document', undefined, { now }))
+    return sanitizeDocumentRichText(canonicalDocument)
   } catch {
     return createDocument('current-document', undefined, { now })
   }
@@ -110,7 +112,7 @@ export function saveDocument(
   const updatedAt = new Date(
     requestedUpdatedAt > currentUpdatedAt ? requestedUpdatedAt : currentUpdatedAt + 1,
   ).toISOString()
-  const savedDocument = { ...document, updatedAt }
+  const savedDocument = sanitizeDocumentRichText({ ...document, updatedAt })
 
   storage?.setItem(DOCUMENT_STORAGE_KEY, JSON.stringify(savedDocument))
   return savedDocument

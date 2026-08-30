@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "@puckeditor/core": "^0.23.0",
+    "@tiptap/core": "^3.30.5",
+    "dompurify": "^3.4.14",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

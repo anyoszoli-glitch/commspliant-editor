@@ -1,9 +1,14 @@
 import { RichTextMenu, type RichtextField } from '@puckeditor/core'
 import type { ChangeEvent } from 'react'
+import type { VariableDefinition } from './variables'
 
 type InlineMenuProps = Parameters<NonNullable<RichtextField['renderInlineMenu']>>[0]
 
-export function RichTextToolbar({ editor, readOnly }: InlineMenuProps) {
+type RichTextToolbarProps = InlineMenuProps & {
+  variableDefinitions?: readonly VariableDefinition[]
+}
+
+export function RichTextToolbar({ editor, readOnly, variableDefinitions = [] }: RichTextToolbarProps) {
   const textStyle = editor?.isActive('heading', { level: 2 })
     ? 'h2'
     : editor?.isActive('heading', { level: 3 })
@@ -35,6 +40,14 @@ export function RichTextToolbar({ editor, readOnly }: InlineMenuProps) {
     }
   }
 
+  const insertVariable = (event: ChangeEvent<HTMLSelectElement>) => {
+    const key = event.target.value
+    if (!editor || !key) return
+
+    editor.chain().focus().insertContent({ type: 'variable', attrs: { key } }).run()
+    event.target.value = ''
+  }
+
   return (
     <div className="commspliant-richtext-toolbar">
       <RichTextMenu>
@@ -51,6 +64,26 @@ export function RichTextToolbar({ editor, readOnly }: InlineMenuProps) {
             <option value="h3">Heading 3</option>
           </select>
         </RichTextMenu.Group>
+        {variableDefinitions.length > 0 && (
+          <RichTextMenu.Group>
+            <select
+              className="commspliant-richtext-toolbar__style-select"
+              aria-label="Insert variable"
+              defaultValue=""
+              disabled={readOnly || !editor}
+              onChange={insertVariable}
+            >
+              <option value="" disabled>
+                Insert variable
+              </option>
+              {variableDefinitions.map((definition) => (
+                <option key={definition.key} value={definition.key}>
+                  {definition.label}
+                </option>
+              ))}
+            </select>
+          </RichTextMenu.Group>
+        )}
         <RichTextMenu.Group>
           <RichTextMenu.Bold />
           <RichTextMenu.Italic />

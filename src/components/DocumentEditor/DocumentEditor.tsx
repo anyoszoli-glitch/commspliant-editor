@@ -16,6 +16,9 @@ import { createEditorConfig } from '../../editor/editorConfig'
 import { BlockPickerItem } from './BlockPickerItem'
 import { DocumentIdentity, type DocumentIdentityProps } from './DocumentIdentity'
 import { LayoutSettings } from './LayoutSettings'
+import { normalizeVariableDefinitions, type VariableDefinition } from '../../editor/variables'
+
+export type { VariableDefinition } from '../../editor/variables'
 
 export type DocumentEditorProps = Omit<
   DocumentIdentityProps,
@@ -24,6 +27,7 @@ export type DocumentEditorProps = Omit<
   value: LetterDocument
   onChange: (document: LetterDocument) => void
   onSave?: (document: LetterDocument) => void
+  variableDefinitions?: readonly VariableDefinition[]
 }
 
 export function DocumentEditor({
@@ -32,8 +36,13 @@ export function DocumentEditor({
   onDocumentDescriptionChange,
   onChange,
   onSave,
+  variableDefinitions = [],
 }: DocumentEditorProps) {
   const document = value
+  const validVariableDefinitions = useMemo(
+    () => normalizeVariableDefinitions(variableDefinitions),
+    [variableDefinitions],
+  )
   const currentData = useRef<DocumentData>(document.data)
   const lastPagedLayout = useRef<PagedDocumentLayout>(
     document.layout.mode === 'paged' ? document.layout : defaultPagedLayout,
@@ -41,7 +50,10 @@ export function DocumentEditor({
   const lastFluidLayout = useRef<FluidDocumentLayout>(
     document.layout.mode === 'fluid' ? document.layout : defaultFluidLayout,
   )
-  const config = useMemo(() => createEditorConfig(document.layout), [document.layout])
+  const config = useMemo(
+    () => createEditorConfig(document.layout, validVariableDefinitions),
+    [document.layout, validVariableDefinitions],
+  )
 
   useEffect(() => {
     currentData.current = document.data

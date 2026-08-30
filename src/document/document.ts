@@ -1,5 +1,6 @@
 import type { Data } from '@puckeditor/core'
 import { normalizeDocumentName } from './documentMetadata'
+import { sanitizeRichTextHtml } from './richTextSanitizer'
 
 export const DOCUMENT_SCHEMA_VERSION = 4 as const
 export const DOCUMENT_STORAGE_KEY = 'commspliant.document.current'
@@ -143,6 +144,24 @@ export function changeDocumentLayout(
             maxWidth: { ...fluidLayout.maxWidth },
             padding: { ...fluidLayout.padding },
           },
+  }
+}
+
+export function sanitizeDocumentRichText(document: LetterDocument): LetterDocument {
+  return {
+    ...document,
+    data: {
+      ...document.data,
+      content: document.data.content.map((item) => {
+        if (item.type === 'TextBlock' && typeof item.props.text === 'string') {
+          return { ...item, props: { ...item.props, text: sanitizeRichTextHtml(item.props.text) } }
+        }
+        if (item.type === 'NoticeBlock' && typeof item.props.text === 'string') {
+          return { ...item, props: { ...item.props, text: sanitizeRichTextHtml(item.props.text) } }
+        }
+        return item
+      }),
+    },
   }
 }
 

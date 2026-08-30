@@ -31,3 +31,21 @@ export const LongNotice: Story = {
     text: 'This notice contains additional detail for pagination inspection. Please read it alongside the rest of the letter, retain it for your records, and contact our support team if you need help understanding what this means for you.',
   },
 }
+
+export const KnownVariable: Story = {
+  args: {
+    heading: 'Important notice',
+    text: (
+      <p>
+        This change applies to <span className="commspliant-variable-token">Customer name</span>.
+      </p>
+    ),
+  },
+}
+
+export const UnknownVariable: Story = {
+  args: {
+    heading: 'Important notice',
+    text: <span className="commspliant-variable-token commspliant-variable-token--unknown">Unknown variable: oldVariable</span>,
+  },
+}
