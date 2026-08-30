@@ -15,6 +15,7 @@ import {
 import { createEditorConfig } from '../../editor/editorConfig'
 import { BlockPickerItem } from './BlockPickerItem'
 import { DocumentIdentity, type DocumentIdentityProps } from './DocumentIdentity'
+import { LayoutSettings } from './LayoutSettings'
 
 export type DocumentEditorProps = Omit<
   DocumentIdentityProps,
@@ -62,6 +63,12 @@ export function DocumentEditor({
     )
   }
 
+  const updateLayout = (layout: DocumentLayout) => {
+    if (layout.mode === 'paged') lastPagedLayout.current = layout
+    if (layout.mode === 'fluid') lastFluidLayout.current = layout
+    onChange({ ...document, data: currentData.current, layout })
+  }
+
   return (
     <div className="document-editor">
       <div className="document-editor__topbar">
@@ -83,22 +90,25 @@ export function DocumentEditor({
           drawerItem: ({ name }) => <BlockPickerItem name={name} />,
           headerActions: ({ children }) => (
             <div className="document-editor__header-actions">
-              <div className="document-editor__layout-switch" aria-label="Document layout">
-                <span>Document layout:</span>
-                <button
-                  type="button"
-                  aria-pressed={document.layout.mode === 'paged'}
-                  onClick={() => selectLayout('paged')}
-                >
-                  Paged / A4
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={document.layout.mode === 'fluid'}
-                  onClick={() => selectLayout('fluid')}
-                >
-                  Fluid
-                </button>
+              <div className="document-editor__layout-controls">
+                <div className="document-editor__layout-switch" aria-label="Document layout">
+                  <span>Document layout:</span>
+                  <button
+                    type="button"
+                    aria-pressed={document.layout.mode === 'paged'}
+                    onClick={() => selectLayout('paged')}
+                  >
+                    Paged / A4
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={document.layout.mode === 'fluid'}
+                    onClick={() => selectLayout('fluid')}
+                  >
+                    Fluid
+                  </button>
+                </div>
+                <LayoutSettings layout={document.layout} onChange={updateLayout} />
               </div>
               {children}
             </div>

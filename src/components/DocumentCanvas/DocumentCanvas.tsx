@@ -130,6 +130,8 @@ function PagedCanvas({
       <LayoutContext.Provider value={{ mode: 'paged', placements: pagination.placements }}>
         <div
           ref={contentRef}
+          data-document-content
+          aria-label="Document content"
           style={{
             position: 'absolute',
             top: `${margins.top}${margins.unit}`,
@@ -160,6 +162,8 @@ function FluidCanvas({
     <LayoutContext.Provider value={{ mode: 'fluid', placements: {} }}>
       <div
         data-document-layout="fluid"
+        data-document-content
+        aria-label="Document content"
         style={{
           width: `min(${maxWidth.value}${maxWidth.unit}, calc(100% - 48px))`,
           minHeight: 400,

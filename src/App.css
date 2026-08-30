@@ -118,11 +118,92 @@
   font-size: 14px;
 }
 
+.document-editor__layout-controls {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.document-editor__layout-settings-toggle,
+.document-editor__layout-reset {
+  border: 1px solid #c7c7c7;
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: #ffffff;
+  color: #18181b;
+  cursor: pointer;
+}
+
+.document-editor__layout-settings-toggle:focus-visible,
+.document-editor__layout-reset:focus-visible {
+  outline: 2px solid #5b45e0;
+  outline-offset: 2px;
+}
+
+.document-editor__layout-settings-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: 220px;
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+  border: 1px solid #c7d0d7;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(38, 52, 66, 0.16);
+}
+
+.document-editor__layout-settings-fields {
+  display: grid;
+  gap: 9px;
+}
+
+.document-editor__layout-field {
+  display: grid;
+  gap: 4px;
+  color: #314252;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.document-editor__layout-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.document-editor__layout-input-wrap input {
+  width: 72px;
+  border: 1px solid #aebbc5;
+  border-radius: 4px;
+  padding: 4px 6px;
+  color: #18181b;
+  font: inherit;
+}
+
+.document-editor__layout-input-wrap input:focus {
+  border-color: #5b45e0;
+  outline: 2px solid #eeeafe;
+}
+
+.document-editor__layout-error {
+  color: #b42318;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.document-editor__layout-reset {
+  justify-self: start;
+}
+
 .document-editor__header-actions {
   display: contents;
 }
 
-.document-editor__header-actions .document-editor__layout-switch {
+.document-editor__header-actions .document-editor__layout-controls {
   order: 1;
 }
 
@@ -130,7 +211,7 @@
   order: 2;
 }
 
-.document-editor__header-actions > :not(.document-editor__layout-switch) {
+.document-editor__header-actions > :not(.document-editor__layout-controls) {
   order: 3;
 }
 

@@ -43,6 +43,17 @@ async function puckHeading(text: string) {
   return heading
 }
 
+async function puckContent() {
+  let frame: HTMLIFrameElement | undefined
+
+  await expect.poll(() => {
+    frame = document.querySelector<HTMLIFrameElement>('#preview-frame') ?? undefined
+    return frame?.contentDocument?.readyState
+  }).toBe('complete')
+
+  return page.frameLocator(page.elementLocator(frame!)).getByLabelText('Document content')
+}
+
 afterEach(() => {
   unmountApp()
   localStorage.removeItem(DOCUMENT_STORAGE_KEY)
@@ -50,15 +61,20 @@ afterEach(() => {
 })
 
 describe('App persistence', () => {
-  it('migrates and restores one canonical draft after saving and remounting', async () => {
+  it('saves and restores one canonical draft after editing content, metadata, and layout', async () => {
     await page.viewport(1440, 900)
     localStorage.removeItem(DOCUMENT_STORAGE_KEY)
     localStorage.removeItem(DOCUMENT_NAME_STORAGE_KEY)
 
-    const schemaThreeDocument = {
+    const schemaFourDocument = {
       id: 'browser-test-document',
-      schemaVersion: 3,
+      schemaVersion: DOCUMENT_SCHEMA_VERSION,
       documentType: 'letter',
+      name: 'Original customer letter',
+      description: '',
+      status: 'draft',
+      createdAt: '2026-08-30T09:00:00.000Z',
+      updatedAt: '2026-08-30T09:00:00.000Z',
       data: {
         content: [
           {
@@ -74,8 +90,7 @@ describe('App persistence', () => {
         margins: { top: 20, right: 20, bottom: 20, left: 20, unit: 'mm' },
       },
     }
-    localStorage.setItem(DOCUMENT_STORAGE_KEY, JSON.stringify(schemaThreeDocument))
-    localStorage.setItem(DOCUMENT_NAME_STORAGE_KEY, 'Original customer letter')
+    localStorage.setItem(DOCUMENT_STORAGE_KEY, JSON.stringify(schemaFourDocument))
 
     mountApp()
 
@@ -99,11 +114,40 @@ describe('App persistence', () => {
     await userEvent.keyboard('{Escape}')
     await expect.element(page.getByText(editedDescription, { exact: true })).toBeVisible()
 
+    await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
+    const topMargin = page.getByRole('spinbutton', { name: 'Top margin' })
+    await userEvent.fill(topMargin, '9')
+    await userEvent.tab()
+    await expect.element(page.getByText('Enter a whole number from 10 to 40.')).toBeVisible()
+    await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
+    await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
+    await expect.element(page.getByRole('spinbutton', { name: 'Top margin' })).toHaveValue(20)
+    await expect.element(page.getByText('Enter a whole number from 10 to 40.')).not.toBeInTheDocument()
+
+    const reopenedTopMargin = page.getByRole('spinbutton', { name: 'Top margin' })
+    await userEvent.fill(reopenedTopMargin, '24')
+    await userEvent.tab()
+    await expect.element(await puckContent()).toHaveStyle({ top: '24mm' })
+
     await userEvent.click(page.getByRole('button', { name: 'Fluid' }))
     await expect.element(page.getByRole('button', { name: 'Fluid' })).toHaveAttribute(
       'aria-pressed',
       'true',
     )
+
+    await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
+    const contentWidth = page.getByRole('spinbutton', { name: 'Content width' })
+    await userEvent.fill(contentWidth, '760')
+    await userEvent.tab()
+    await expect.element(await puckContent()).toHaveStyle({ width: 'min(760px, calc(100% - 48px))' })
+
+    await userEvent.click(page.getByRole('button', { name: 'Paged / A4' }))
+    await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
+    await expect.element(page.getByRole('spinbutton', { name: 'Top margin' })).toHaveValue(24)
+
+    await userEvent.click(page.getByRole('button', { name: 'Fluid' }))
+    await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
+    await expect.element(page.getByRole('spinbutton', { name: 'Content width' })).toHaveValue(760)
 
     await puckHeading(editedHeading)
     await page.getByText('Save draft', { exact: true }).click()
@@ -119,7 +163,7 @@ describe('App persistence', () => {
       name: editedName,
       description: editedDescription,
       status: 'draft',
-      layout: { mode: 'fluid' },
+      layout: { mode: 'fluid', maxWidth: { value: 760, unit: 'px' } },
     })
     expect(savedDocument.data.content[0]).toMatchObject({
       type: 'HeadingBlock',
@@ -128,7 +172,7 @@ describe('App persistence', () => {
     expect(savedDocument.createdAt).toMatch(/Z$/)
     expect(savedDocument.updatedAt).toMatch(/Z$/)
     expect(Date.parse(savedDocument.updatedAt)).toBeGreaterThan(Date.parse(savedDocument.createdAt))
-    expect(localStorage.getItem(DOCUMENT_NAME_STORAGE_KEY)).toBe('Original customer letter')
+    expect(savedDocument.layout.mode).toBe('fluid')
 
     unmountApp()
     mountApp()
@@ -142,6 +186,8 @@ describe('App persistence', () => {
       'aria-pressed',
       'true',
     )
+    await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
+    await expect.element(page.getByRole('spinbutton', { name: 'Content width' })).toHaveValue(760)
     await puckHeading(editedHeading)
     expect(loadDocument()).toEqual(savedDocument)
   })

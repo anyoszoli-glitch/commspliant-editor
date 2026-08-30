@@ -164,6 +164,24 @@ export const PopulatedFluid: Story = {
   },
 }
 
+export const PagedLayoutSettings: Story = {
+  args: {
+    document: createDocument('storybook-paged-layout-settings', {
+      ...defaultPagedLayout,
+      margins: { top: 24, right: 18, bottom: 22, left: 26, unit: 'mm' },
+    }),
+  },
+}
+
+export const FluidLayoutSettings: Story = {
+  args: {
+    document: createDocument('storybook-fluid-layout-settings', {
+      ...defaultFluidLayout,
+      maxWidth: { value: 760, unit: 'px' },
+    }),
+  },
+}
+
 export const LongPagedDocument: Story = {
   args: {
     document: createStoryDocument(defaultPagedLayout, longContent),
