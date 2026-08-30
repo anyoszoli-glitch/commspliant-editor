@@ -16,7 +16,10 @@ import { createEditorConfig } from '../../editor/editorConfig'
 import { BlockPickerItem } from './BlockPickerItem'
 import { DocumentIdentity, type DocumentIdentityProps } from './DocumentIdentity'
 
-export type DocumentEditorProps = DocumentIdentityProps & {
+export type DocumentEditorProps = Omit<
+  DocumentIdentityProps,
+  'documentName' | 'description' | 'status'
+> & {
   document: LetterDocument
   onChange: (document: LetterDocument) => void
   onSave?: (document: LetterDocument) => void
@@ -24,9 +27,8 @@ export type DocumentEditorProps = DocumentIdentityProps & {
 
 export function DocumentEditor({
   document,
-  documentName,
-  description,
   onDocumentNameChange,
+  onDocumentDescriptionChange,
   onChange,
   onSave,
 }: DocumentEditorProps) {
@@ -64,9 +66,11 @@ export function DocumentEditor({
     <div className="document-editor">
       <div className="document-editor__topbar">
         <DocumentIdentity
-          documentName={documentName}
-          description={description}
+          documentName={document.name}
+          description={document.description}
           onDocumentNameChange={onDocumentNameChange}
+          onDocumentDescriptionChange={onDocumentDescriptionChange}
+          status={document.status}
         />
       </div>
       <Puck

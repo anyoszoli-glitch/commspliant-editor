@@ -13,3 +13,12 @@ export function commitDocumentName(
   onDocumentNameChange(nextName)
   return nextName
 }
+
+export function commitDocumentDescription(
+  draftDescription: string,
+  onDocumentDescriptionChange: (description: string) => void,
+): string {
+  const nextDescription = draftDescription.trim()
+  onDocumentDescriptionChange(nextDescription)
+  return nextDescription
+}

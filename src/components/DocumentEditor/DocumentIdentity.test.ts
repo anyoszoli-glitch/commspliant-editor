@@ -2,7 +2,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { createDocument } from '../../document/document'
-import { commitDocumentName } from '../../document/documentMetadata'
+import { commitDocumentDescription, commitDocumentName } from '../../document/documentMetadata'
 import { DocumentIdentity } from './DocumentIdentity'
 
 function renderIdentity(props: Parameters<typeof DocumentIdentity>[0]): string {
@@ -18,21 +18,28 @@ describe('document identity', () => {
     expect(renderIdentity({})).toContain('Untitled document')
   })
 
-  it('shows the description control only when a description exists', () => {
-    expect(renderIdentity({ description: 'Customer notice' })).toContain(
-      'aria-label="Document description"',
-    )
-    expect(renderIdentity({ description: '   ' })).not.toContain(
-      'aria-label="Document description"',
-    )
+  it('shows Add a description when the editable description is empty', () => {
+    expect(
+      renderIdentity({ description: '', onDocumentDescriptionChange: () => undefined }),
+    ).toContain('Add a description')
   })
 
-  it('makes the description available to keyboard users', () => {
-    const markup = renderIdentity({ description: 'Customer notice' })
+  it('shows a populated description visibly', () => {
+    const markup = renderIdentity({
+      description: 'Customer notice',
+      onDocumentDescriptionChange: () => undefined,
+    })
 
-    expect(markup).toMatch(/<button[^>]+aria-describedby="[^"]+"/)
-    expect(markup).toContain('role="tooltip"')
+    expect(markup).toContain('document-identity__description-button')
     expect(markup).toContain('Customer notice')
+  })
+
+  it('renders a visible, non-interactive Draft badge', () => {
+    const markup = renderIdentity({})
+
+    expect(markup).toContain('aria-label="Document status: draft"')
+    expect(markup).toContain('>Draft</span>')
+    expect(markup).not.toContain('>Draft</button>')
   })
 
   it('renders the title read-only without a change callback', () => {
@@ -56,6 +63,20 @@ describe('document identity', () => {
 
     expect(commitDocumentName('   ', onChange)).toBe('Untitled document')
     expect(onChange).toHaveBeenCalledWith('Untitled document')
+  })
+
+  it('trims description edits on commit', () => {
+    const onChange = vi.fn()
+
+    expect(commitDocumentDescription('  Customer notice  ', onChange)).toBe('Customer notice')
+    expect(onChange).toHaveBeenCalledWith('Customer notice')
+  })
+
+  it('resolves whitespace-only description edits to an empty string', () => {
+    const onChange = vi.fn()
+
+    expect(commitDocumentDescription('   ', onChange)).toBe('')
+    expect(onChange).toHaveBeenCalledWith('')
   })
 
   it('does not alter structured document content when the title changes', () => {

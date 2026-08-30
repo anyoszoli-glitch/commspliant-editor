@@ -8,6 +8,7 @@ import { DOCUMENT_NAME_STORAGE_KEY, loadDocument } from './document/documentStor
 const originalHeading = 'Original customer heading'
 const editedHeading = 'Updated customer heading'
 const editedName = 'Updated customer letter'
+const editedDescription = 'Customer notice for the September update'
 
 let root: Root | undefined
 let container: HTMLDivElement | undefined
@@ -88,6 +89,16 @@ describe('App persistence', () => {
     await userEvent.fill(nameInput, editedName)
     await userEvent.tab()
 
+    const descriptionInput = page.getByRole('textbox', { name: 'Document description' })
+    await userEvent.fill(descriptionInput, `  ${editedDescription}  `)
+    await userEvent.keyboard('{Enter}')
+    await expect.element(page.getByText(editedDescription, { exact: true })).toBeVisible()
+
+    await userEvent.click(page.getByText(editedDescription, { exact: true }))
+    await userEvent.fill(page.getByRole('textbox', { name: 'Document description' }), 'Discarded')
+    await userEvent.keyboard('{Escape}')
+    await expect.element(page.getByText(editedDescription, { exact: true })).toBeVisible()
+
     await userEvent.click(page.getByRole('button', { name: 'Fluid' }))
     await expect.element(page.getByRole('button', { name: 'Fluid' })).toHaveAttribute(
       'aria-pressed',
@@ -106,7 +117,7 @@ describe('App persistence', () => {
       schemaVersion: DOCUMENT_SCHEMA_VERSION,
       documentType: 'letter',
       name: editedName,
-      description: '',
+      description: editedDescription,
       status: 'draft',
       layout: { mode: 'fluid' },
     })
@@ -125,6 +136,8 @@ describe('App persistence', () => {
     await expect.element(page.getByRole('textbox', { name: 'Document name' })).toHaveValue(
       editedName,
     )
+    await expect.element(page.getByText(editedDescription, { exact: true })).toBeVisible()
+    await expect.element(page.getByLabelText('Document status: draft')).toBeVisible()
     await expect.element(page.getByRole('button', { name: 'Fluid' })).toHaveAttribute(
       'aria-pressed',
       'true',

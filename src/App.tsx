@@ -9,9 +9,10 @@ function App() {
   return (
     <DocumentEditor
       document={document}
-      documentName={document.name}
-      description={document.description}
       onDocumentNameChange={(name) => setDocument((current) => ({ ...current, name }))}
+      onDocumentDescriptionChange={(description) =>
+        setDocument((current) => ({ ...current, description }))
+      }
       onChange={setDocument}
       onSave={(savedDocument) => {
         setDocument(saveDocument(savedDocument))

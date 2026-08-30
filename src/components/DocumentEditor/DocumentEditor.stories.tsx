@@ -91,15 +91,20 @@ function createStoryDocument(
 
 function DocumentEditorStory(args: DocumentEditorProps) {
   const [document, setDocument] = useState(args.document)
-  const [documentName, setDocumentName] = useState(args.documentName)
 
   return (
     <DocumentEditor
       {...args}
       document={document}
-      documentName={documentName}
       onChange={setDocument}
-      onDocumentNameChange={args.onDocumentNameChange ? setDocumentName : undefined}
+      onDocumentNameChange={
+        args.onDocumentNameChange ? (name) => setDocument((current) => ({ ...current, name })) : undefined
+      }
+      onDocumentDescriptionChange={
+        args.onDocumentDescriptionChange
+          ? (description) => setDocument((current) => ({ ...current, description }))
+          : undefined
+      }
     />
   )
 }
@@ -113,8 +118,6 @@ const meta = {
   render: (args) => <DocumentEditorStory {...args} />,
   args: {
     document: createDocument('storybook-document'),
-    documentName: 'Fee Change Letter',
-    description: 'Customer notice for the 2026 fee update',
     onChange: () => undefined,
     onSave: () => undefined,
   },
@@ -129,6 +132,23 @@ export const Default: Story = {}
 export const EditableName: Story = {
   args: {
     onDocumentNameChange: () => undefined,
+  },
+}
+
+export const EditableDescriptionEmpty: Story = {
+  args: {
+    document: createDocument('storybook-empty-description', defaultPagedLayout, {
+      name: 'Fee Change Letter',
+      now: storyTimestamp,
+    }),
+    onDocumentDescriptionChange: () => undefined,
+  },
+}
+
+export const EditableDescriptionPopulated: Story = {
+  args: {
+    document: createStoryDocument(),
+    onDocumentDescriptionChange: () => undefined,
   },
 }
 
