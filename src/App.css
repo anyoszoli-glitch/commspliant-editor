@@ -98,17 +98,40 @@
   outline-offset: 2px;
 }
 
-.document-editor__layout-switch {
-  min-height: 57px;
-  padding: 10px 16px;
+.document-editor__topbar {
+  min-height: 64px;
+  padding: 7px 16px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
   box-sizing: border-box;
   border-bottom: 1px solid #d9d9d9;
   background: #ffffff;
   color: #18181b;
+}
+
+.document-editor__layout-switch {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
   font-size: 14px;
+}
+
+.document-editor__header-actions {
+  display: contents;
+}
+
+.document-editor__header-actions .document-editor__layout-switch {
+  order: 1;
+}
+
+.document-editor [class*='_MenuBar-history_'] {
+  order: 2;
+}
+
+.document-editor__header-actions > :not(.document-editor__layout-switch) {
+  order: 3;
 }
 
 .document-editor__layout-switch span {
@@ -134,6 +157,132 @@
 .document-editor__layout-switch button:focus-visible {
   outline: 2px solid #5b45e0;
   outline-offset: 2px;
+}
+
+.document-identity {
+  min-width: 0;
+  text-align: center;
+}
+
+.document-identity__product-label {
+  margin-bottom: 1px;
+  color: #687581;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.document-identity__title-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 6px;
+  justify-content: center;
+}
+
+.document-identity__title,
+.document-identity__title-input {
+  min-width: 0;
+  margin: 0;
+  color: #263442;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.document-identity__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-identity__title-input {
+  width: min(420px, 42vw);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 1px 3px;
+  background: transparent;
+  text-align: center;
+}
+
+.document-identity__title-input:hover {
+  border-color: #c7d0d7;
+}
+
+.document-identity__title-input:focus {
+  border-color: #9aabba;
+  outline: 2px solid #d7e0e6;
+}
+
+.document-identity__description {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.document-identity__info {
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #687581;
+  cursor: help;
+}
+
+.document-identity__info:hover {
+  background: #eaf0f4;
+  color: #314252;
+}
+
+.document-identity__info:focus-visible {
+  outline: 2px solid #9aabba;
+  outline-offset: 1px;
+}
+
+.document-identity__info svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.document-identity__tooltip {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  z-index: 10;
+  width: max-content;
+  max-width: 280px;
+  padding: 7px 9px;
+  border-radius: 5px;
+  background: #263442;
+  color: #eef2f5;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  visibility: hidden;
+}
+
+.document-identity__info:hover + .document-identity__tooltip,
+.document-identity__info:focus-visible + .document-identity__tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Keep Puck's header controls while replacing its generic title with document identity above. */
+.document-editor [class*='_PuckHeader-title_'] {
+  visibility: hidden;
 }
 
 .commspliant-text-block > :first-child {

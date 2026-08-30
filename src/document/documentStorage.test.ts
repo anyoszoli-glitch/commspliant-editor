@@ -5,7 +5,13 @@ import {
   changeDocumentLayout,
   createDocument,
 } from './document'
-import { loadDocument, saveDocument } from './documentStorage'
+import {
+  DOCUMENT_NAME_STORAGE_KEY,
+  loadDocument,
+  loadDocumentName,
+  saveDocument,
+  saveDocumentName,
+} from './documentStorage'
 
 function createStorage(initialValue?: string): Storage {
   const values = new Map<string, string>()
@@ -118,6 +124,24 @@ describe('document storage', () => {
     saveDocument(document, storage)
 
     expect(loadDocument(storage)).toEqual(document)
+  })
+
+  it('persists and restores the standalone document name separately', () => {
+    const storage = createStorage()
+
+    saveDocumentName('Fee Change Letter', storage)
+
+    expect(loadDocumentName(storage)).toBe('Fee Change Letter')
+    expect(storage.getItem(DOCUMENT_NAME_STORAGE_KEY)).toBe('Fee Change Letter')
+    expect(storage.getItem(DOCUMENT_STORAGE_KEY)).toBeNull()
+  })
+
+  it('uses Untitled document for old standalone content without a saved name', () => {
+    const storage = createStorage()
+    saveDocument(createDocument('old-standalone-document'), storage)
+
+    expect(loadDocument(storage).id).toBe('old-standalone-document')
+    expect(loadDocumentName(storage)).toBe('Untitled document')
   })
 
   it('continues to load existing plain TextBlock values', () => {

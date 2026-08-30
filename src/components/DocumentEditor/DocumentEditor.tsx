@@ -1,8 +1,7 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Puck } from '@puckeditor/core'
 import '@puckeditor/core/puck.css'
 
-import { loadDocument, saveDocument } from '../../document/documentStorage'
 import {
   changeDocumentLayout,
   defaultFluidLayout,
@@ -11,12 +10,26 @@ import {
   type DocumentLayout,
   type FluidDocumentLayout,
   type PagedDocumentLayout,
+  type LetterDocument,
 } from '../../document/document'
 import { createEditorConfig } from '../../editor/editorConfig'
 import { BlockPickerItem } from './BlockPickerItem'
+import { DocumentIdentity, type DocumentIdentityProps } from './DocumentIdentity'
 
-export function DocumentEditor() {
-  const [document, setDocument] = useState(loadDocument)
+export type DocumentEditorProps = DocumentIdentityProps & {
+  document: LetterDocument
+  onChange: (document: LetterDocument) => void
+  onSave?: (document: LetterDocument) => void
+}
+
+export function DocumentEditor({
+  document,
+  documentName,
+  description,
+  onDocumentNameChange,
+  onChange,
+  onSave,
+}: DocumentEditorProps) {
   const currentData = useRef<DocumentData>(document.data)
   const lastPagedLayout = useRef<PagedDocumentLayout>(
     document.layout.mode === 'paged' ? document.layout : defaultPagedLayout,
@@ -26,14 +39,20 @@ export function DocumentEditor() {
   )
   const config = useMemo(() => createEditorConfig(document.layout), [document.layout])
 
+  useEffect(() => {
+    currentData.current = document.data
+    if (document.layout.mode === 'paged') lastPagedLayout.current = document.layout
+    if (document.layout.mode === 'fluid') lastFluidLayout.current = document.layout
+  }, [document])
+
   const selectLayout = (mode: DocumentLayout['mode']) => {
     if (mode === document.layout.mode) return
     if (document.layout.mode === 'paged') lastPagedLayout.current = document.layout
     if (document.layout.mode === 'fluid') lastFluidLayout.current = document.layout
 
-    setDocument((currentDocument) =>
+    onChange(
       changeDocumentLayout(
-        { ...currentDocument, data: currentData.current },
+        { ...document, data: currentData.current },
         mode,
         lastPagedLayout.current,
         lastFluidLayout.current,
@@ -43,40 +62,52 @@ export function DocumentEditor() {
 
   return (
     <div className="document-editor">
-      <div className="document-editor__layout-switch" aria-label="Document layout">
-        <span>Document layout:</span>
-        <button
-          type="button"
-          aria-pressed={document.layout.mode === 'paged'}
-          onClick={() => selectLayout('paged')}
-        >
-          Paged / A4
-        </button>
-        <button
-          type="button"
-          aria-pressed={document.layout.mode === 'fluid'}
-          onClick={() => selectLayout('fluid')}
-        >
-          Fluid
-        </button>
+      <div className="document-editor__topbar">
+        <DocumentIdentity
+          documentName={documentName}
+          description={description}
+          onDocumentNameChange={onDocumentNameChange}
+        />
       </div>
       <Puck
         key={document.layout.mode}
         config={config}
         data={document.data}
-        height="calc(100vh - 57px)"
-        headerTitle="CommsPliant document editor"
+        height="calc(100vh - 64px)"
         overrides={{
           drawerItem: ({ name }) => <BlockPickerItem name={name} />,
+          headerActions: ({ children }) => (
+            <div className="document-editor__header-actions">
+              <div className="document-editor__layout-switch" aria-label="Document layout">
+                <span>Document layout:</span>
+                <button
+                  type="button"
+                  aria-pressed={document.layout.mode === 'paged'}
+                  onClick={() => selectLayout('paged')}
+                >
+                  Paged / A4
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={document.layout.mode === 'fluid'}
+                  onClick={() => selectLayout('fluid')}
+                >
+                  Fluid
+                </button>
+              </div>
+              {children}
+            </div>
+          ),
         }}
         onChange={(data) => {
           currentData.current = data
+          onChange({ ...document, data })
         }}
         onPublish={(data) => {
           currentData.current = data
           const savedDocument = { ...document, data }
-          saveDocument(savedDocument)
-          setDocument(savedDocument)
+          onChange(savedDocument)
+          onSave?.(savedDocument)
         }}
       />
     </div>

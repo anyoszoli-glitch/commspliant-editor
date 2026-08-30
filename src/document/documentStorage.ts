@@ -6,6 +6,9 @@ import {
   isLetterDocument,
   type LetterDocument,
 } from './document'
+import { normalizeDocumentName } from './documentMetadata'
+
+export const DOCUMENT_NAME_STORAGE_KEY = 'commspliant.document.current.name'
 
 function browserStorage(): Storage | undefined {
   return typeof window === 'undefined' ? undefined : window.localStorage
@@ -81,4 +84,12 @@ export function loadDocument(storage = browserStorage()): LetterDocument {
 
 export function saveDocument(document: LetterDocument, storage = browserStorage()): void {
   storage?.setItem(DOCUMENT_STORAGE_KEY, JSON.stringify(document))
+}
+
+export function loadDocumentName(storage = browserStorage()): string {
+  return normalizeDocumentName(storage?.getItem(DOCUMENT_NAME_STORAGE_KEY) ?? undefined)
+}
+
+export function saveDocumentName(documentName: string, storage = browserStorage()): void {
+  storage?.setItem(DOCUMENT_NAME_STORAGE_KEY, normalizeDocumentName(documentName))
 }
