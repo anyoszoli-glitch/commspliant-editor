@@ -8,14 +8,15 @@ import {
 import {
   DOCUMENT_NAME_STORAGE_KEY,
   loadDocument,
-  loadDocumentName,
   saveDocument,
-  saveDocumentName,
 } from './documentStorage'
 
-function createStorage(initialValue?: string): Storage {
+const createdAt = '2026-08-30T09:00:00.000Z'
+
+function createStorage(initialValue?: string, legacyName?: string): Storage {
   const values = new Map<string, string>()
   if (initialValue !== undefined) values.set(DOCUMENT_STORAGE_KEY, initialValue)
+  if (legacyName !== undefined) values.set(DOCUMENT_NAME_STORAGE_KEY, legacyName)
 
   return {
     get length() {
@@ -30,16 +31,28 @@ function createStorage(initialValue?: string): Storage {
 }
 
 describe('document storage', () => {
-  it('creates a versioned paged A4 letter document when nothing is stored', () => {
-    const document = loadDocument(createStorage())
+  it('creates a schema 4 draft with canonical metadata and deterministic timestamps', () => {
+    const document = loadDocument(createStorage(), createdAt)
 
     expect(document).toMatchObject({
       id: 'current-document',
       schemaVersion: DOCUMENT_SCHEMA_VERSION,
       documentType: 'letter',
+      name: 'Untitled document',
+      description: '',
+      status: 'draft',
+      createdAt,
+      updatedAt: createdAt,
       data: { content: [], root: {} },
       layout: { mode: 'paged', pageSize: 'A4', margins: { unit: 'mm' } },
     })
+  })
+
+  it('normalizes names when creating a document', () => {
+    expect(createDocument('named-letter', undefined, { name: '  Fee Change Letter  ', now: createdAt }))
+      .toMatchObject({ name: 'Fee Change Letter', createdAt, updatedAt: createdAt })
+    expect(createDocument('untitled-letter', undefined, { name: '   ', now: createdAt }).name)
+      .toBe('Untitled document')
   })
 
   it('serializes and restores paged and fluid layouts', () => {
@@ -74,7 +87,7 @@ describe('document storage', () => {
     expect(pagedDocument.layout.mode).toBe('paged')
   })
 
-  it('migrates a Phase 1 saved document to paged layout', () => {
+  it('migrates a schema 1 document to schema 4', () => {
     const phaseOneDocument = {
       id: 'old-letter',
       schemaVersion: 1,
@@ -86,9 +99,20 @@ describe('document storage', () => {
       },
     }
 
-    expect(loadDocument(createStorage(JSON.stringify(phaseOneDocument)))).toMatchObject({
+    expect(
+      loadDocument(
+        createStorage(JSON.stringify(phaseOneDocument), ' Legacy letter '),
+        createdAt,
+      ),
+    ).toMatchObject({
       id: 'old-letter',
       schemaVersion: DOCUMENT_SCHEMA_VERSION,
+      name: 'Legacy letter',
+      description: '',
+      status: 'draft',
+      createdAt,
+      updatedAt: createdAt,
+      data: phaseOneDocument.data,
       layout: {
         mode: 'paged',
         pageSize: 'A4',
@@ -97,7 +121,7 @@ describe('document storage', () => {
     })
   })
 
-  it('adds explicit fluid settings when migrating a Phase 2 fluid document', () => {
+  it('migrates a schema 2 fluid document to schema 4', () => {
     const phaseTwoDocument = {
       id: 'old-fluid-letter',
       schemaVersion: 2,
@@ -106,10 +130,52 @@ describe('document storage', () => {
       layout: { mode: 'fluid' },
     }
 
-    expect(loadDocument(createStorage(JSON.stringify(phaseTwoDocument))).layout).toEqual({
-      mode: 'fluid',
-      maxWidth: { value: 680, unit: 'px' },
-      padding: { top: 32, right: 32, bottom: 32, left: 32, unit: 'px' },
+    expect(loadDocument(createStorage(JSON.stringify(phaseTwoDocument)), createdAt)).toMatchObject({
+      schemaVersion: DOCUMENT_SCHEMA_VERSION,
+      name: 'Untitled document',
+      description: '',
+      status: 'draft',
+      createdAt,
+      updatedAt: createdAt,
+      layout: {
+        mode: 'fluid',
+        maxWidth: { value: 680, unit: 'px' },
+        padding: { top: 32, right: 32, bottom: 32, left: 32, unit: 'px' },
+      },
+    })
+  })
+
+  it('migrates a schema 3 document without changing its identity, content, or layout', () => {
+    const schemaThreeDocument = {
+      id: 'schema-three-letter',
+      schemaVersion: 3,
+      documentType: 'letter',
+      data: {
+        content: [{ type: 'HeadingBlock', props: { id: 'heading-1', text: 'Preserved' } }],
+        root: {},
+      },
+      layout: {
+        mode: 'paged',
+        pageSize: 'A4',
+        margins: { top: 15, right: 16, bottom: 17, left: 18, unit: 'mm' },
+      },
+    }
+
+    expect(
+      loadDocument(
+        createStorage(JSON.stringify(schemaThreeDocument), 'Schema 3 letter'),
+        createdAt,
+      ),
+    ).toMatchObject({
+      id: schemaThreeDocument.id,
+      schemaVersion: DOCUMENT_SCHEMA_VERSION,
+      name: 'Schema 3 letter',
+      description: '',
+      status: 'draft',
+      createdAt,
+      updatedAt: createdAt,
+      data: schemaThreeDocument.data,
+      layout: schemaThreeDocument.layout,
     })
   })
 
@@ -121,27 +187,57 @@ describe('document storage', () => {
       props: { id: 'heading-1', text: 'Saved heading' },
     })
 
-    saveDocument(document, storage)
+    const savedDocument = saveDocument(document, storage)
 
-    expect(loadDocument(storage)).toEqual(document)
+    expect(loadDocument(storage)).toEqual(savedDocument)
   })
 
-  it('persists and restores the standalone document name separately', () => {
-    const storage = createStorage()
+  it('imports and normalizes the legacy standalone name without deleting it', () => {
+    const schemaThreeDocument = {
+      id: 'legacy-name-letter',
+      schemaVersion: 3,
+      documentType: 'letter',
+      data: { content: [], root: {} },
+      layout: {
+        mode: 'paged',
+        pageSize: 'A4',
+        margins: { top: 20, right: 20, bottom: 20, left: 20, unit: 'mm' },
+      },
+    }
+    const storage = createStorage(JSON.stringify(schemaThreeDocument), '  Fee Change Letter  ')
 
-    saveDocumentName('Fee Change Letter', storage)
-
-    expect(loadDocumentName(storage)).toBe('Fee Change Letter')
-    expect(storage.getItem(DOCUMENT_NAME_STORAGE_KEY)).toBe('Fee Change Letter')
-    expect(storage.getItem(DOCUMENT_STORAGE_KEY)).toBeNull()
+    expect(loadDocument(storage, createdAt).name).toBe('Fee Change Letter')
+    expect(storage.getItem(DOCUMENT_NAME_STORAGE_KEY)).toBe('  Fee Change Letter  ')
   })
 
-  it('uses Untitled document for old standalone content without a saved name', () => {
-    const storage = createStorage()
-    saveDocument(createDocument('old-standalone-document'), storage)
+  it('falls back to Untitled document when a legacy name is missing', () => {
+    const schemaThreeDocument = {
+      id: 'unnamed-legacy-letter',
+      schemaVersion: 3,
+      documentType: 'letter',
+      data: { content: [], root: {} },
+      layout: {
+        mode: 'paged',
+        pageSize: 'A4',
+        margins: { top: 20, right: 20, bottom: 20, left: 20, unit: 'mm' },
+      },
+    }
 
-    expect(loadDocument(storage).id).toBe('old-standalone-document')
-    expect(loadDocumentName(storage)).toBe('Untitled document')
+    expect(loadDocument(createStorage(JSON.stringify(schemaThreeDocument)), createdAt).name)
+      .toBe('Untitled document')
+  })
+
+  it('preserves createdAt and advances updatedAt on each save', () => {
+    const storage = createStorage()
+    const document = createDocument('timestamped-letter', undefined, { now: createdAt })
+    const firstSave = saveDocument(document, storage, '2026-08-30T09:05:00.000Z')
+    const secondSave = saveDocument(firstSave, storage, '2026-08-30T09:05:00.000Z')
+
+    expect(firstSave.createdAt).toBe(createdAt)
+    expect(firstSave.updatedAt).toBe('2026-08-30T09:05:00.000Z')
+    expect(secondSave.createdAt).toBe(createdAt)
+    expect(secondSave.updatedAt).toBe('2026-08-30T09:05:00.001Z')
+    expect(loadDocument(storage)).toEqual(secondSave)
   })
 
   it('continues to load existing plain TextBlock values', () => {

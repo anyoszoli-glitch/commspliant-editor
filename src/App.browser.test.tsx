@@ -2,14 +2,8 @@ import { page, userEvent } from 'vitest/browser'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, describe, expect, it } from 'vitest'
 import App from './App'
-import { DOCUMENT_STORAGE_KEY, createDocument } from './document/document'
-import {
-  DOCUMENT_NAME_STORAGE_KEY,
-  loadDocument,
-  loadDocumentName,
-  saveDocument,
-  saveDocumentName,
-} from './document/documentStorage'
+import { DOCUMENT_SCHEMA_VERSION, DOCUMENT_STORAGE_KEY, type LetterDocument } from './document/document'
+import { DOCUMENT_NAME_STORAGE_KEY, loadDocument } from './document/documentStorage'
 
 const originalHeading = 'Original customer heading'
 const editedHeading = 'Updated customer heading'
@@ -55,18 +49,32 @@ afterEach(() => {
 })
 
 describe('App persistence', () => {
-  it('restores edited content, document name, and layout after publishing and remounting', async () => {
+  it('migrates and restores one canonical draft after saving and remounting', async () => {
     await page.viewport(1440, 900)
     localStorage.removeItem(DOCUMENT_STORAGE_KEY)
     localStorage.removeItem(DOCUMENT_NAME_STORAGE_KEY)
 
-    const seededDocument = createDocument('browser-test-document')
-    seededDocument.data.content.push({
-      type: 'HeadingBlock',
-      props: { id: 'heading-1', text: originalHeading },
-    })
-    saveDocument(seededDocument)
-    saveDocumentName('Original customer letter')
+    const schemaThreeDocument = {
+      id: 'browser-test-document',
+      schemaVersion: 3,
+      documentType: 'letter',
+      data: {
+        content: [
+          {
+            type: 'HeadingBlock',
+            props: { id: 'heading-1', text: originalHeading },
+          },
+        ],
+        root: {},
+      },
+      layout: {
+        mode: 'paged',
+        pageSize: 'A4',
+        margins: { top: 20, right: 20, bottom: 20, left: 20, unit: 'mm' },
+      },
+    }
+    localStorage.setItem(DOCUMENT_STORAGE_KEY, JSON.stringify(schemaThreeDocument))
+    localStorage.setItem(DOCUMENT_NAME_STORAGE_KEY, 'Original customer letter')
 
     mountApp()
 
@@ -87,14 +95,29 @@ describe('App persistence', () => {
     )
 
     await puckHeading(editedHeading)
-    await page.getByText('Publish', { exact: true }).click()
+    await page.getByText('Save draft', { exact: true }).click()
 
     await expect.poll(() => loadDocument().layout.mode).toBe('fluid')
-    expect(loadDocument().data.content[0]).toMatchObject({
+    const savedDocument = JSON.parse(
+      localStorage.getItem(DOCUMENT_STORAGE_KEY)!,
+    ) as LetterDocument
+    expect(savedDocument).toMatchObject({
+      id: 'browser-test-document',
+      schemaVersion: DOCUMENT_SCHEMA_VERSION,
+      documentType: 'letter',
+      name: editedName,
+      description: '',
+      status: 'draft',
+      layout: { mode: 'fluid' },
+    })
+    expect(savedDocument.data.content[0]).toMatchObject({
       type: 'HeadingBlock',
       props: { id: 'heading-1', text: editedHeading },
     })
-    expect(loadDocumentName()).toBe(editedName)
+    expect(savedDocument.createdAt).toMatch(/Z$/)
+    expect(savedDocument.updatedAt).toMatch(/Z$/)
+    expect(Date.parse(savedDocument.updatedAt)).toBeGreaterThan(Date.parse(savedDocument.createdAt))
+    expect(localStorage.getItem(DOCUMENT_NAME_STORAGE_KEY)).toBe('Original customer letter')
 
     unmountApp()
     mountApp()
@@ -107,5 +130,6 @@ describe('App persistence', () => {
       'true',
     )
     await puckHeading(editedHeading)
+    expect(loadDocument()).toEqual(savedDocument)
   })
 })

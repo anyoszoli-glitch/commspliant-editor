@@ -1,6 +1,7 @@
 import type { Data } from '@puckeditor/core'
+import { normalizeDocumentName } from './documentMetadata'
 
-export const DOCUMENT_SCHEMA_VERSION = 3 as const
+export const DOCUMENT_SCHEMA_VERSION = 4 as const
 export const DOCUMENT_STORAGE_KEY = 'commspliant.document.current'
 
 export type RichTextMark = {
@@ -70,8 +71,19 @@ export type LetterDocument = {
   id: string
   schemaVersion: typeof DOCUMENT_SCHEMA_VERSION
   documentType: 'letter'
+  name: string
+  description: string
+  status: 'draft'
+  createdAt: string
+  updatedAt: string
   data: DocumentData
   layout: DocumentLayout
+}
+
+type CreateDocumentOptions = {
+  name?: string
+  description?: string
+  now?: string
 }
 
 export const defaultPagedLayout: PagedDocumentLayout = {
@@ -89,11 +101,19 @@ export const defaultFluidLayout: FluidDocumentLayout = {
 export function createDocument(
   id = 'current-document',
   layout: DocumentLayout = defaultPagedLayout,
+  options: CreateDocumentOptions = {},
 ): LetterDocument {
+  const now = options.now ?? new Date().toISOString()
+
   return {
     id,
     schemaVersion: DOCUMENT_SCHEMA_VERSION,
     documentType: 'letter',
+    name: normalizeDocumentName(options.name),
+    description: options.description ?? '',
+    status: 'draft',
+    createdAt: now,
+    updatedAt: now,
     data: { content: [], root: {} },
     layout:
       layout.mode === 'paged'
@@ -130,6 +150,8 @@ export function isLetterDocument(value: unknown): value is LetterDocument {
 
   const document = value as Partial<LetterDocument>
   const layout = document.layout
+  const createdAt = typeof document.createdAt === 'string' ? Date.parse(document.createdAt) : NaN
+  const updatedAt = typeof document.updatedAt === 'string' ? Date.parse(document.updatedAt) : NaN
 
   const validLayout =
     (layout?.mode === 'fluid' &&
@@ -152,6 +174,15 @@ export function isLetterDocument(value: unknown): value is LetterDocument {
     typeof document.id === 'string' &&
     document.schemaVersion === DOCUMENT_SCHEMA_VERSION &&
     document.documentType === 'letter' &&
+    typeof document.name === 'string' &&
+    normalizeDocumentName(document.name) === document.name &&
+    typeof document.description === 'string' &&
+    document.status === 'draft' &&
+    Number.isFinite(createdAt) &&
+    Number.isFinite(updatedAt) &&
+    document.createdAt === new Date(createdAt).toISOString() &&
+    document.updatedAt === new Date(updatedAt).toISOString() &&
+    createdAt <= updatedAt &&
     Array.isArray(document.data?.content) &&
     typeof document.data?.root === 'object' &&
     document.data.root !== null &&

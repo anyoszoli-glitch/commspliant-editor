@@ -14,7 +14,11 @@ function browserStorage(): Storage | undefined {
   return typeof window === 'undefined' ? undefined : window.localStorage
 }
 
-function migrateDocument(value: unknown): LetterDocument | undefined {
+function migrateDocument(
+  value: unknown,
+  legacyName: string | undefined,
+  migrationTime: string,
+): LetterDocument | undefined {
   if (!value || typeof value !== 'object') return undefined
 
   const storedDocument = value as {
@@ -53,6 +57,8 @@ function migrateDocument(value: unknown): LetterDocument | undefined {
     }
   } else if (storedDocument.schemaVersion === 2 && storedDocument.layout?.mode === 'fluid') {
     layout = defaultFluidLayout
+  } else if (storedDocument.schemaVersion === 3) {
+    layout = storedDocument.layout
   } else {
     return undefined
   }
@@ -61,6 +67,11 @@ function migrateDocument(value: unknown): LetterDocument | undefined {
     id: storedDocument.id,
     schemaVersion: DOCUMENT_SCHEMA_VERSION,
     documentType: 'letter',
+    name: normalizeDocumentName(legacyName),
+    description: '',
+    status: 'draft',
+    createdAt: migrationTime,
+    updatedAt: migrationTime,
     data: storedDocument.data,
     layout,
   }
@@ -68,28 +79,39 @@ function migrateDocument(value: unknown): LetterDocument | undefined {
   return isLetterDocument(migratedDocument) ? migratedDocument : undefined
 }
 
-export function loadDocument(storage = browserStorage()): LetterDocument {
+export function loadDocument(
+  storage = browserStorage(),
+  now = new Date().toISOString(),
+): LetterDocument {
   const storedDocument = storage?.getItem(DOCUMENT_STORAGE_KEY)
-  if (!storedDocument) return createDocument()
+  if (!storedDocument) return createDocument('current-document', undefined, { now })
 
   try {
     const parsedDocument: unknown = JSON.parse(storedDocument)
     return isLetterDocument(parsedDocument)
       ? parsedDocument
-      : (migrateDocument(parsedDocument) ?? createDocument())
+      : (migrateDocument(
+          parsedDocument,
+          storage?.getItem(DOCUMENT_NAME_STORAGE_KEY) ?? undefined,
+          now,
+        ) ?? createDocument('current-document', undefined, { now }))
   } catch {
-    return createDocument()
+    return createDocument('current-document', undefined, { now })
   }
 }
 
-export function saveDocument(document: LetterDocument, storage = browserStorage()): void {
-  storage?.setItem(DOCUMENT_STORAGE_KEY, JSON.stringify(document))
-}
+export function saveDocument(
+  document: LetterDocument,
+  storage = browserStorage(),
+  now = new Date().toISOString(),
+): LetterDocument {
+  const currentUpdatedAt = Date.parse(document.updatedAt)
+  const requestedUpdatedAt = Date.parse(now)
+  const updatedAt = new Date(
+    requestedUpdatedAt > currentUpdatedAt ? requestedUpdatedAt : currentUpdatedAt + 1,
+  ).toISOString()
+  const savedDocument = { ...document, updatedAt }
 
-export function loadDocumentName(storage = browserStorage()): string {
-  return normalizeDocumentName(storage?.getItem(DOCUMENT_NAME_STORAGE_KEY) ?? undefined)
-}
-
-export function saveDocumentName(documentName: string, storage = browserStorage()): void {
-  storage?.setItem(DOCUMENT_NAME_STORAGE_KEY, normalizeDocumentName(documentName))
+  storage?.setItem(DOCUMENT_STORAGE_KEY, JSON.stringify(savedDocument))
+  return savedDocument
 }

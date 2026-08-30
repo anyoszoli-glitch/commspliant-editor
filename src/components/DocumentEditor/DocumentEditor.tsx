@@ -73,6 +73,7 @@ export function DocumentEditor({
         key={document.layout.mode}
         config={config}
         data={document.data}
+        dictionary={{ 'header-publish': 'Save draft' }}
         height="calc(100vh - 64px)"
         overrides={{
           drawerItem: ({ name }) => <BlockPickerItem name={name} />,
