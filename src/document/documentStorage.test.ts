@@ -120,6 +120,105 @@ describe('document storage', () => {
     expect(loadDocument(storage)).toEqual(document)
   })
 
+  it('continues to load existing plain TextBlock values', () => {
+    const storage = createStorage()
+    const document = createDocument('legacy-text-letter')
+    document.data.content.push({
+      type: 'TextBlock',
+      props: { id: 'text-1', text: 'Existing plain text' },
+    })
+
+    saveDocument(document, storage)
+
+    expect(loadDocument(storage).data.content).toContainEqual({
+      type: 'TextBlock',
+      props: { id: 'text-1', text: 'Existing plain text' },
+    })
+  })
+
+  it('serializes and restores rich TextBlock formatting', () => {
+    const storage = createStorage()
+    const document = createDocument('rich-text-letter')
+    const richText = {
+      type: 'doc' as const,
+      content: [
+        {
+          type: 'paragraph' as const,
+          content: [
+            { type: 'text' as const, text: 'Important', marks: [{ type: 'bold' as const }] },
+            { type: 'text' as const, text: ' and considered', marks: [{ type: 'italic' as const }] },
+            {
+              type: 'text' as const,
+              text: ' guidance',
+              marks: [{ type: 'underline' as const }],
+            },
+            {
+              type: 'text' as const,
+              text: ' online',
+              marks: [{ type: 'link' as const, attrs: { href: 'https://example.com' } }],
+            },
+          ],
+        },
+        {
+          type: 'heading' as const,
+          attrs: { level: 2 },
+          content: [{ type: 'text' as const, text: 'Internal section' }],
+        },
+        {
+          type: 'bulletList' as const,
+          content: [
+            {
+              type: 'listItem' as const,
+              content: [{ type: 'paragraph' as const, content: [{ type: 'text' as const, text: 'Item' }] }],
+            },
+          ],
+        },
+        {
+          type: 'orderedList' as const,
+          content: [
+            {
+              type: 'listItem' as const,
+              content: [
+                { type: 'paragraph' as const, content: [{ type: 'text' as const, text: 'Step' }] },
+              ],
+            },
+          ],
+        },
+      ],
+    }
+    document.data.content.push({
+      type: 'TextBlock',
+      props: { id: 'text-1', text: richText },
+    })
+
+    saveDocument(document, storage)
+
+    expect(loadDocument(storage).data.content[0]).toMatchObject({ props: { text: richText } })
+  })
+
+  it('preserves rich TextBlock formatting through layout switching', () => {
+    const document = createDocument('switching-rich-text-letter')
+    const richText = {
+      type: 'doc' as const,
+      content: [
+        {
+          type: 'paragraph' as const,
+          content: [
+            { type: 'text' as const, text: 'Styled', marks: [{ type: 'italic' as const }] },
+          ],
+        },
+      ],
+    }
+    document.data.content.push({
+      type: 'TextBlock',
+      props: { id: 'text-1', text: richText },
+    })
+
+    const restored = changeDocumentLayout(changeDocumentLayout(document, 'fluid'), 'paged')
+
+    expect(restored.data.content[0]).toMatchObject({ props: { text: richText } })
+  })
+
   it('serializes and restores explicit page breaks', () => {
     const storage = createStorage()
     const document = createDocument('letter-with-break')

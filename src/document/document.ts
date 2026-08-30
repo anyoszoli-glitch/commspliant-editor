@@ -3,9 +3,33 @@ import type { Data } from '@puckeditor/core'
 export const DOCUMENT_SCHEMA_VERSION = 3 as const
 export const DOCUMENT_STORAGE_KEY = 'commspliant.document.current'
 
+export type RichTextMark = {
+  type: 'bold' | 'italic' | 'underline' | 'link'
+  attrs?: Record<string, unknown>
+}
+
+export type RichTextNode = {
+  type:
+    | 'doc'
+    | 'paragraph'
+    | 'heading'
+    | 'text'
+    | 'hardBreak'
+    | 'bulletList'
+    | 'orderedList'
+    | 'listItem'
+  attrs?: Record<string, unknown>
+  content?: RichTextNode[]
+  marks?: RichTextMark[]
+  text?: string
+}
+
+export type RichTextDocument = RichTextNode & { type: 'doc' }
+export type RichTextValue = string | RichTextDocument
+
 export type EditorComponents = {
   HeadingBlock: { text: string }
-  TextBlock: { text: string }
+  TextBlock: { text: RichTextValue }
   PageBreakBlock: {}
 }
 

@@ -6,7 +6,8 @@ type TextBlockProps = {
 
 export function TextBlock({ text }: TextBlockProps) {
   return (
-    <p
+    <div
+      className="commspliant-text-block"
       style={{
         fontSize: '16px',
         lineHeight: 1.6,
@@ -14,6 +15,6 @@ export function TextBlock({ text }: TextBlockProps) {
       }}
     >
       {text}
-    </p>
+    </div>
   )
 }

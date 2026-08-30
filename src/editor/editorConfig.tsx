@@ -4,6 +4,7 @@ import { LayoutBlock } from '../components/DocumentCanvas/LayoutBlock'
 import { HeadingBlock } from '../components/HeadingBlock/HeadingBlock'
 import { TextBlock } from '../components/TextBlock/TextBlock'
 import { PageBreakBlock } from '../components/PageBreakBlock/PageBreakBlock'
+import { RichTextToolbar } from './RichTextToolbar'
 import type { DocumentLayout, EditorComponents } from '../document/document'
 
 export function createEditorConfig(layout: DocumentLayout): Config<EditorComponents> {
@@ -28,11 +29,37 @@ export function createEditorConfig(layout: DocumentLayout): Config<EditorCompone
       },
       TextBlock: {
         label: 'Text',
-        fields: { text: { type: 'textarea', contentEditable: true } },
-        defaultProps: { text: 'Write your text here.' },
+        fields: {
+          text: {
+            type: 'richtext',
+            contentEditable: true,
+            options: {
+              blockquote: false,
+              code: false,
+              codeBlock: false,
+              heading: { levels: [2, 3] },
+              horizontalRule: false,
+              strike: false,
+              textAlign: false,
+            },
+            renderMenu: (props) => <RichTextToolbar {...props} />,
+            renderInlineMenu: (props) => <RichTextToolbar {...props} />,
+          },
+        },
+        defaultProps: {
+          text: {
+            type: 'doc',
+            content: [
+              {
+                type: 'paragraph',
+                content: [{ type: 'text', text: 'Write your text here.' }],
+              },
+            ],
+          },
+        },
         render: ({ id, text }) => (
           <LayoutBlock id={id}>
-            <TextBlock text={text} />
+            <TextBlock text={text as React.ReactNode} />
           </LayoutBlock>
         ),
       },

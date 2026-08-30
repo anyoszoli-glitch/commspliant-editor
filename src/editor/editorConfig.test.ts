@@ -11,8 +11,17 @@ describe('editor config', () => {
       contentEditable: true,
     })
     expect(config.components.TextBlock.fields?.text).toMatchObject({
-      type: 'textarea',
+      type: 'richtext',
       contentEditable: true,
+      options: {
+        blockquote: false,
+        code: false,
+        codeBlock: false,
+        heading: { levels: [2, 3] },
+        horizontalRule: false,
+        strike: false,
+        textAlign: false,
+      },
     })
     expect(config.components.PageBreakBlock.label).toBe('Page break')
   })
