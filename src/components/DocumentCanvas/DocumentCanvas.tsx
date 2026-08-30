@@ -49,6 +49,7 @@ function PagedCanvas({
       (block) => ({
         id: block.dataset.documentBlock ?? '',
         height: block.getBoundingClientRect().height,
+        breakAfter: block.dataset.pageBreak === 'after',
       }),
     )
     const nextPagination = paginateBlocks(blocks, {

@@ -120,6 +120,36 @@ describe('document storage', () => {
     expect(loadDocument(storage)).toEqual(document)
   })
 
+  it('serializes and restores explicit page breaks', () => {
+    const storage = createStorage()
+    const document = createDocument('letter-with-break')
+    document.data.content.push({
+      type: 'PageBreakBlock',
+      props: { id: 'page-break-1' },
+    })
+
+    saveDocument(document, storage)
+
+    expect(loadDocument(storage).data.content).toContainEqual({
+      type: 'PageBreakBlock',
+      props: { id: 'page-break-1' },
+    })
+  })
+
+  it('preserves explicit page breaks through paged, fluid, and paged switching', () => {
+    const document = createDocument()
+    document.data.content.push({
+      type: 'PageBreakBlock',
+      props: { id: 'page-break-1' },
+    })
+
+    const fluidDocument = changeDocumentLayout(document, 'fluid')
+    const pagedDocument = changeDocumentLayout(fluidDocument, 'paged')
+
+    expect(fluidDocument.data.content).toEqual(document.data.content)
+    expect(pagedDocument.data.content).toEqual(document.data.content)
+  })
+
   it('falls back to a new document for corrupt or unsupported data', () => {
     expect(loadDocument(createStorage('not JSON')).data.content).toEqual([])
     expect(

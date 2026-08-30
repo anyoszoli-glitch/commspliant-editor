@@ -6,6 +6,7 @@ export const DOCUMENT_STORAGE_KEY = 'commspliant.document.current'
 export type EditorComponents = {
   HeadingBlock: { text: string }
   TextBlock: { text: string }
+  PageBreakBlock: {}
 }
 
 export type PageMargins = {

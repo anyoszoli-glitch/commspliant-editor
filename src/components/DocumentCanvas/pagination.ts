@@ -1,6 +1,7 @@
 export type MeasuredBlock = {
   id: string
   height: number
+  breakAfter?: boolean
 }
 
 export type BlockPlacement = {
@@ -28,12 +29,14 @@ export function paginateBlocks(
   const placements: Record<string, BlockPlacement> = {}
   let page = 1
   let usedHeight = 0
+  let pendingOffset = 0
 
   for (const block of blocks) {
-    let offsetBefore = 0
+    let offsetBefore = pendingOffset
+    pendingOffset = 0
 
-    if (usedHeight > 0 && block.height > usableHeight - usedHeight) {
-      offsetBefore =
+    if (!block.breakAfter && usedHeight > 0 && block.height > usableHeight - usedHeight) {
+      offsetBefore +=
         usableHeight - usedHeight + metrics.marginBottom + metrics.pageGap + metrics.marginTop
       page += 1
       usedHeight = 0
@@ -41,6 +44,13 @@ export function paginateBlocks(
 
     placements[block.id] = { page, offsetBefore }
     usedHeight += block.height
+
+    if (block.breakAfter) {
+      pendingOffset =
+        usableHeight - usedHeight + metrics.marginBottom + metrics.pageGap + metrics.marginTop
+      page += 1
+      usedHeight = 0
+    }
   }
 
   return { pageCount: page, placements }

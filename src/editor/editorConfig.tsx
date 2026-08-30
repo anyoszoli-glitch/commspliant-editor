@@ -3,6 +3,7 @@ import { DocumentCanvas } from '../components/DocumentCanvas/DocumentCanvas'
 import { LayoutBlock } from '../components/DocumentCanvas/LayoutBlock'
 import { HeadingBlock } from '../components/HeadingBlock/HeadingBlock'
 import { TextBlock } from '../components/TextBlock/TextBlock'
+import { PageBreakBlock } from '../components/PageBreakBlock/PageBreakBlock'
 import type { DocumentLayout, EditorComponents } from '../document/document'
 
 export function createEditorConfig(layout: DocumentLayout): Config<EditorComponents> {
@@ -16,6 +17,7 @@ export function createEditorConfig(layout: DocumentLayout): Config<EditorCompone
     },
     components: {
       HeadingBlock: {
+        label: 'Heading',
         fields: { text: { type: 'text', contentEditable: true } },
         defaultProps: { text: 'New heading' },
         render: ({ id, text }) => (
@@ -25,11 +27,21 @@ export function createEditorConfig(layout: DocumentLayout): Config<EditorCompone
         ),
       },
       TextBlock: {
+        label: 'Text',
         fields: { text: { type: 'textarea', contentEditable: true } },
         defaultProps: { text: 'Write your text here.' },
         render: ({ id, text }) => (
           <LayoutBlock id={id}>
             <TextBlock text={text} />
+          </LayoutBlock>
+        ),
+      },
+      PageBreakBlock: {
+        label: 'Page break',
+        defaultProps: {},
+        render: ({ id }) => (
+          <LayoutBlock id={id} breakAfter>
+            <PageBreakBlock />
           </LayoutBlock>
         ),
       },

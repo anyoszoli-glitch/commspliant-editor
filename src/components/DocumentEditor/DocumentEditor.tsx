@@ -13,6 +13,7 @@ import {
   type PagedDocumentLayout,
 } from '../../document/document'
 import { createEditorConfig } from '../../editor/editorConfig'
+import { BlockPickerItem } from './BlockPickerItem'
 
 export function DocumentEditor() {
   const [document, setDocument] = useState(loadDocument)
@@ -65,6 +66,9 @@ export function DocumentEditor() {
         data={document.data}
         height="calc(100vh - 57px)"
         headerTitle="CommsPliant document editor"
+        overrides={{
+          drawerItem: ({ name }) => <BlockPickerItem name={name} />,
+        }}
         onChange={(data) => {
           currentData.current = data
         }}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defaultPagedLayout } from '../document/document'
+import { defaultFluidLayout, defaultPagedLayout } from '../document/document'
 import { createEditorConfig } from './editorConfig'
 
 describe('editor config', () => {
@@ -14,5 +14,12 @@ describe('editor config', () => {
       type: 'textarea',
       contentEditable: true,
     })
+    expect(config.components.PageBreakBlock.label).toBe('Page break')
+  })
+
+  it('keeps the page break component available in fluid mode', () => {
+    const config = createEditorConfig(defaultFluidLayout)
+
+    expect(config.components.PageBreakBlock).toBeDefined()
   })
 })
