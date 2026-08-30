@@ -17,6 +17,7 @@ import {
 type LayoutSettingsProps = {
   layout: DocumentLayout
   onChange: (layout: DocumentLayout) => void
+  disabled?: boolean
 }
 
 const pagedMargins: Array<{ key: PagedMargin; label: string }> = [
@@ -26,7 +27,7 @@ const pagedMargins: Array<{ key: PagedMargin; label: string }> = [
   { key: 'left', label: 'Left margin' },
 ]
 
-export function LayoutSettings({ layout, onChange }: LayoutSettingsProps) {
+export function LayoutSettings({ layout, onChange, disabled = false }: LayoutSettingsProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [resetVersion, setResetVersion] = useState(0)
@@ -69,6 +70,7 @@ export function LayoutSettings({ layout, onChange }: LayoutSettingsProps) {
         aria-expanded={isOpen}
         aria-controls="layout-settings-panel"
         onClick={togglePanel}
+        disabled={disabled}
       >
         Layout settings
       </button>

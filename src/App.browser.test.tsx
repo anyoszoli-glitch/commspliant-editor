@@ -1,8 +1,15 @@
 import { page, userEvent } from 'vitest/browser'
+import { flushSync } from 'react-dom'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, describe, expect, it } from 'vitest'
 import App from './App'
-import { DOCUMENT_SCHEMA_VERSION, DOCUMENT_STORAGE_KEY, type LetterDocument } from './document/document'
+import { DocumentEditor } from './components/DocumentEditor/DocumentEditor'
+import {
+  createDocument,
+  DOCUMENT_SCHEMA_VERSION,
+  DOCUMENT_STORAGE_KEY,
+  type LetterDocument,
+} from './document/document'
 import { DOCUMENT_NAME_STORAGE_KEY, loadDocument } from './document/documentStorage'
 import { sanitizeRichTextHtml } from './document/richTextSanitizer'
 
@@ -24,6 +31,8 @@ const noticeText = {
     },
   ],
 }
+const previewVariablesText =
+  '<p><span data-commspliant-variable="missingValue">{{missingValue}}</span> <span data-commspliant-variable="emptyValue">{{emptyValue}}</span> <span data-commspliant-variable="htmlValue">{{htmlValue}}</span> <span data-commspliant-variable="oldVariable">{{oldVariable}}</span></p>'
 
 let root: Root | undefined
 let container: HTMLDivElement | undefined
@@ -88,7 +97,7 @@ async function puckVariable(label: string) {
     return frame?.contentDocument?.readyState
   }).toBe('complete')
 
-  return page.frameLocator(page.elementLocator(frame!)).getByRole('img', { name: `Variable: ${label}` })
+  return page.frameLocator(page.elementLocator(frame!)).getByRole('img', { name: `Variable: ${label}` }).first()
 }
 
 afterEach(() => {
@@ -153,6 +162,66 @@ describe('App persistence', () => {
     )
   })
 
+  it('shows preview only when values are supplied and keeps the projection out of onChange', async () => {
+    await page.viewport(1440, 900)
+    const previewDocument = {
+      ...createDocument('preview-control-document'),
+      data: {
+        root: {},
+        content: [
+          {
+            type: 'TextBlock' as const,
+            props: {
+              id: 'preview-control-text',
+              text: '<p><span data-commspliant-variable="customerName">{{customerName}}</span></p>',
+            },
+          },
+        ],
+      },
+    }
+    let changeCount = 0
+    container = document.createElement('div')
+    document.body.append(container)
+    root = createRoot(container)
+    const renderEditor = (previewValues?: Readonly<Record<string, string>>) => {
+      flushSync(() => {
+        root?.render(
+          <DocumentEditor
+            value={previewDocument}
+            variableDefinitions={[{ key: 'customerName', label: 'Customer name' }]}
+            previewValues={previewValues}
+            onChange={() => {
+              changeCount += 1
+            }}
+            onSave={() => undefined}
+          />,
+        )
+      })
+    }
+
+    renderEditor()
+    await expect.element(page.getByRole('button', { name: 'Preview' })).not.toBeInTheDocument()
+    await (await puckVariable('Customer name')).hover()
+
+    renderEditor({ customerName: 'Andrea' })
+    await expect.element(page.getByRole('button', { name: 'Author' })).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(page.getByRole('button', { name: 'Preview' }))
+    await puckText('Andrea')
+    expect(changeCount).toBe(0)
+
+    await userEvent.click(page.getByRole('button', { name: 'Author' }))
+    await (await puckVariable('Customer name')).hover()
+    expect(changeCount).toBe(0)
+
+    await userEvent.click(page.getByRole('button', { name: 'Preview' }))
+    await puckText('Andrea')
+
+    renderEditor(undefined)
+    await expect.element(page.getByRole('button', { name: 'Preview' })).not.toBeInTheDocument()
+    await (await puckVariable('Customer name')).hover()
+    expect(changeCount).toBe(0)
+  })
+
   it('saves and restores one canonical draft after editing content, metadata, and layout', async () => {
     await page.viewport(1440, 900)
     localStorage.removeItem(DOCUMENT_STORAGE_KEY)
@@ -184,6 +253,18 @@ describe('App persistence', () => {
           {
             type: 'TextBlock',
             props: { id: 'literal-braces', text: '<p>{{customerName}}</p>' },
+          },
+          {
+            type: 'NoticeBlock',
+            props: {
+              id: 'notice-preview',
+              heading: 'Preview notice',
+              text: '<p>For <span data-commspliant-variable="customerName">{{customerName}}</span>.</p>',
+            },
+          },
+          {
+            type: 'TextBlock',
+            props: { id: 'preview-variables', text: previewVariablesText },
           },
         ],
         root: {},
@@ -274,6 +355,17 @@ describe('App persistence', () => {
     await expect.element(page.getByRole('spinbutton', { name: 'Content width' })).toHaveValue(760)
 
     await puckHeading(editedHeading)
+    await userEvent.click(page.getByRole('button', { name: 'Preview' }))
+    await expect.element(page.getByRole('button', { name: 'Preview' })).toHaveAttribute('aria-pressed', 'true')
+    await puckText('Andrea')
+    await puckText('[Missing: Missing value]')
+    await puckText('[Empty: Empty value]')
+    await puckText('<img src=x onerror=alert(1)>')
+    await puckText('[Unknown variable: oldVariable]')
+    await expect.element(page.getByRole('textbox', { name: 'Document name' })).not.toBeInTheDocument()
+    await expect.element(page.getByRole('button', { name: 'Layout settings' })).toBeDisabled()
+    await expect.element(page.getByRole('combobox', { name: 'Insert variable' })).not.toBeInTheDocument()
+
     await page.getByText('Save draft', { exact: true }).click()
 
     await expect.poll(() => loadDocument().layout.mode).toBe('fluid')
@@ -308,6 +400,18 @@ describe('App persistence', () => {
         text: '<p>Dear <span data-commspliant-variable="customerName">{{customerName}}</span></p>',
       },
     })
+    expect(savedDocument.data.content[4]).toMatchObject({
+      type: 'NoticeBlock',
+      props: {
+        id: 'notice-preview',
+        text: '<p>For <span data-commspliant-variable="customerName">{{customerName}}</span>.</p>',
+      },
+    })
+    expect(savedDocument.data.content[5]).toMatchObject({
+      type: 'TextBlock',
+      props: { id: 'preview-variables', text: previewVariablesText },
+    })
+    expect(JSON.stringify(savedDocument)).not.toContain('Andrea')
     expect(savedDocument.createdAt).toMatch(/Z$/)
     expect(savedDocument.updatedAt).toMatch(/Z$/)
     expect(Date.parse(savedDocument.updatedAt)).toBeGreaterThan(Date.parse(savedDocument.createdAt))

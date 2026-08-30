@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createConstrainedRichTextField } from './editorConfig'
 import { VariableNode } from './VariableNode'
-import { normalizeVariableDefinitions } from './variables'
+import { normalizeVariableDefinitions, resolveVariable } from './variables'
 
 describe('inline variables', () => {
   it('keeps valid unique definitions and excludes invalid or duplicate keys', () => {
@@ -24,5 +24,37 @@ describe('inline variables', () => {
 
     expect(field.tiptap?.extensions?.[0].name).toBe('variable')
     expect(VariableNode.name).toBe('variable')
+  })
+
+  it('resolves known definitions with supplied values, including an empty string', () => {
+    const definitions = [{ key: 'customerName', label: 'Customer name' }]
+
+    expect(resolveVariable('customerName', definitions, { customerName: 'Andrea' })).toEqual({
+      status: 'resolved',
+      definition: definitions[0],
+      value: 'Andrea',
+    })
+    expect(resolveVariable('customerName', definitions, { customerName: '' })).toEqual({
+      status: 'resolved',
+      definition: definitions[0],
+      value: '',
+    })
+  })
+
+  it('keeps missing and unknown variables distinct', () => {
+    const definitions = [{ key: 'customerName', label: 'Customer name' }]
+
+    expect(resolveVariable('customerName', definitions, {})).toEqual({
+      status: 'missing-value',
+      definition: definitions[0],
+    })
+    expect(resolveVariable('oldVariable', definitions, { oldVariable: 'obsolete' })).toEqual({
+      status: 'unknown-variable',
+      key: 'oldVariable',
+    })
+    expect(resolveVariable('customerName', definitions, { unused: 'value' })).toEqual({
+      status: 'missing-value',
+      definition: definitions[0],
+    })
   })
 })

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Puck } from '@puckeditor/core'
 import '@puckeditor/core/puck.css'
 
@@ -16,9 +16,15 @@ import { createEditorConfig } from '../../editor/editorConfig'
 import { BlockPickerItem } from './BlockPickerItem'
 import { DocumentIdentity, type DocumentIdentityProps } from './DocumentIdentity'
 import { LayoutSettings } from './LayoutSettings'
-import { normalizeVariableDefinitions, type VariableDefinition } from '../../editor/variables'
+import {
+  normalizeVariableDefinitions,
+  type VariableDefinition,
+  type VariablePreviewValues,
+} from '../../editor/variables'
 
-export type { VariableDefinition } from '../../editor/variables'
+export type { VariableDefinition, VariablePreviewValues } from '../../editor/variables'
+
+const emptyPreviewValues: VariablePreviewValues = {}
 
 export type DocumentEditorProps = Omit<
   DocumentIdentityProps,
@@ -28,6 +34,7 @@ export type DocumentEditorProps = Omit<
   onChange: (document: LetterDocument) => void
   onSave?: (document: LetterDocument) => void
   variableDefinitions?: readonly VariableDefinition[]
+  previewValues?: VariablePreviewValues
 }
 
 export function DocumentEditor({
@@ -37,8 +44,12 @@ export function DocumentEditor({
   onChange,
   onSave,
   variableDefinitions = [],
+  previewValues,
 }: DocumentEditorProps) {
   const document = value
+  const [isPreview, setIsPreview] = useState(false)
+  const [previewRevision, setPreviewRevision] = useState(0)
+  const previousPreviewValues = useRef(previewValues)
   const validVariableDefinitions = useMemo(
     () => normalizeVariableDefinitions(variableDefinitions),
     [variableDefinitions],
@@ -51,8 +62,8 @@ export function DocumentEditor({
     document.layout.mode === 'fluid' ? document.layout : defaultFluidLayout,
   )
   const config = useMemo(
-    () => createEditorConfig(document.layout, validVariableDefinitions),
-    [document.layout, validVariableDefinitions],
+    () => createEditorConfig(document.layout, validVariableDefinitions, isPreview, previewValues ?? emptyPreviewValues),
+    [document.layout, isPreview, previewValues, validVariableDefinitions],
   )
 
   useEffect(() => {
@@ -61,7 +72,27 @@ export function DocumentEditor({
     if (document.layout.mode === 'fluid') lastFluidLayout.current = document.layout
   }, [document])
 
+  useEffect(() => {
+    const previewValuesChanged = previousPreviewValues.current !== previewValues
+    previousPreviewValues.current = previewValues
+
+    if (isPreview && previewValues === undefined) {
+      setIsPreview(false)
+      setPreviewRevision((revision) => revision + 1)
+    } else if (previewValuesChanged) {
+      setPreviewRevision((revision) => revision + 1)
+    }
+  }, [isPreview, previewValues])
+
+  const togglePreview = (nextPreview: boolean) => {
+    if (nextPreview && previewValues === undefined) return
+    if (nextPreview === isPreview) return
+    setIsPreview(nextPreview)
+    setPreviewRevision((revision) => revision + 1)
+  }
+
   const selectLayout = (mode: DocumentLayout['mode']) => {
+    if (isPreview) return
     if (mode === document.layout.mode) return
     if (document.layout.mode === 'paged') lastPagedLayout.current = document.layout
     if (document.layout.mode === 'fluid') lastFluidLayout.current = document.layout
@@ -77,6 +108,7 @@ export function DocumentEditor({
   }
 
   const updateLayout = (layout: DocumentLayout) => {
+    if (isPreview) return
     if (layout.mode === 'paged') lastPagedLayout.current = layout
     if (layout.mode === 'fluid') lastFluidLayout.current = layout
     onChange({ ...document, data: currentData.current, layout })
@@ -88,21 +120,32 @@ export function DocumentEditor({
         <DocumentIdentity
           documentName={document.name}
           description={document.description}
-          onDocumentNameChange={onDocumentNameChange}
-          onDocumentDescriptionChange={onDocumentDescriptionChange}
+          onDocumentNameChange={isPreview ? undefined : onDocumentNameChange}
+          onDocumentDescriptionChange={isPreview ? undefined : onDocumentDescriptionChange}
           status={document.status}
         />
       </div>
       <Puck
-        key={document.layout.mode}
+        key={`${document.layout.mode}-${previewRevision}`}
         config={config}
-        data={document.data}
+        data={currentData.current}
         dictionary={{ 'header-publish': 'Save draft' }}
         height="calc(100vh - 64px)"
+        permissions={isPreview ? { drag: false, duplicate: false, delete: false, edit: false, insert: false } : undefined}
         overrides={{
           drawerItem: ({ name }) => <BlockPickerItem name={name} />,
           headerActions: ({ children }) => (
             <div className="document-editor__header-actions">
+              {previewValues !== undefined && (
+                <div className="document-editor__preview-toggle" aria-label="Variable presentation">
+                  <button type="button" aria-pressed={!isPreview} onClick={() => togglePreview(false)}>
+                    Author
+                  </button>
+                  <button type="button" aria-pressed={isPreview} onClick={() => togglePreview(true)}>
+                    Preview
+                  </button>
+                </div>
+              )}
               <div className="document-editor__layout-controls">
                 <div className="document-editor__layout-switch" aria-label="Document layout">
                   <span>Document layout:</span>
@@ -110,6 +153,7 @@ export function DocumentEditor({
                     type="button"
                     aria-pressed={document.layout.mode === 'paged'}
                     onClick={() => selectLayout('paged')}
+                    disabled={isPreview}
                   >
                     Paged / A4
                   </button>
@@ -117,17 +161,19 @@ export function DocumentEditor({
                     type="button"
                     aria-pressed={document.layout.mode === 'fluid'}
                     onClick={() => selectLayout('fluid')}
+                    disabled={isPreview}
                   >
                     Fluid
                   </button>
                 </div>
-                <LayoutSettings layout={document.layout} onChange={updateLayout} />
+                <LayoutSettings layout={document.layout} onChange={updateLayout} disabled={isPreview} />
               </div>
               {children}
             </div>
           ),
         }}
         onChange={(data) => {
+          if (isPreview) return
           currentData.current = data
           onChange({ ...document, data })
         }}

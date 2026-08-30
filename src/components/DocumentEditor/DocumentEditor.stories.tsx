@@ -68,6 +68,37 @@ const noticeContent: DocumentData['content'] = [
   ...populatedContent.slice(2),
 ]
 
+const variableContent: DocumentData['content'] = [
+  {
+    type: 'TextBlock',
+    props: {
+      id: 'text-variable-preview',
+      text: '<p>Dear <span data-commspliant-variable="customerName">{{customerName}}</span>, <span data-commspliant-variable="missingValue">{{missingValue}}</span>, <span data-commspliant-variable="emptyValue">{{emptyValue}}</span>, <span data-commspliant-variable="htmlValue">{{htmlValue}}</span>, <span data-commspliant-variable="oldVariable">{{oldVariable}}</span>.</p>',
+    },
+  },
+  {
+    type: 'NoticeBlock',
+    props: {
+      id: 'notice-variable-preview',
+      heading: 'Action required',
+      text: '<p>Account holder: <span data-commspliant-variable="customerName">{{customerName}}</span>.</p>',
+    },
+  },
+]
+
+const previewVariableDefinitions = [
+  { key: 'customerName', label: 'Customer name' },
+  { key: 'missingValue', label: 'Missing value' },
+  { key: 'emptyValue', label: 'Empty value' },
+  { key: 'htmlValue', label: 'HTML-like value' },
+]
+
+const previewValues = {
+  customerName: 'Andrea',
+  emptyValue: '',
+  htmlValue: '<img src=x onerror=alert(1)>',
+}
+
 const longContent: DocumentData['content'] = [
   ...populatedContent,
   {
@@ -217,5 +248,24 @@ export const SaveDraftAction: Story = {
   args: {
     value: createStoryDocument(),
     onSave: () => undefined,
+  },
+}
+
+export const VariableAuthor: Story = {
+  args: {
+    value: createStoryDocument(defaultPagedLayout, variableContent),
+    variableDefinitions: previewVariableDefinitions,
+    previewValues,
+  },
+}
+
+export const VariablePreview: Story = {
+  args: {
+    value: createStoryDocument(defaultPagedLayout, variableContent),
+    variableDefinitions: previewVariableDefinitions,
+    previewValues,
+  },
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole('button', { name: 'Preview' }))
   },
 }

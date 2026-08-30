@@ -8,10 +8,12 @@ import { NoticeBlock } from '../components/NoticeBlock/NoticeBlock'
 import { RichTextToolbar } from './RichTextToolbar'
 import type { DocumentLayout, EditorComponents } from '../document/document'
 import { VariableNode } from './VariableNode'
-import type { VariableDefinition } from './variables'
+import type { VariableDefinition, VariablePreviewValues } from './variables'
 
 export function createConstrainedRichTextField(
   variableDefinitions: readonly VariableDefinition[] = [],
+  previewEnabled = false,
+  previewValues: VariablePreviewValues = {},
 ) {
   return {
   type: 'richtext' as const,
@@ -24,15 +26,15 @@ export function createConstrainedRichTextField(
     horizontalRule: false,
     strike: false,
     textAlign: false,
-  },
+    },
     tiptap: {
-      extensions: [VariableNode.configure({ variableDefinitions })],
+      extensions: [VariableNode.configure({ variableDefinitions, previewEnabled, previewValues })],
     },
     renderMenu: (props: Parameters<typeof RichTextToolbar>[0]) => (
-      <RichTextToolbar {...props} variableDefinitions={variableDefinitions} />
+      <RichTextToolbar {...props} variableDefinitions={variableDefinitions} readOnly={props.readOnly || previewEnabled} />
     ),
     renderInlineMenu: (props: Parameters<typeof RichTextToolbar>[0]) => (
-      <RichTextToolbar {...props} variableDefinitions={variableDefinitions} />
+      <RichTextToolbar {...props} variableDefinitions={variableDefinitions} readOnly={props.readOnly || previewEnabled} />
     ),
   } satisfies RichtextField
 }
@@ -50,8 +52,14 @@ export const defaultRichTextValue = {
 export function createEditorConfig(
   layout: DocumentLayout,
   variableDefinitions: readonly VariableDefinition[] = [],
+  previewEnabled = false,
+  previewValues: VariablePreviewValues = {},
 ): Config<EditorComponents> {
-  const constrainedRichTextField = createConstrainedRichTextField(variableDefinitions)
+  const constrainedRichTextField = createConstrainedRichTextField(
+    variableDefinitions,
+    previewEnabled,
+    previewValues,
+  )
   return {
     root: {
       render: ({ children }) => (
