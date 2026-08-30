@@ -8,7 +8,7 @@ function App() {
 
   return (
     <DocumentEditor
-      document={document}
+      value={document}
       onDocumentNameChange={(name) => setDocument((current) => ({ ...current, name }))}
       onDocumentDescriptionChange={(description) =>
         setDocument((current) => ({ ...current, description }))

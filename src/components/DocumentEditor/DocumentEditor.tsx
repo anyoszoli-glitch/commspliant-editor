@@ -21,18 +21,19 @@ export type DocumentEditorProps = Omit<
   DocumentIdentityProps,
   'documentName' | 'description' | 'status'
 > & {
-  document: LetterDocument
+  value: LetterDocument
   onChange: (document: LetterDocument) => void
   onSave?: (document: LetterDocument) => void
 }
 
 export function DocumentEditor({
-  document,
+  value,
   onDocumentNameChange,
   onDocumentDescriptionChange,
   onChange,
   onSave,
 }: DocumentEditorProps) {
+  const document = value
   const currentData = useRef<DocumentData>(document.data)
   const lastPagedLayout = useRef<PagedDocumentLayout>(
     document.layout.mode === 'paged' ? document.layout : defaultPagedLayout,

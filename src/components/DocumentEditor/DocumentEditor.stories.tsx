@@ -103,12 +103,12 @@ function createStoryDocument(
 }
 
 function DocumentEditorStory(args: DocumentEditorProps) {
-  const [document, setDocument] = useState(args.document)
+  const [document, setDocument] = useState(args.value)
 
   return (
     <DocumentEditor
       {...args}
-      document={document}
+      value={document}
       onChange={setDocument}
       onDocumentNameChange={
         args.onDocumentNameChange ? (name) => setDocument((current) => ({ ...current, name })) : undefined
@@ -130,7 +130,7 @@ const meta = {
   },
   render: (args) => <DocumentEditorStory {...args} />,
   args: {
-    document: createDocument('storybook-document'),
+    value: createDocument('storybook-document'),
     onChange: () => undefined,
     onSave: () => undefined,
   },
@@ -150,7 +150,7 @@ export const EditableName: Story = {
 
 export const EditableDescriptionEmpty: Story = {
   args: {
-    document: createDocument('storybook-empty-description', defaultPagedLayout, {
+    value: createDocument('storybook-empty-description', defaultPagedLayout, {
       name: 'Fee Change Letter',
       now: storyTimestamp,
     }),
@@ -160,38 +160,38 @@ export const EditableDescriptionEmpty: Story = {
 
 export const EditableDescriptionPopulated: Story = {
   args: {
-    document: createStoryDocument(),
+    value: createStoryDocument(),
     onDocumentDescriptionChange: () => undefined,
   },
 }
 
 export const PopulatedPagedA4: Story = {
   args: {
-    document: createStoryDocument(),
+    value: createStoryDocument(),
   },
 }
 
 export const PopulatedFluid: Story = {
   args: {
-    document: createStoryDocument(defaultFluidLayout),
+    value: createStoryDocument(defaultFluidLayout),
   },
 }
 
 export const NoticePagedA4: Story = {
   args: {
-    document: createStoryDocument(defaultPagedLayout, noticeContent),
+    value: createStoryDocument(defaultPagedLayout, noticeContent),
   },
 }
 
 export const NoticeFluid: Story = {
   args: {
-    document: createStoryDocument(defaultFluidLayout, noticeContent),
+    value: createStoryDocument(defaultFluidLayout, noticeContent),
   },
 }
 
 export const PagedLayoutSettings: Story = {
   args: {
-    document: createDocument('storybook-paged-layout-settings', {
+    value: createDocument('storybook-paged-layout-settings', {
       ...defaultPagedLayout,
       margins: { top: 24, right: 18, bottom: 22, left: 26, unit: 'mm' },
     }),
@@ -200,7 +200,7 @@ export const PagedLayoutSettings: Story = {
 
 export const FluidLayoutSettings: Story = {
   args: {
-    document: createDocument('storybook-fluid-layout-settings', {
+    value: createDocument('storybook-fluid-layout-settings', {
       ...defaultFluidLayout,
       maxWidth: { value: 760, unit: 'px' },
     }),
@@ -209,13 +209,13 @@ export const FluidLayoutSettings: Story = {
 
 export const LongPagedDocument: Story = {
   args: {
-    document: createStoryDocument(defaultPagedLayout, longContent),
+    value: createStoryDocument(defaultPagedLayout, longContent),
   },
 }
 
 export const SaveDraftAction: Story = {
   args: {
-    document: createStoryDocument(),
+    value: createStoryDocument(),
     onSave: () => undefined,
   },
 }
