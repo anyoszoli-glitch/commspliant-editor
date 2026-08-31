@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest'
+import { renderToStaticMarkup } from 'react-dom/server'
+import type { ReactElement } from 'react'
 import { defaultFluidLayout, defaultPagedLayout } from '../document/document'
 import { createEditorConfig } from './editorConfig'
+
+function renderRoot(isEditing: boolean, previewEnabled = false) {
+  const root = createEditorConfig(defaultPagedLayout, undefined, [], previewEnabled).root
+  if (!root?.render) throw new Error('Expected root renderer')
+
+  return renderToStaticMarkup(
+    root.render({ children: null, puck: { isEditing } } as never) as ReactElement,
+  )
+}
 
 describe('editor config', () => {
   it('keeps heading and text blocks editable and available to Puck', () => {
@@ -52,5 +63,11 @@ describe('editor config', () => {
     const config = createEditorConfig(defaultFluidLayout)
 
     expect(config.components.PageBreakBlock).toBeDefined()
+  })
+
+  it('renders page indicators only outside Preview output', () => {
+    expect(renderRoot(true)).toContain('data-editor-page-indicator')
+    expect(renderRoot(true, true)).not.toContain('data-editor-page-indicator')
+    expect(renderRoot(false)).toContain('data-editor-page-indicator')
   })
 })

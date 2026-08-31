@@ -1,32 +1,24 @@
-# React + TypeScript + Vite
+# CommsPliant editor
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The editor is exposed as a controlled React component. Its UI begins at the navy toolbar and includes the block/outline area, document canvas, and properties panel. Document identity and persistence belong to the host application.
 
-Currently, two official plugins are available:
+```tsx
+import { useState } from 'react'
+import { CommsPliantEditor, type LetterDocument } from './src/CommsPliantEditor'
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+function EditorScreen({ initialDocument }: { initialDocument: LetterDocument }) {
+  const [document, setDocument] = useState(initialDocument)
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
+  return (
+    <CommsPliantEditor
+      document={document}
+      onChange={setDocument}
+      onSave={(updatedDocument) => saveDraft(updatedDocument)}
+    />
+  )
 }
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+`onChange` receives the complete updated document after editor changes. `onSave` is called by the **Save draft** action; the component does not perform storage or API work itself. The optional `height` prop defaults to `100vh`.
+
+The local Vite demo in `src/App.tsx` supplies the white document identity header and localStorage persistence around this component.

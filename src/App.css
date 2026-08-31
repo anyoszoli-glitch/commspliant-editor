@@ -1,7 +1,3 @@
-#root {
-  min-height: 100vh;
-}
-
 .document-editor {
   --puck-sidebar-left-color-bg: #263442;
   --puck-drawer-item-color-bg: #314252;
@@ -13,6 +9,8 @@
   --puck-drawer-category-color-bg-hover: #334656;
   --puck-drawer-category-color-text-hover: #f5f7f8;
   --puck-drawer-category-color-bg-active: #405467;
+  --puck-drawer-space: 6px;
+  --puck-drawer-item-space: 0;
 }
 
 .document-editor #puck-canvas-root {
@@ -29,22 +27,23 @@
 
 .document-editor [class*='_Sidebar--left_'] [data-puck-drawer] {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, 64px);
+  justify-content: center;
+  gap: 2px;
 }
 
 .commspliant-block-tile {
   position: relative;
-  height: 84px;
-  padding: 12px 10px 10px;
+  height: 42px;
+  padding: 4px 3px 3px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 2px;
   box-sizing: border-box;
   border: 1px solid #455767;
-  border-radius: 7px;
+  border-radius: 6px;
   background: #314252;
   color: #eef2f5;
   cursor: grab;
@@ -52,8 +51,8 @@
 }
 
 .commspliant-block-tile__icon {
-  width: 18px;
-  height: 18px;
+  width: 10px;
+  height: 10px;
 }
 
 .commspliant-block-tile__icon svg {
@@ -67,7 +66,7 @@
 }
 
 .commspliant-block-tile__label {
-  font-size: 14px;
+  font-size: 10px;
   font-weight: 600;
   line-height: 1.15;
   text-align: center;
@@ -75,10 +74,10 @@
 
 .commspliant-block-tile__grip {
   position: absolute;
-  right: 7px;
-  bottom: 7px;
-  width: 8px;
-  height: 12px;
+  right: 3px;
+  bottom: 3px;
+  width: 4px;
+  height: 6px;
   fill: currentColor;
   opacity: 0.42;
 }
@@ -114,8 +113,8 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  gap: 8px;
-  font-size: 14px;
+  gap: 6px;
+  font-size: 13px;
   white-space: nowrap;
 }
 
@@ -126,7 +125,7 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   min-width: 0;
-  gap: 8px;
+  gap: 6px;
 }
 
 .document-editor__preview-toggle {
@@ -135,6 +134,13 @@
   overflow: hidden;
   border: 1px solid #c7c7c7;
   border-radius: 6px;
+}
+
+.document-editor__settings-controls {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px;
 }
 
 .document-editor__preview-toggle button {
@@ -562,11 +568,128 @@
   color: var(--puck-sidebar-left-color-bg);
 }
 
+.document-editor__background-settings {
+  position: relative;
+}
+
+.document-editor__background-settings-toggle,
+.document-editor__background-remove {
+  border: 1px solid #c7c7c7;
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: #ffffff;
+  color: #18181b;
+  cursor: pointer;
+}
+
+.document-editor__background-settings-toggle:focus-visible,
+.document-editor__background-remove:focus-visible {
+  outline: 2px solid #5b45e0;
+  outline-offset: 2px;
+}
+
+.document-editor__background-settings-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: 240px;
+  padding: 12px;
+  display: grid;
+  gap: 14px;
+  border: 1px solid #c7d0d7;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(38, 52, 66, 0.16);
+}
+
+.document-editor__background-field {
+  display: grid;
+  gap: 6px;
+  color: #314252;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.document-editor__background-field select {
+  width: 100%;
+  border: 1px solid #aebbc5;
+  border-radius: 4px;
+  padding: 6px;
+  background: #ffffff;
+  color: #18181b;
+  font: inherit;
+}
+
+.document-editor__background-field select:focus {
+  border-color: #5b45e0;
+  outline: 2px solid #eeeafe;
+}
+
+.document-editor__background-position-grid {
+  width: 96px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+
+.document-editor__background-position-grid button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #aebbc5;
+  border-radius: 4px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.document-editor__background-position-grid button[aria-pressed='true'] {
+  border-color: #5b45e0;
+  background: #eeeafe;
+  box-shadow: inset 0 0 0 2px #5b45e0;
+}
+
+.document-editor__background-position-grid button:focus-visible {
+  outline: 2px solid #5b45e0;
+  outline-offset: 2px;
+}
+
+.document-editor__background-opacity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.document-editor__background-opacity input {
+  flex: 1;
+}
+
+.document-editor__background-opacity span {
+  min-width: 36px;
+  text-align: right;
+  color: #687581;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.document-editor__background-empty {
+  margin: 0;
+  color: #687581;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.document-editor__background-remove {
+  justify-self: start;
+  color: #b42318;
+}
+
 /* Give Puck's controls the full header width and let them form clean rows. */
 .document-editor [class*='_PuckHeader-inner_'] {
   align-items: center;
   grid-template-areas: 'toggle tools';
   grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px;
+  padding: 8px 12px;
 }
 
 .document-editor [class*='_PuckHeader-toggle_'] {
@@ -597,12 +720,123 @@
 
 .document-editor [class*='_MenuBar-inner_'] {
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 6px;
 }
 
 .document-editor [class*='_MenuBar-history_'],
 .document-editor__header-actions > :not(.document-editor__layout-controls) {
   flex-shrink: 0;
+}
+
+@media (min-width: 638px) {
+  /* Keep intermediate widths compact by reflowing whole control groups. */
+  .document-editor [class*='_PuckHeader-inner_'] {
+    grid-template-columns: auto auto;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .document-editor [class*='_PuckHeader-tools_'],
+  .document-editor [class*='_MenuBar_'] {
+    width: auto;
+  }
+
+  /* Compose the setup and action groups without changing their geometry. */
+  .document-editor [class*='_MenuBar-inner_'] {
+    display: grid;
+    grid-template-areas:
+      'layout layout layout'
+      'history preview save';
+    grid-template-columns: max-content max-content max-content;
+    justify-content: end;
+    gap: 6px;
+  }
+
+  .document-editor [class*='_PuckHeader-toggle_'] {
+    align-self: start;
+  }
+
+  .document-editor__layout-controls {
+    grid-area: layout;
+    justify-self: end;
+  }
+
+  .document-editor [class*='_MenuBar-history_'] {
+    grid-area: history;
+  }
+
+  .document-editor__preview-toggle {
+    grid-area: preview;
+  }
+
+  .document-editor [class*='_Button--primary_'] {
+    grid-area: save;
+  }
+}
+
+@media (min-width: 1000px) {
+  /* Keep the editing surface primary while retaining usable, resizable tool panels. */
+  .document-editor {
+    --puck-user-sidebar-left-width: 200px;
+    --puck-user-sidebar-right-width: 224px;
+  }
+
+  .document-editor [class*='_PuckLayout-inner_'] {
+    --puck-pluginbar-width: 56px;
+  }
+
+  .document-editor [class*='_PuckHeader_']:has(> [class*='_PuckHeader-inner_']) {
+    padding-left: 55px;
+  }
+
+  /* Use wide desktop width only to anchor the primary document action. */
+  .document-editor [class*='_PuckHeader-inner_'] {
+    grid-template-columns: auto minmax(0, 1fr);
+    justify-content: initial;
+  }
+
+  .document-editor [class*='_PuckHeader-tools_'],
+  .document-editor [class*='_MenuBar_'] {
+    width: 100%;
+  }
+
+  .document-editor [class*='_MenuBar-inner_'] {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .document-editor [class*='_PuckHeader-toggle_'] {
+    align-self: center;
+  }
+
+  .document-editor__layout-controls {
+    order: 1;
+  }
+
+  .document-editor [class*='_MenuBar-history_'] {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .document-editor__preview-toggle {
+    order: 3;
+  }
+
+  .document-editor [class*='_Button--primary_'] {
+    order: 4;
+  }
+}
+
+@media (min-width: 638px) {
+  /* Puck increases this gutter on wide screens; a document canvas needs a tighter frame. */
+  .document-editor [class*='_PuckCanvas_']:has(> [class*='_PuckCanvas-inner_']) {
+    padding: 8px 10px 10px;
+  }
+
+  .document-editor [class*='_PuckCanvas-controls_'] {
+    padding-bottom: 4px;
+  }
 }
 
 /* Keep header controls and their popovers above the editor canvas. */
@@ -616,8 +850,622 @@
   overflow: visible;
 }
 
+/* Show settings buttons as active while their panel is open. */
+.document-editor__layout-settings-toggle[aria-expanded='true'],
+.document-editor__background-settings-toggle[aria-expanded='true'] {
+  border-color: #5b45e0;
+  background: #eeeafe;
+  color: #3825a8;
+  font-weight: 650;
+}
+
 /* Keep disabled Puck header actions visible, e.g. Undo / Redo. */
 .document-editor [class*='_PuckHeader_'] [class*='_IconButton--disabled_'] {
   opacity: 0.45;
   visibility: visible;
+}
+
+/* Keep the editor toolbar in the same navy family as the block sidebar. */
+.document-editor [class*='_PuckHeader_'] {
+  --puck-header-color-bg: #213547;
+  --puck-header-color-text: #eef2f5;
+  --puck-color-border: #40586d;
+  --puck-iconbutton-color-bg: #355f82;
+  --puck-iconbutton-color-icon: #ffffff;
+  --puck-iconbutton-color-bg-hover: #416f95;
+  --puck-iconbutton-color-icon-hover: #ffffff;
+  --puck-iconbutton-color-bg-active: #5b45e0;
+  --puck-iconbutton-color-icon-active: #ffffff;
+  --puck-button-primary-color-bg: #0b63ce;
+  --puck-button-primary-color-bg-hover: #0958b7;
+  --puck-button-primary-color-bg-active: #08499a;
+  --puck-button-primary-color-border: #2b7bdc;
+  --puck-button-primary-color-text: #ffffff;
+  background: #213547;
+  color: #eef2f5;
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_IconButton_'] {
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 1px solid #5c86a7;
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_IconButton_'] svg {
+  width: 10px;
+  height: 10px;
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_IconButton--disabled_'] {
+  border-color: #5c86a7;
+  background: #355f82;
+  color: #ffffff;
+  opacity: 0.62;
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_IconButton--active_'] {
+  border-color: #8b7cf0;
+  background: #5b45e0;
+  color: #ffffff;
+}
+
+/* Each paired action remains a real, independently sized button. */
+.document-editor [class*='_PuckHeader-toggle_'],
+.document-editor [class*='_MenuBar-history_'] {
+  display: grid;
+  grid-template-columns: repeat(2, 16px);
+  flex: 0 0 auto;
+  width: max-content;
+  overflow: hidden;
+  border: 1px solid #5c86a7;
+  border-radius: 7px;
+  background: #355f82;
+}
+
+.document-editor [class*='_PuckHeader-toggle_'] [class*='_IconButton_'],
+.document-editor [class*='_MenuBar-history_'] [class*='_IconButton_'] {
+  border: 0;
+  border-radius: 0;
+}
+
+.document-editor [class*='_PuckHeader-toggle_'] [class*='_IconButton_'] + [class*='_IconButton_'],
+.document-editor [class*='_MenuBar-history_'] [class*='_IconButton_'] + [class*='_IconButton_'] {
+  border-left: 1px solid #5c86a7;
+}
+
+@media (max-width: 637px) {
+  .document-editor [class*='_PuckHeader-toggle_'] {
+    border: 0;
+    background: transparent;
+  }
+}
+
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-switch span {
+  color: #eef2f5;
+}
+
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-segmented-control button,
+.document-editor [class*='_PuckHeader_'] .document-editor__preview-toggle button {
+  box-sizing: border-box;
+  height: 16px;
+  min-height: 16px;
+  padding: 0 4px;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-settings-toggle,
+.document-editor [class*='_PuckHeader_'] .document-editor__background-settings-toggle {
+  box-sizing: border-box;
+  height: 18px;
+  min-height: 18px;
+  padding: 0 4px;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-segmented-control {
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: max-content max-content;
+  width: max-content;
+  height: 18px;
+  min-height: 18px;
+  border-color: #5c86a7;
+  background: #355f82;
+}
+
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-segmented-control button[aria-checked='false'],
+.document-editor [class*='_PuckHeader_'] .document-editor__preview-toggle button[aria-pressed='false'],
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-settings-toggle:not([aria-expanded='true']),
+.document-editor [class*='_PuckHeader_'] .document-editor__background-settings-toggle:not([aria-expanded='true']) {
+  box-sizing: border-box;
+  min-height: 18px;
+  border-color: #5c86a7;
+  background: #355f82;
+  color: #ffffff;
+  font-weight: 650;
+}
+
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-segmented-control button[aria-checked='false'],
+.document-editor [class*='_PuckHeader_'] .document-editor__preview-toggle button[aria-pressed='false'] {
+  border-right-color: #5c86a7;
+}
+
+.document-editor [class*='_PuckHeader_'] .document-editor__preview-toggle {
+  display: inline-grid;
+  grid-template-columns: max-content max-content;
+  width: max-content;
+  height: 18px;
+}
+
+/* Viewport controls are supporting tools and should not compete with the document. */
+.document-editor [class*='_ViewportButton-inner_'] {
+  width: 22px;
+  height: 22px;
+}
+
+.document-editor [class*='_ViewportControls_'] [class*='_IconButton_'] {
+  padding: 2px;
+}
+
+.document-editor [class*='_ViewportControls_'] svg {
+  width: 13px;
+  height: 13px;
+}
+
+.document-editor [class*='_ViewportControls-divider_'] {
+  margin-block: 6px;
+}
+
+.document-editor [class*='_ViewportControls-zoomSelect_'] {
+  width: 78px;
+  padding-left: 6px;
+  background-size: 8px;
+  background-position: calc(100% - 9px) calc(50% + 2px);
+  font-size: 11px;
+}
+
+@media print {
+  [data-editor-page-indicator] {
+    display: none !important;
+  }
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_Button--primary_'] {
+  border-color: #2b7bdc;
+  font-weight: 650;
+}
+
+/*
+ * Embedded CommsPliant chrome
+ *
+ * These compact controls borrow the live site's navy, blue-slate line, and
+ * translucent-white hover language. The host identity header stays separate;
+ * this layer applies only to the embeddable editor surface.
+ */
+.document-editor [class*='_PuckHeader_'] {
+  --commspliant-toolbar-navy: #0f1d30;
+  --commspliant-control-navy: #132540;
+  --commspliant-control-line: #28405c;
+  --commspliant-control-line-hover: #46627f;
+  --commspliant-control-hover: rgba(255, 255, 255, 0.1);
+  --commspliant-control-open: rgba(255, 255, 255, 0.14);
+  --commspliant-control-text: #eaf1fb;
+  --commspliant-control-text-muted: #b7c6dc;
+  --commspliant-selected: #5b45e0;
+  --commspliant-selected-line: #8b7cf0;
+  background: var(--commspliant-toolbar-navy);
+  border-bottom: 1px solid var(--commspliant-control-line);
+  color: var(--commspliant-control-text);
+}
+
+/* Paired controls share a chrome wrapper, while each child remains a real button. */
+.document-editor [class*='_PuckHeader_'] [class*='_PuckHeader-toggle_'],
+.document-editor [class*='_PuckHeader_'] [class*='_MenuBar-history_'],
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-segmented-control,
+.document-editor [class*='_PuckHeader_'] .document-editor__preview-toggle {
+  overflow: hidden;
+  border: 1px solid var(--commspliant-control-line);
+  border-radius: 6px;
+  background: var(--commspliant-control-navy);
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_PuckHeader-toggle_'],
+.document-editor [class*='_PuckHeader_'] [class*='_MenuBar-history_'] {
+  grid-template-columns: repeat(2, 16px);
+  height: 18px;
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_IconButton_'],
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-segmented-control button,
+.document-editor [class*='_PuckHeader_'] .document-editor__preview-toggle button,
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-settings-toggle,
+.document-editor [class*='_PuckHeader_'] .document-editor__background-settings-toggle {
+  border-color: var(--commspliant-control-line);
+  background: var(--commspliant-control-navy);
+  color: var(--commspliant-control-text);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 550;
+  letter-spacing: 0.01em;
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_IconButton_'] {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border-width: 1px;
+  border-radius: 0;
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_IconButton_'] svg {
+  width: 10px;
+  height: 10px;
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_PuckHeader-toggle_'] [class*='_IconButton_'] + [class*='_IconButton_'],
+.document-editor [class*='_PuckHeader_'] [class*='_MenuBar-history_'] [class*='_IconButton_'] + [class*='_IconButton_'] {
+  border-left-color: var(--commspliant-control-line);
+}
+
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-segmented-control,
+.document-editor [class*='_PuckHeader_'] .document-editor__preview-toggle {
+  height: 18px;
+}
+
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-segmented-control button,
+.document-editor [class*='_PuckHeader_'] .document-editor__preview-toggle button {
+  height: 16px;
+  min-height: 16px;
+  padding: 0 5px;
+  line-height: 1;
+}
+
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-settings-toggle,
+.document-editor [class*='_PuckHeader_'] .document-editor__background-settings-toggle {
+  height: 18px;
+  min-height: 18px;
+  padding: 0 5px;
+  line-height: 1;
+}
+
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-switch {
+  gap: 5px;
+  font-size: 11px;
+}
+
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-switch > span {
+  color: var(--commspliant-control-text-muted);
+  font-weight: 600;
+}
+
+/* Match the reference nav's dark resting state over Puck's more saturated defaults. */
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-segmented-control button[aria-checked='false'],
+.document-editor [class*='_PuckHeader_'] .document-editor__preview-toggle button[aria-pressed='false'],
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-settings-toggle:not([aria-expanded='true']),
+.document-editor [class*='_PuckHeader_'] .document-editor__background-settings-toggle:not([aria-expanded='true']) {
+  border-color: var(--commspliant-control-line);
+  background: var(--commspliant-control-navy);
+  color: var(--commspliant-control-text);
+  font-weight: 550;
+}
+
+/* The website's navigation hover treatment becomes the editor's quiet tool hover. */
+.document-editor [class*='_PuckHeader_'] [class*='_IconButton_']:not(:disabled):not([class*='_IconButton--active_']):hover,
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-segmented-control button[aria-checked='false']:hover,
+.document-editor [class*='_PuckHeader_'] .document-editor__preview-toggle button[aria-pressed='false']:hover,
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-settings-toggle:not(:disabled):hover,
+.document-editor [class*='_PuckHeader_'] .document-editor__background-settings-toggle:not(:disabled):hover {
+  border-color: var(--commspliant-control-line-hover);
+  background: var(--commspliant-control-hover);
+  color: #ffffff;
+}
+
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-settings-toggle[aria-expanded='true'],
+.document-editor [class*='_PuckHeader_'] .document-editor__background-settings-toggle[aria-expanded='true'] {
+  border-color: var(--commspliant-control-line-hover);
+  background: var(--commspliant-control-open);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Active modes remain unmistakable, as they are in the existing editor language. */
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-segmented-control button[aria-checked='true'],
+.document-editor [class*='_PuckHeader_'] .document-editor__preview-toggle button[aria-pressed='true'],
+.document-editor [class*='_PuckHeader_'] [class*='_IconButton--active_'],
+.document-editor [class*='_PuckHeader_'] [class*='_ViewportButton--isActive_'] [class*='_ViewportButton-inner_'] {
+  border-color: var(--commspliant-selected-line);
+  background: var(--commspliant-selected);
+  color: #ffffff;
+  font-weight: 650;
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_ViewportButton--isActive_'] [class*='_ViewportButton-inner_'] {
+  border-radius: 4px;
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_IconButton--disabled_'] {
+  border-color: var(--commspliant-control-line);
+  background: var(--commspliant-control-navy);
+  color: var(--commspliant-control-text-muted);
+  opacity: 0.58;
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_IconButton_']:focus-visible,
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-segmented-control button:focus-visible,
+.document-editor [class*='_PuckHeader_'] .document-editor__preview-toggle button:focus-visible,
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-settings-toggle:focus-visible,
+.document-editor [class*='_PuckHeader_'] .document-editor__background-settings-toggle:focus-visible {
+  outline: 2px solid #c9a66b;
+  outline-offset: 2px;
+}
+
+/* The block picker is a supporting tool: keep its tiles tight to the sidebar edge. */
+.document-editor [class*='_Sidebar--left_'] [data-puck-drawer] {
+  grid-template-columns: repeat(2, 64px);
+  justify-content: center;
+  gap: 2px;
+  margin: 0;
+  padding-inline: 0;
+}
+
+.document-editor [class*='_Sidebar--left_'] .commspliant-block-tile {
+  border-color: #3d5264;
+  background: #263442;
+}
+
+.document-editor [class*='_Sidebar--left_'] [data-puck-drawer-item]:hover .commspliant-block-tile {
+  border-color: #5d7690;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Puck hides the sidebar view buttons on phones; avoid leaving an empty chrome pill. */
+@media (max-width: 637px) {
+  .document-editor [class*='_PuckHeader_'] [class*='_PuckHeader-toggle_'] {
+    display: none;
+  }
+}
+
+/* Final geometry pass: keep the embedded chrome on one compact 18px rhythm. */
+.document-editor [class*='_PuckHeader_'] [class*='_PuckHeader-toggle_'],
+.document-editor [class*='_PuckHeader_'] [class*='_MenuBar-history_'],
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-segmented-control,
+.document-editor [class*='_PuckHeader_'] .document-editor__preview-toggle {
+  box-sizing: border-box;
+  height: 18px;
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_PuckHeader-toggle_'] {
+  padding-top: 0;
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_PuckHeader-toggle_'],
+.document-editor [class*='_PuckHeader_'] [class*='_MenuBar-history_'] {
+  grid-template-columns: repeat(2, 16px);
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_Button--primary_'] {
+  box-sizing: border-box;
+  height: 18px;
+  min-height: 18px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_Button--primary_'] [class*='_Button-icon_'] {
+  margin-top: 0;
+}
+
+.document-editor [class*='_PuckHeader_'] [class*='_Button--primary_'] [class*='_Button-icon_'] svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Puck's plugin bar defaults leave a large top void; the smaller icons need less around them. */
+.document-editor [class*='_PuckLayout-nav_'] [class*='_Nav-list_'] {
+  gap: 8px;
+  padding-top: 12px;
+}
+
+.document-editor [class*='_PuckLayout-nav_'] [class*='_NavItem-link_'] {
+  gap: 4px;
+  padding: 4px 3px;
+  font-size: 11px;
+}
+
+.document-editor [class*='_PuckLayout-nav_'] [class*='_NavItem-linkIcon_'] {
+  width: 17px;
+  height: 17px;
+}
+
+.document-editor [class*='_BlocksPlugin_'] {
+  padding: 3px;
+}
+
+.document-editor [class*='_Sidebar--left_'] [data-puck-drawer] {
+  padding-inline: 2px;
+}
+
+@media (max-width: 637px) {
+  .document-editor [class*='_PuckLayout-nav_'] [class*='_Nav-list_'] {
+    gap: 4px;
+    padding-top: 2px;
+  }
+
+  .document-editor [class*='_PuckLayout-nav_'] [class*='_NavItem-link_'] {
+    padding-block: 3px;
+  }
+}
+
+/* Keep the editor document-first without expanding the right-hand inspector. */
+@media (min-width: 638px) {
+  .document-editor {
+    --puck-user-sidebar-left-width: 176px;
+  }
+}
+
+/* Two compact cards fit comfortably with balanced breathing room in the narrower drawer. */
+.document-editor [class*='_Sidebar--left_'] [data-puck-drawer] {
+  grid-template-columns: repeat(2, 56px);
+  gap: 4px;
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.document-editor [class*='_Sidebar--left_'] .commspliant-block-tile {
+  width: 56px;
+  height: 48px;
+  padding: 4px 3px;
+  display: grid;
+  grid-template-rows: 12px auto;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  border-radius: 5px;
+}
+
+.document-editor [class*='_Sidebar--left_'] .commspliant-block-tile__icon {
+  width: 12px;
+  height: 12px;
+  display: flex;
+  flex: none;
+}
+
+.document-editor [class*='_Sidebar--left_'] .commspliant-block-tile__icon svg {
+  display: block;
+}
+
+.document-editor [class*='_Sidebar--left_'] .commspliant-block-tile__label {
+  max-width: 100%;
+  display: block;
+  flex: none;
+  font-size: 9px;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.document-editor [class*='_Sidebar--left_'] .commspliant-block-tile__grip {
+  right: 2px;
+  bottom: 2px;
+  width: 4px;
+  height: 5px;
+}
+
+/* The document canvas needs only a small frame; Puck's desktop default is much larger. */
+.document-editor [class*='_PuckCanvas_']:has(> [class*='_PuckCanvas-inner_']) {
+  padding: 5px 6px 6px;
+}
+
+.document-editor [class*='_PuckCanvas-controls_'] {
+  padding-bottom: 2px;
+}
+
+/* Rich text controls use two explicit rows so narrow inspectors never clip a control. */
+.document-editor .commspliant-richtext-toolbar {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.commspliant-richtext-toolbar__row {
+  display: contents;
+}
+
+.document-editor
+  .commspliant-richtext-toolbar
+  [data-puck-rte-menu][class*='_RichTextMenu--form_'] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-x: hidden;
+  --puck-iconbutton-space: 0;
+  --puck-icon-size-m: 14px;
+}
+
+.document-editor
+  .commspliant-richtext-toolbar
+  [data-puck-rte-menu][class*='_RichTextMenu--form_']
+  .commspliant-richtext-toolbar__row {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.document-editor
+  .commspliant-richtext-toolbar
+  [data-puck-rte-menu][class*='_RichTextMenu--form_']
+  [class*='_RichTextMenu-group_'] {
+  padding-inline: 0;
+}
+
+.document-editor
+  .commspliant-richtext-toolbar
+  [data-puck-rte-menu][class*='_RichTextMenu--form_']
+  [class*='_RichTextMenu-group_']:has(.commspliant-richtext-toolbar__style-select) {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.document-editor
+  .commspliant-richtext-toolbar
+  [data-puck-rte-menu][class*='_RichTextMenu--form_']
+  .commspliant-richtext-toolbar__style-select {
+  width: 100%;
+  max-width: none;
+}
+
+.document-editor .commspliant-richtext-toolbar [class*='_ActionBar_'] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+}
+
+.document-editor .commspliant-richtext-toolbar [class*='_ActionBar-group_'] {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.document-editor .commspliant-richtext-toolbar [class*='_ActionBarAction_'] {
+  flex: 0 0 auto;
+}
+
+.document-editor .commspliant-richtext-toolbar__style-select {
+  width: 104px;
+  max-width: 100%;
+  min-width: 0;
+  height: 22px;
+  box-sizing: border-box;
+  padding: 2px 4px;
+  font-size: 11px;
+}
+
+/* Keep the compact rhythm consistent across the toolbar, including the primary action. */
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-switch,
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-segmented-control button,
+.document-editor [class*='_PuckHeader_'] .document-editor__preview-toggle button,
+.document-editor [class*='_PuckHeader_'] .document-editor__layout-settings-toggle,
+.document-editor [class*='_PuckHeader_'] .document-editor__background-settings-toggle,
+.document-editor [class*='_PuckHeader_'] [class*='_Button--primary_'] {
+  font-size: 10.5px;
 }

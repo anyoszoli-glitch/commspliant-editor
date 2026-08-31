@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import { page, userEvent } from 'vitest/browser'
 import { flushSync } from 'react-dom'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, describe, expect, it } from 'vitest'
 import App from './App'
-import { DocumentEditor } from './components/DocumentEditor/DocumentEditor'
+import { CommsPliantEditor } from './CommsPliantEditor'
 import {
   createDocument,
   DOCUMENT_SCHEMA_VERSION,
@@ -49,6 +50,29 @@ function unmountApp() {
   container?.remove()
   root = undefined
   container = undefined
+}
+
+function EmbeddedEditorHarness({
+  initialDocument,
+  changes,
+  saves,
+}: {
+  initialDocument: LetterDocument
+  changes: LetterDocument[]
+  saves: LetterDocument[]
+}) {
+  const [document, setDocument] = useState(initialDocument)
+
+  return (
+    <CommsPliantEditor
+      document={document}
+      onChange={(updatedDocument) => {
+        changes.push(updatedDocument)
+        setDocument(updatedDocument)
+      }}
+      onSave={(updatedDocument) => saves.push(updatedDocument)}
+    />
+  )
 }
 
 async function puckHeading(text: string) {
@@ -107,10 +131,180 @@ afterEach(() => {
 })
 
 describe('App persistence', () => {
+  it('exposes a controlled editor boundary without the host identity header', async () => {
+    const changes: LetterDocument[] = []
+    const saves: LetterDocument[] = []
+    container = document.createElement('div')
+    document.body.append(container)
+    root = createRoot(container)
+    root.render(
+      <EmbeddedEditorHarness
+        initialDocument={createDocument('embedded-editor-document')}
+        changes={changes}
+        saves={saves}
+      />,
+    )
+
+    await expect.element(page.getByText('Save draft', { exact: true })).toBeVisible()
+    expect(container.querySelector('.document-editor__topbar')).toBeNull()
+    await expect.element(page.getByRole('textbox', { name: 'Document name' })).not.toBeInTheDocument()
+
+    await userEvent.click(page.getByRole('radio', { name: 'Fluid' }))
+    await expect.poll(() => changes.at(-1)?.layout.mode).toBe('fluid')
+
+    await userEvent.click(page.getByText('Save draft', { exact: true }))
+    await expect.poll(() => saves.length).toBe(1)
+    expect(saves[0].layout.mode).toBe('fluid')
+    expect(saves[0]).toEqual(changes.at(-1))
+  })
+
+  it('gives paged and fluid documents compact frames without changing document geometry', async () => {
+    await page.viewport(1440, 900)
+    localStorage.removeItem('puck-sidebar-widths')
+    mountApp()
+
+    await puckContent()
+
+    let canvasRoot = document.querySelector<HTMLElement>('#puck-canvas-root')!
+    let canvas = canvasRoot.parentElement?.parentElement as HTMLElement
+    const leftSidebar = document.querySelector<HTMLElement>("[class*='_Sidebar--left_']")!
+    const rightSidebar = document.querySelector<HTMLElement>("[class*='_Sidebar--right_']")!
+
+    await expect.poll(() => canvasRoot.style.width).toBe('818px')
+    expect(getComputedStyle(canvas).paddingLeft).toBe('6px')
+    expect(getComputedStyle(canvas).paddingTop).toBe('5px')
+    expect(leftSidebar.getBoundingClientRect().width).toBe(176)
+    expect(rightSidebar.getBoundingClientRect().width).toBe(224)
+
+    let frame = document.querySelector<HTMLIFrameElement>('#preview-frame')!
+    await expect
+      .poll(() => frame.contentDocument?.querySelector('[data-document-page]') !== null)
+      .toBe(true)
+    const documentPage = frame.contentDocument?.querySelector<HTMLElement>('[data-document-page]')
+    const documentContent = frame.contentDocument?.querySelector<HTMLElement>('[data-document-content]')
+
+    expect(documentPage).not.toBeNull()
+    expect(documentContent).not.toBeNull()
+
+    expect(documentPage!.style.width).toBe('210mm')
+    expect(documentContent!.style.left).toBe('20mm')
+    expect(documentContent!.style.width).toBe('170mm')
+
+    await userEvent.click(page.getByRole('radio', { name: 'Fluid' }))
+    await puckContent()
+
+    canvasRoot = document.querySelector<HTMLElement>('#puck-canvas-root')!
+    canvas = canvasRoot.parentElement?.parentElement as HTMLElement
+    frame = document.querySelector<HTMLIFrameElement>('#preview-frame')!
+    const fluidContent = frame.contentDocument?.querySelector<HTMLElement>('[data-document-content]')
+
+    await expect.poll(() => canvasRoot.style.width).toBe('704px')
+    expect(getComputedStyle(canvas).paddingLeft).toBe('6px')
+    expect(fluidContent?.style.width).toBe('min(680px, 100% - 24px)')
+    expect(fluidContent?.style.minHeight).toBe('calc(-24px + 100vh)')
+    expect(fluidContent?.style.padding).toBe('32px')
+
+    await page.viewport(480, 900)
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    expect(canvasRoot.getBoundingClientRect().width).toBeLessThanOrEqual(
+      canvasRoot.parentElement!.getBoundingClientRect().width + 1,
+    )
+  })
+
+  it('keeps editor page indicators out of Preview output', async () => {
+    await page.viewport(1440, 900)
+    mountApp()
+    await puckContent()
+
+    let frame = document.querySelector<HTMLIFrameElement>('#preview-frame')!
+    await expect
+      .poll(() => frame.contentDocument?.querySelector('[data-editor-page-indicator]') !== null)
+      .toBe(true)
+
+    await userEvent.click(page.getByRole('button', { name: 'Preview' }))
+    await puckContent()
+
+    frame = document.querySelector<HTMLIFrameElement>('#preview-frame')!
+    await expect
+      .poll(() => frame.contentDocument?.querySelector('[data-document-content]') !== null)
+      .toBe(true)
+    expect(frame.contentDocument?.querySelector('[data-editor-page-indicator]')).toBeNull()
+  })
+
+  it('keeps the editor header controls visible across responsive widths', async () => {
+    mountApp()
+
+    const controlLabels = [
+      'Undo',
+      'Redo',
+      'Author',
+      'Preview',
+      'Paged / A4',
+      'Fluid',
+      'Page setup',
+      'Background settings',
+      'Save draft',
+    ]
+
+    const controlWithLabel = (label: string) =>
+      Array.from(document.querySelectorAll<HTMLElement>('button, [class*="_Button_"]')).find(
+        (control) => {
+          const normalizedLabel = label.toLowerCase()
+
+          return (
+            control.getAttribute('aria-label')?.toLowerCase() === normalizedLabel ||
+            control.getAttribute('title')?.toLowerCase() === normalizedLabel ||
+            control.textContent?.replace(/\s+/g, ' ').trim().toLowerCase() === normalizedLabel
+          )
+        },
+      )
+
+    await expect.element(page.getByText('Save draft', { exact: true })).toBeVisible()
+
+    const saveDraft = controlWithLabel('Save draft')!
+    const saveDraftSize = saveDraft.getBoundingClientRect()
+    const undo = controlWithLabel('Undo')!
+    const author = controlWithLabel('Author')!
+    const paged = controlWithLabel('Paged / A4')!
+    const blockTile = document.querySelector<HTMLElement>('.commspliant-block-tile')!
+
+    expect(saveDraftSize.height).toBe(18)
+    expect(undo.getBoundingClientRect().height).toBe(16)
+    expect(author.getBoundingClientRect().height).toBe(16)
+    expect(paged.getBoundingClientRect().height).toBe(16)
+    expect(blockTile.getBoundingClientRect().width).toBe(56)
+    expect(blockTile.getBoundingClientRect().height).toBe(48)
+
+    for (const width of [1440, 1100, 760, 480, 320]) {
+      await page.viewport(width, 900)
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+
+      for (const label of controlLabels) {
+        const control = controlWithLabel(label)
+        expect(control, `${label} should exist at ${width}px`).toBeDefined()
+
+        const rect = control!.getBoundingClientRect()
+        expect(rect.width, `${label} should be visible at ${width}px`).toBeGreaterThan(0)
+        expect(rect.height, `${label} should be visible at ${width}px`).toBeGreaterThan(0)
+        expect(rect.left, `${label} should not overflow left at ${width}px`).toBeGreaterThanOrEqual(0)
+        expect(rect.right, `${label} should not overflow right at ${width}px`).toBeLessThanOrEqual(
+          width,
+        )
+      }
+
+      expect(controlWithLabel('Page setup')!.getBoundingClientRect().top).toBe(
+        controlWithLabel('Background settings')!.getBoundingClientRect().top,
+      )
+    }
+
+    expect(controlWithLabel('Undo')).toBeDisabled()
+    expect(controlWithLabel('Redo')).toBeDisabled()
+  })
+
   it('uses a keyboard-navigable segmented control for document layout', async () => {
     mountApp()
 
-    await expect.element(page.getByRole('radiogroup', { name: 'Document layout:' })).toBeVisible()
+    await expect.element(page.getByRole('radiogroup', { name: 'Layout:' })).toBeVisible()
     const paged = page.getByRole('radio', { name: 'Paged / A4' })
     const fluid = page.getByRole('radio', { name: 'Fluid' })
 
@@ -125,6 +319,43 @@ describe('App persistence', () => {
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
     await userEvent.keyboard('{ArrowLeft}')
     await expect.element(paged).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('opens layout settings as an anchored popover without moving the editor', async () => {
+    mountApp()
+
+    await expect.element(page.getByRole('button', { name: 'Page setup' })).toBeVisible()
+    const layoutButton = document.querySelector<HTMLButtonElement>('.document-editor__layout-settings-toggle')!
+    const header = layoutButton.closest<HTMLElement>('[class*="_PuckHeader_"]')!
+
+    for (const width of [1440, 320]) {
+      await page.viewport(width, 900)
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+
+      const headerHeight = header.getBoundingClientRect().height
+      const buttonRect = layoutButton.getBoundingClientRect()
+      await userEvent.click(page.getByRole('button', { name: 'Page setup' }))
+
+      const panel = document.querySelector<HTMLElement>('#layout-settings-panel')!
+      const panelRect = panel.getBoundingClientRect()
+      expect(panel.style.position).toBe('fixed')
+      expect(panelRect.top).toBeGreaterThanOrEqual(buttonRect.bottom + 8)
+      expect(panelRect.left).toBeGreaterThanOrEqual(8)
+      expect(panelRect.right).toBeLessThanOrEqual(width - 8)
+      expect(header.getBoundingClientRect().height).toBe(headerHeight)
+
+      await userEvent.click(page.getByRole('button', { name: 'Page setup' }))
+      expect(document.querySelector('#layout-settings-panel')).toBeNull()
+    }
+
+    await userEvent.click(page.getByRole('button', { name: 'Page setup' }))
+    await userEvent.keyboard('{Escape}')
+    expect(document.querySelector('#layout-settings-panel')).toBeNull()
+    expect(document.activeElement).toBe(layoutButton)
+
+    await userEvent.click(page.getByRole('button', { name: 'Page setup' }))
+    await userEvent.click(page.getByText('CommsPliant document editor', { exact: true }))
+    expect(document.querySelector('#layout-settings-panel')).toBeNull()
   })
 
   it('sanitizes rich-text HTML while preserving variable spans and literal braces', () => {
@@ -206,8 +437,8 @@ describe('App persistence', () => {
     const renderEditor = (previewValues?: Readonly<Record<string, string>>) => {
       flushSync(() => {
         root?.render(
-          <DocumentEditor
-            value={previewDocument}
+          <CommsPliantEditor
+            document={previewDocument}
             variableDefinitions={[{ key: 'customerName', label: 'Customer name' }]}
             previewValues={previewValues}
             onChange={() => {
@@ -339,13 +570,13 @@ describe('App persistence', () => {
     await userEvent.keyboard('{Escape}')
     await expect.element(page.getByText(editedDescription, { exact: true })).toBeVisible()
 
-    await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
+    await userEvent.click(page.getByRole('button', { name: 'Page setup' }))
     const topMargin = page.getByRole('spinbutton', { name: 'Top margin' })
     await userEvent.fill(topMargin, '9')
     await userEvent.tab()
     await expect.element(page.getByText('Enter a whole number from 10 to 40.')).toBeVisible()
-    await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
-    await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
+    await userEvent.click(page.getByRole('button', { name: 'Page setup' }))
+    await userEvent.click(page.getByRole('button', { name: 'Page setup' }))
     await expect.element(page.getByRole('spinbutton', { name: 'Top margin' })).toHaveValue(20)
     await expect.element(page.getByText('Enter a whole number from 10 to 40.')).not.toBeInTheDocument()
 
@@ -360,18 +591,18 @@ describe('App persistence', () => {
       'true',
     )
 
-    await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
+    await userEvent.click(page.getByRole('button', { name: 'Page setup' }))
     const contentWidth = page.getByRole('spinbutton', { name: 'Content width' })
     await userEvent.fill(contentWidth, '760')
     await userEvent.tab()
-    await expect.element(await puckContent()).toHaveStyle({ width: 'min(760px, calc(100% - 48px))' })
+    await expect.element(await puckContent()).toHaveStyle({ width: 'min(760px, calc(100% - 24px))' })
 
     await userEvent.click(page.getByRole('radio', { name: 'Paged / A4' }))
-    await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
+    await userEvent.click(page.getByRole('button', { name: 'Page setup' }))
     await expect.element(page.getByRole('spinbutton', { name: 'Top margin' })).toHaveValue(24)
 
     await userEvent.click(page.getByRole('radio', { name: 'Fluid' }))
-    await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
+    await userEvent.click(page.getByRole('button', { name: 'Page setup' }))
     await expect.element(page.getByRole('spinbutton', { name: 'Content width' })).toHaveValue(760)
 
     await puckHeading(editedHeading)
@@ -382,8 +613,8 @@ describe('App persistence', () => {
     await puckText('[Empty: Empty value]')
     await puckText('<img src=x onerror=alert(1)>')
     await puckText('[Unknown variable: oldVariable]')
-    await expect.element(page.getByRole('textbox', { name: 'Document name' })).not.toBeInTheDocument()
-    await expect.element(page.getByRole('button', { name: 'Layout settings' })).toBeDisabled()
+    await expect.element(page.getByRole('textbox', { name: 'Document name' })).toHaveValue(editedName)
+    await expect.element(page.getByRole('button', { name: 'Page setup' })).toBeDisabled()
     await expect.element(page.getByRole('combobox', { name: 'Insert variable' })).not.toBeInTheDocument()
 
     await page.getByText('Save draft', { exact: true }).click()
@@ -449,7 +680,7 @@ describe('App persistence', () => {
       'aria-checked',
       'true',
     )
-    await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
+    await userEvent.click(page.getByRole('button', { name: 'Page setup' }))
     await expect.element(page.getByRole('spinbutton', { name: 'Content width' })).toHaveValue(760)
     await puckHeading(editedHeading)
     await puckHeading(editedNoticeHeading)

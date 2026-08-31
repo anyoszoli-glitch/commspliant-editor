@@ -25,6 +25,8 @@ type DocumentCanvasProps = {
   children?: ReactNode
   layout?: DocumentLayout
   backgroundImage?: DocumentBackgroundImage
+  isEditorCanvas?: boolean
+  showEditorPageIndicators?: boolean
   style?: CSSProperties
 }
 
@@ -59,11 +61,15 @@ function PagedCanvas({
   children,
   layout,
   backgroundImage,
+  isEditorCanvas,
+  showEditorPageIndicators,
   style,
 }: {
   children?: ReactNode
   layout: PagedDocumentLayout
   backgroundImage?: DocumentBackgroundImage
+  isEditorCanvas: boolean
+  showEditorPageIndicators: boolean
   style?: CSSProperties
 }) {
   const contentRef = useRef<HTMLDivElement>(null)
@@ -123,10 +129,13 @@ function PagedCanvas({
         position: 'relative',
         width: `${A4_WIDTH_MM}mm`,
         height: totalHeight,
-        margin: '24px auto',
+        margin: '12px auto',
         ...style,
       }}
     >
+      {isEditorCanvas && (
+        <style media="print">{'[data-editor-page-indicator] { display: none !important; }'}</style>
+      )}
       {Array.from({ length: pagination.pageCount }, (_, index) => (
         <section
           aria-label={`Page ${index + 1}`}
@@ -144,18 +153,22 @@ function PagedCanvas({
           }}
         >
           <BackgroundLayer image={backgroundImage} />
-          <span
-            style={{
-              position: 'absolute',
-              top: 8,
-              right: 12,
-              color: '#71717a',
-              fontSize: 12,
-              lineHeight: 1,
-            }}
-          >
-            Page {index + 1}
-          </span>
+          {showEditorPageIndicators && (
+            <span
+              aria-hidden="true"
+              data-editor-page-indicator
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 12,
+                color: '#71717a',
+                fontSize: 12,
+                lineHeight: 1,
+              }}
+            >
+              Page {index + 1}
+            </span>
+          )}
         </section>
       ))}
       <LayoutContext.Provider value={{ mode: 'paged', placements: pagination.placements }}>
@@ -198,9 +211,9 @@ function FluidCanvas({
         data-document-content
         aria-label="Document content"
         style={{
-          width: `min(${maxWidth.value}${maxWidth.unit}, calc(100% - 48px))`,
-          minHeight: 400,
-          margin: '24px auto',
+          width: `min(${maxWidth.value}${maxWidth.unit}, calc(100% - 24px))`,
+          minHeight: 'calc(100vh - 24px)',
+          margin: '12px auto',
           padding: `${padding.top}${padding.unit} ${padding.right}${padding.unit} ${padding.bottom}${padding.unit} ${padding.left}${padding.unit}`,
           boxSizing: 'border-box',
           background: '#ffffff',
@@ -223,14 +236,26 @@ export function DocumentCanvas({
   children,
   layout = defaultPagedLayout,
   backgroundImage,
+  isEditorCanvas = false,
+  showEditorPageIndicators = false,
   style,
 }: DocumentCanvasProps) {
   return layout.mode === 'paged' ? (
-    <PagedCanvas layout={layout} backgroundImage={backgroundImage} style={style}>
+    <PagedCanvas
+      layout={layout}
+      backgroundImage={backgroundImage}
+      isEditorCanvas={isEditorCanvas}
+      showEditorPageIndicators={showEditorPageIndicators}
+      style={style}
+    >
       {children}
     </PagedCanvas>
   ) : (
-    <FluidCanvas layout={layout} backgroundImage={backgroundImage} style={style}>
+    <FluidCanvas
+      layout={layout}
+      backgroundImage={backgroundImage}
+      style={style}
+    >
       {children}
     </FluidCanvas>
   )

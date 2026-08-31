@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
-import '../../App.css'
 import {
   createDocument,
   defaultFluidLayout,
@@ -8,7 +7,7 @@ import {
   type DocumentData,
   type DocumentLayout,
 } from '../../document/document'
-import { DocumentEditor, type DocumentEditorProps } from './DocumentEditor'
+import { CommsPliantEditor, type CommsPliantEditorProps } from './DocumentEditor'
 
 const storyTimestamp = '2026-08-30T09:00:00.000Z'
 
@@ -133,39 +132,31 @@ function createStoryDocument(
   return { ...document, data: { ...document.data, content } }
 }
 
-function DocumentEditorStory(args: DocumentEditorProps) {
-  const [document, setDocument] = useState(args.value)
+function CommsPliantEditorStory(args: CommsPliantEditorProps) {
+  const [document, setDocument] = useState(args.document)
 
   return (
-    <DocumentEditor
+    <CommsPliantEditor
       {...args}
-      value={document}
+      document={document}
       onChange={setDocument}
-      onDocumentNameChange={
-        args.onDocumentNameChange ? (name) => setDocument((current) => ({ ...current, name })) : undefined
-      }
-      onDocumentDescriptionChange={
-        args.onDocumentDescriptionChange
-          ? (description) => setDocument((current) => ({ ...current, description }))
-          : undefined
-      }
     />
   )
 }
 
 const meta = {
-  title: 'CommsPliant/Editor/Document Editor',
-  component: DocumentEditor,
+  title: 'CommsPliant/Editor/CommsPliant Editor',
+  component: CommsPliantEditor,
   parameters: {
     layout: 'fullscreen',
   },
-  render: (args) => <DocumentEditorStory {...args} />,
+  render: (args) => <CommsPliantEditorStory {...args} />,
   args: {
-    value: createDocument('storybook-document'),
+    document: createDocument('storybook-document'),
     onChange: () => undefined,
     onSave: () => undefined,
   },
-} satisfies Meta<typeof DocumentEditor>
+} satisfies Meta<typeof CommsPliantEditor>
 
 export default meta
 
@@ -173,56 +164,33 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {}
 
-export const EditableName: Story = {
-  args: {
-    onDocumentNameChange: () => undefined,
-  },
-}
-
-export const EditableDescriptionEmpty: Story = {
-  args: {
-    value: createDocument('storybook-empty-description', defaultPagedLayout, {
-      name: 'Fee Change Letter',
-      now: storyTimestamp,
-    }),
-    onDocumentDescriptionChange: () => undefined,
-  },
-}
-
-export const EditableDescriptionPopulated: Story = {
-  args: {
-    value: createStoryDocument(),
-    onDocumentDescriptionChange: () => undefined,
-  },
-}
-
 export const PopulatedPagedA4: Story = {
   args: {
-    value: createStoryDocument(),
+    document: createStoryDocument(),
   },
 }
 
 export const PopulatedFluid: Story = {
   args: {
-    value: createStoryDocument(defaultFluidLayout),
+    document: createStoryDocument(defaultFluidLayout),
   },
 }
 
 export const NoticePagedA4: Story = {
   args: {
-    value: createStoryDocument(defaultPagedLayout, noticeContent),
+    document: createStoryDocument(defaultPagedLayout, noticeContent),
   },
 }
 
 export const NoticeFluid: Story = {
   args: {
-    value: createStoryDocument(defaultFluidLayout, noticeContent),
+    document: createStoryDocument(defaultFluidLayout, noticeContent),
   },
 }
 
 export const PagedLayoutSettings: Story = {
   args: {
-    value: createDocument('storybook-paged-layout-settings', {
+    document: createDocument('storybook-paged-layout-settings', {
       ...defaultPagedLayout,
       margins: { top: 24, right: 18, bottom: 22, left: 26, unit: 'mm' },
     }),
@@ -231,7 +199,7 @@ export const PagedLayoutSettings: Story = {
 
 export const FluidLayoutSettings: Story = {
   args: {
-    value: createDocument('storybook-fluid-layout-settings', {
+    document: createDocument('storybook-fluid-layout-settings', {
       ...defaultFluidLayout,
       maxWidth: { value: 760, unit: 'px' },
     }),
@@ -240,20 +208,20 @@ export const FluidLayoutSettings: Story = {
 
 export const LongPagedDocument: Story = {
   args: {
-    value: createStoryDocument(defaultPagedLayout, longContent),
+    document: createStoryDocument(defaultPagedLayout, longContent),
   },
 }
 
 export const SaveDraftAction: Story = {
   args: {
-    value: createStoryDocument(),
+    document: createStoryDocument(),
     onSave: () => undefined,
   },
 }
 
 export const VariableAuthor: Story = {
   args: {
-    value: createStoryDocument(defaultPagedLayout, variableContent),
+    document: createStoryDocument(defaultPagedLayout, variableContent),
     variableDefinitions: previewVariableDefinitions,
     previewValues,
   },
@@ -261,7 +229,7 @@ export const VariableAuthor: Story = {
 
 export const VariablePreview: Story = {
   args: {
-    value: createStoryDocument(defaultPagedLayout, variableContent),
+    document: createStoryDocument(defaultPagedLayout, variableContent),
     variableDefinitions: previewVariableDefinitions,
     previewValues,
   },

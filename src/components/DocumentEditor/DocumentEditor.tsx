@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
-import { Puck } from '@puckeditor/core'
+import { Puck, type Viewports } from '@puckeditor/core'
 import '@puckeditor/core/puck.css'
+import '../../App.css'
 
 import {
   changeDocumentLayout,
@@ -14,8 +15,8 @@ import {
 } from '../../document/document'
 import { createEditorConfig } from '../../editor/editorConfig'
 import { BlockPickerItem } from './BlockPickerItem'
-import { DocumentIdentity, type DocumentIdentityProps } from './DocumentIdentity'
 import { LayoutSettings } from './LayoutSettings'
+import { BackgroundSettings } from './BackgroundSettings'
 import {
   normalizeVariableDefinitions,
   type VariableDefinition,
@@ -26,35 +27,60 @@ export type { VariableDefinition, VariablePreviewValues } from '../../editor/var
 
 const emptyPreviewValues: VariablePreviewValues = {}
 
-export type DocumentEditorProps = Omit<
-  DocumentIdentityProps,
-  'documentName' | 'description' | 'status'
-> & {
-  value: LetterDocument
+// Puck's default desktop viewport is 1280px wide, which is appropriate for a web page but
+// makes a fixed A4 document unnecessarily small. Keep a slim canvas frame around the page
+// while allowing Puck's supported auto-zoom behaviour to fit it to the available workspace.
+const A4_WIDTH_PX = (210 / 25.4) * 96
+const DOCUMENT_VIEWPORT_GUTTER_PX = 24
+const pagedDocumentViewports: Viewports = [
+  {
+    width: Math.round(A4_WIDTH_PX + DOCUMENT_VIEWPORT_GUTTER_PX),
+    height: 'auto',
+    icon: 'Monitor',
+    label: 'Document page',
+  },
+]
+
+export type CommsPliantEditorProps = {
+  document: LetterDocument
   onChange: (document: LetterDocument) => void
   onSave?: (document: LetterDocument) => void
   variableDefinitions?: readonly VariableDefinition[]
   previewValues?: VariablePreviewValues
+  height?: string
 }
 
-export function DocumentEditor({
-  value,
-  onDocumentNameChange,
-  onDocumentDescriptionChange,
+export function CommsPliantEditor({
+  document,
   onChange,
   onSave,
   variableDefinitions = [],
   previewValues,
-}: DocumentEditorProps) {
-  const document = value
+  height = '100vh',
+}: CommsPliantEditorProps) {
   const [isPreview, setIsPreview] = useState(false)
   const [previewRevision, setPreviewRevision] = useState(0)
+  const [isBackgroundSettingsOpen, setIsBackgroundSettingsOpen] = useState(false)
   const previousPreviewValues = useRef(previewValues)
   const layoutSwitchRef = useRef<HTMLDivElement>(null)
   const layoutFocusMode = useRef<DocumentLayout['mode'] | undefined>(undefined)
   const validVariableDefinitions = useMemo(
     () => normalizeVariableDefinitions(variableDefinitions),
     [variableDefinitions],
+  )
+  const documentViewports = useMemo<Viewports>(
+    () =>
+      document.layout.mode === 'paged'
+        ? pagedDocumentViewports
+        : [
+            {
+              width: document.layout.maxWidth.value + DOCUMENT_VIEWPORT_GUTTER_PX,
+              height: 'auto',
+              icon: 'Monitor',
+              label: 'Fluid document',
+            },
+          ],
+    [document.layout],
   )
   const currentData = useRef<DocumentData>(document.data)
   const lastPagedLayout = useRef<PagedDocumentLayout>(
@@ -161,21 +187,13 @@ export function DocumentEditor({
 
   return (
     <div className="document-editor">
-      <div className="document-editor__topbar">
-        <DocumentIdentity
-          documentName={document.name}
-          description={document.description}
-          onDocumentNameChange={isPreview ? undefined : onDocumentNameChange}
-          onDocumentDescriptionChange={isPreview ? undefined : onDocumentDescriptionChange}
-          status={document.status}
-        />
-      </div>
       <Puck
-        key={`${document.layout.mode}-${previewRevision}`}
+        key={`${document.id}-${document.layout.mode}-${previewRevision}`}
         config={config}
         data={currentData.current}
         dictionary={{ 'header-publish': 'Save draft' }}
-        height="calc(100vh - 64px)"
+        height={height}
+        viewports={documentViewports}
         permissions={isPreview ? { drag: false, duplicate: false, delete: false, edit: false, insert: false } : undefined}
         overrides={{
           drawerItem: ({ name }) => <BlockPickerItem name={name} />,
@@ -193,7 +211,7 @@ export function DocumentEditor({
               )}
               <div className="document-editor__layout-controls">
                 <div className="document-editor__layout-switch" ref={setLayoutSwitchRef}>
-                  <span id="document-layout-label">Document layout:</span>
+                  <span id="document-layout-label">Layout:</span>
                   <div
                     className="document-editor__layout-segmented-control"
                     role="radiogroup"
@@ -225,7 +243,22 @@ export function DocumentEditor({
                     </button>
                   </div>
                 </div>
-                <LayoutSettings layout={document.layout} onChange={updateLayout} disabled={isPreview} />
+                <div className="document-editor__settings-controls">
+                  <LayoutSettings layout={document.layout} onChange={updateLayout} disabled={isPreview} />
+                  <BackgroundSettings
+                    image={document.backgroundImage}
+                    open={isBackgroundSettingsOpen}
+                    onOpenChange={setIsBackgroundSettingsOpen}
+                    disabled={isPreview}
+                    onChange={(backgroundImage) =>
+                      onChange({
+                        ...document,
+                        data: currentData.current,
+                        backgroundImage,
+                      })
+                    }
+                  />
+                </div>
               </div>
               {children}
             </div>

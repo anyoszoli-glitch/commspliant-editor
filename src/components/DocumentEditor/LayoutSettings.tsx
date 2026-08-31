@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { DocumentLayout } from '../../document/document'
 import {
   FLUID_WIDTH_MAX,
@@ -27,10 +28,68 @@ const pagedMargins: Array<{ key: PagedMargin; label: string }> = [
   { key: 'left', label: 'Left margin' },
 ]
 
+const PANEL_WIDTH = 220
+
 export function LayoutSettings({ layout, onChange, disabled = false }: LayoutSettingsProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [resetVersion, setResetVersion] = useState(0)
+  const [position, setPosition] = useState({ top: 0, left: 0 })
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    if (!isOpen) return
+
+    const updatePosition = () => {
+      const button = buttonRef.current
+      if (!button) return
+
+      const rect = button.getBoundingClientRect()
+      const headerBottom = button.closest<HTMLElement>('[class*="_PuckHeader_"]')?.getBoundingClientRect().bottom
+      const top = Math.max(rect.bottom, headerBottom ?? rect.bottom) + 8
+      const left = Math.max(8, Math.min(rect.right - PANEL_WIDTH, window.innerWidth - PANEL_WIDTH - 8))
+
+      setPosition({ top, left })
+    }
+
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node
+      if (buttonRef.current?.contains(target) || panelRef.current?.contains(target)) return
+
+      setIsOpen(false)
+      setErrors({})
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+
+      setIsOpen(false)
+      setErrors({})
+      buttonRef.current?.focus()
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen])
 
   const updateValue = (
     field: string,
@@ -62,20 +121,22 @@ export function LayoutSettings({ layout, onChange, disabled = false }: LayoutSet
     setIsOpen((open) => !open)
   }
 
-  return (
-    <div className="document-editor__layout-settings">
-      <button
-        type="button"
-        className="document-editor__layout-settings-toggle"
-        aria-expanded={isOpen}
-        aria-controls="layout-settings-panel"
-        onClick={togglePanel}
-        disabled={disabled}
-      >
-        Layout settings
-      </button>
-      {isOpen && (
-        <div id="layout-settings-panel" className="document-editor__layout-settings-panel">
+  const panel = isOpen
+    ? createPortal(
+        <div
+          ref={panelRef}
+          id="layout-settings-panel"
+          className="document-editor__layout-settings-panel"
+          style={{
+            position: 'fixed',
+            top: position.top,
+            left: position.left,
+            right: 'auto',
+            zIndex: 10000,
+            maxHeight: `calc(100vh - ${position.top + 8}px)`,
+            overflowY: 'auto',
+          }}
+        >
           {layout.mode === 'paged' ? (
             <div className="document-editor__layout-settings-fields">
               {pagedMargins.map(({ key, label }) => {
@@ -149,8 +210,25 @@ export function LayoutSettings({ layout, onChange, disabled = false }: LayoutSet
           <button type="button" className="document-editor__layout-reset" onClick={reset}>
             Reset to default
           </button>
-        </div>
-      )}
+        </div>,
+        document.body,
+      )
+    : null
+
+  return (
+    <div className="document-editor__layout-settings">
+      <button
+        ref={buttonRef}
+        type="button"
+        className="document-editor__layout-settings-toggle"
+        aria-expanded={isOpen}
+        aria-controls="layout-settings-panel"
+        onClick={togglePanel}
+        disabled={disabled}
+      >
+        Page setup
+      </button>
+      {panel}
     </div>
   )
 }

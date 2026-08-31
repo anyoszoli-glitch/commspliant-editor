@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { DocumentEditor } from './components/DocumentEditor/DocumentEditor'
+import { CommsPliantEditor } from './CommsPliantEditor'
+import { DocumentIdentity } from './components/DocumentEditor/DocumentIdentity'
 import { loadDocument, saveDocument } from './document/documentStorage'
 import './App.css'
 
@@ -19,19 +20,29 @@ function App() {
   const [document, setDocument] = useState(loadDocument)
 
   return (
-    <DocumentEditor
-      value={document}
-      variableDefinitions={variableDefinitions}
-      previewValues={previewValues}
-      onDocumentNameChange={(name) => setDocument((current) => ({ ...current, name }))}
-      onDocumentDescriptionChange={(description) =>
-        setDocument((current) => ({ ...current, description }))
-      }
-      onChange={setDocument}
-      onSave={(savedDocument) => {
-        setDocument(saveDocument(savedDocument))
-      }}
-    />
+    <>
+      <div className="document-editor__topbar">
+        <DocumentIdentity
+          documentName={document.name}
+          description={document.description}
+          onDocumentNameChange={(name) => setDocument((current) => ({ ...current, name }))}
+          onDocumentDescriptionChange={(description) =>
+            setDocument((current) => ({ ...current, description }))
+          }
+          status={document.status}
+        />
+      </div>
+      <CommsPliantEditor
+        document={document}
+        variableDefinitions={variableDefinitions}
+        previewValues={previewValues}
+        height="calc(100vh - 64px)"
+        onChange={setDocument}
+        onSave={(savedDocument) => {
+          setDocument(saveDocument(savedDocument))
+        }}
+      />
+    </>
   )
 }
 

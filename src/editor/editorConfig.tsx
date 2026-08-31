@@ -67,11 +67,22 @@ export function createEditorConfig(
   )
   return {
     root: {
-      render: ({ children }) => (
-        <DocumentCanvas layout={layout} backgroundImage={backgroundImage}>
-          {children}
-        </DocumentCanvas>
-      ),
+      render: ({ children }) => {
+        // Preview is a host-level mode. Puck can briefly report isEditing as false when its
+        // canvas remounts after a layout switch, so use the host state for editor-only chrome.
+        const isEditorCanvas = !previewEnabled
+
+        return (
+          <DocumentCanvas
+            layout={layout}
+            backgroundImage={backgroundImage}
+            isEditorCanvas={isEditorCanvas}
+            showEditorPageIndicators={isEditorCanvas}
+          >
+            {children}
+          </DocumentCanvas>
+        )
+      },
     },
     components: {
       HeadingBlock: {
