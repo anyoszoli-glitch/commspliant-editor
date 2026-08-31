@@ -1,25 +1,60 @@
 {
-  "name": "commspliant-editor",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@commspliant/tili-toli-editor",
+  "version": "0.1.0",
+  "description": "Reusable Tili-Toli document editor for the CommsPliant shared document contract",
   "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anyoszoli-glitch/commspliant-editor.git"
+  },
+  "homepage": "https://anyoszoli-glitch.github.io/commspliant-editor/",
+  "bugs": {
+    "url": "https://github.com/anyoszoli-glitch/commspliant-editor/issues"
+  },
+  "main": "./dist-package/index.js",
+  "module": "./dist-package/index.js",
+  "types": "./dist-package/CommsPliantEditor.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist-package/CommsPliantEditor.d.ts",
+      "import": "./dist-package/index.js"
+    },
+    "./styles.css": {
+      "types": "./styles.d.ts",
+      "default": "./dist-package/styles.css"
+    }
+  },
+  "files": [
+    "dist-package",
+    "styles.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run --config vitest.unit.config.ts",
     "test:browser": "vitest run --config vite.config.ts --project browser",
     "build": "tsc -b && vite build",
+    "build:package": "vite build --config vite.lib.config.ts && tsc -p tsconfig.lib.json --pretty false",
     "lint": "oxlint",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "prepare": "npm run build:package"
   },
   "dependencies": {
     "@puckeditor/core": "^0.23.0",
     "@tiptap/core": "^3.30.5",
-    "dompurify": "^3.4.14",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "dompurify": "^3.4.14"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "latest",
@@ -35,6 +70,8 @@
     "@vitest/coverage-v8": "latest",
     "oxlint": "^1.79.0",
     "playwright": "latest",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "storybook": "^10.5.10",
     "typescript": "~6.0.2",
     "vite": "^8.2.2",

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CommsPliantEditor } from './CommsPliantEditor'
 import { DocumentIdentity } from './components/DocumentEditor/DocumentIdentity'
 import { loadDocument, saveDocument } from './document/documentStorage'
-import './App.css'
+import './demo.css'
 
 const variableDefinitions = [
   { key: 'customerName', label: 'Customer name' },

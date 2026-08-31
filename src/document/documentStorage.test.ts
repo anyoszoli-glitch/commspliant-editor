@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
   DOCUMENT_SCHEMA_VERSION,
-  DOCUMENT_STORAGE_KEY,
   changeDocumentLayout,
   createDocument,
 } from './document'
 import {
   DOCUMENT_NAME_STORAGE_KEY,
+  DOCUMENT_STORAGE_KEY,
   loadDocument,
   saveDocument,
 } from './documentStorage'

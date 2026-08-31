@@ -1,5 +1,4 @@
 import {
-  DOCUMENT_STORAGE_KEY,
   DOCUMENT_SCHEMA_VERSION,
   createDocument,
   defaultFluidLayout,
@@ -9,6 +8,7 @@ import {
 } from './document'
 import { normalizeDocumentName } from './documentMetadata'
 
+export const DOCUMENT_STORAGE_KEY = 'commspliant.document.current'
 export const DOCUMENT_NAME_STORAGE_KEY = 'commspliant.document.current.name'
 
 function browserStorage(): Storage | undefined {

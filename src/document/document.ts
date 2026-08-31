@@ -3,7 +3,6 @@ import { normalizeDocumentName } from './documentMetadata'
 import { sanitizeRichTextHtml } from './richTextSanitizer'
 
 export const DOCUMENT_SCHEMA_VERSION = 5 as const
-export const DOCUMENT_STORAGE_KEY = 'commspliant.document.current'
 
 export type RichTextMark = {
   type: 'bold' | 'italic' | 'underline' | 'link'
@@ -106,7 +105,7 @@ export type LetterDocument = {
   backgroundImage?: DocumentBackgroundImage
 }
 
-type CreateDocumentOptions = {
+export type CreateDocumentOptions = {
   name?: string
   description?: string
   now?: string

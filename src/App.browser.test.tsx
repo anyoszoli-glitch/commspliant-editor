@@ -8,10 +8,13 @@ import { CommsPliantEditor } from './CommsPliantEditor'
 import {
   createDocument,
   DOCUMENT_SCHEMA_VERSION,
-  DOCUMENT_STORAGE_KEY,
   type LetterDocument,
 } from './document/document'
-import { DOCUMENT_NAME_STORAGE_KEY, loadDocument } from './document/documentStorage'
+import {
+  DOCUMENT_NAME_STORAGE_KEY,
+  DOCUMENT_STORAGE_KEY,
+  loadDocument,
+} from './document/documentStorage'
 import { sanitizeRichTextHtml } from './document/richTextSanitizer'
 
 const originalHeading = 'Original customer heading'

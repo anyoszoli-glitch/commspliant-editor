@@ -4,4 +4,23 @@ export {
   type VariableDefinition,
   type VariablePreviewValues,
 } from './components/DocumentEditor/DocumentEditor'
-export type { LetterDocument } from './document/document'
+export {
+  DOCUMENT_SCHEMA_VERSION,
+  createDocument,
+  isLetterDocument,
+  type BackgroundImageFit,
+  type BackgroundImagePosition,
+  type CreateDocumentOptions,
+  type DocumentBackgroundImage,
+  type DocumentData,
+  type DocumentLayout,
+  type EditorComponents,
+  type FluidDocumentLayout,
+  type LetterDocument,
+  type PageMargins,
+  type PagedDocumentLayout,
+  type RichTextDocument,
+  type RichTextMark,
+  type RichTextNode,
+  type RichTextValue,
+} from './document/document'
