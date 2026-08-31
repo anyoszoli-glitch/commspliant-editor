@@ -8,6 +8,7 @@ import {
 } from 'react'
 import {
   defaultPagedLayout,
+  type DocumentBackgroundImage,
   type DocumentLayout,
   type FluidDocumentLayout,
   type PagedDocumentLayout,
@@ -23,18 +24,46 @@ const MM_TO_PX = 96 / 25.4
 type DocumentCanvasProps = {
   children?: ReactNode
   layout?: DocumentLayout
+  backgroundImage?: DocumentBackgroundImage
   style?: CSSProperties
 }
 
 const emptyPagination: PaginationResult = { pageCount: 1, placements: {} }
 
+function BackgroundLayer({ image }: { image?: DocumentBackgroundImage }) {
+  if (!image?.src) return null
+
+  return (
+    <div
+      aria-hidden="true"
+      data-document-background
+      style={{
+        position: 'absolute',
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: 'none',
+        userSelect: 'none',
+        backgroundImage: `url("${image.src}")`,
+        backgroundSize: image.fit ?? 'cover',
+        backgroundPosition: image.position ?? 'center',
+        backgroundRepeat: 'no-repeat',
+        opacity: image.opacity ?? 1,
+        printColorAdjust: 'exact',
+        WebkitPrintColorAdjust: 'exact',
+      }}
+    />
+  )
+}
+
 function PagedCanvas({
   children,
   layout,
+  backgroundImage,
   style,
 }: {
   children?: ReactNode
   layout: PagedDocumentLayout
+  backgroundImage?: DocumentBackgroundImage
   style?: CSSProperties
 }) {
   const contentRef = useRef<HTMLDivElement>(null)
@@ -111,8 +140,10 @@ function PagedCanvas({
             height: `${A4_HEIGHT_MM}mm`,
             background: '#ffffff',
             boxShadow: '0 4px 18px rgba(0, 0, 0, 0.12)',
+            isolation: 'isolate',
           }}
         >
+          <BackgroundLayer image={backgroundImage} />
           <span
             style={{
               position: 'absolute',
@@ -150,10 +181,12 @@ function PagedCanvas({
 function FluidCanvas({
   children,
   layout,
+  backgroundImage,
   style,
 }: {
   children?: ReactNode
   layout: FluidDocumentLayout
+  backgroundImage?: DocumentBackgroundImage
   style?: CSSProperties
 }) {
   const { maxWidth, padding } = layout
@@ -172,10 +205,15 @@ function FluidCanvas({
           boxSizing: 'border-box',
           background: '#ffffff',
           color: '#08060d',
+          position: 'relative',
+          isolation: 'isolate',
           ...style,
         }}
       >
-        {children}
+        <BackgroundLayer image={backgroundImage} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {children}
+        </div>
       </div>
     </LayoutContext.Provider>
   )
@@ -184,14 +222,15 @@ function FluidCanvas({
 export function DocumentCanvas({
   children,
   layout = defaultPagedLayout,
+  backgroundImage,
   style,
 }: DocumentCanvasProps) {
   return layout.mode === 'paged' ? (
-    <PagedCanvas layout={layout} style={style}>
+    <PagedCanvas layout={layout} backgroundImage={backgroundImage} style={style}>
       {children}
     </PagedCanvas>
   ) : (
-    <FluidCanvas layout={layout} style={style}>
+    <FluidCanvas layout={layout} backgroundImage={backgroundImage} style={style}>
       {children}
     </FluidCanvas>
   )

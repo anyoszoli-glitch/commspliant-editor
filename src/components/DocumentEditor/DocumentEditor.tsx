@@ -62,8 +62,15 @@ export function DocumentEditor({
     document.layout.mode === 'fluid' ? document.layout : defaultFluidLayout,
   )
   const config = useMemo(
-    () => createEditorConfig(document.layout, validVariableDefinitions, isPreview, previewValues ?? emptyPreviewValues),
-    [document.layout, isPreview, previewValues, validVariableDefinitions],
+    () =>
+      createEditorConfig(
+        document.layout,
+        document.backgroundImage,
+        validVariableDefinitions,
+        isPreview,
+        previewValues ?? emptyPreviewValues,
+      ),
+    [document.layout, document.backgroundImage, isPreview, previewValues, validVariableDefinitions],
   )
 
   useEffect(() => {

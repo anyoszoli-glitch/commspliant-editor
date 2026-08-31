@@ -6,7 +6,11 @@ import { TextBlock } from '../components/TextBlock/TextBlock'
 import { PageBreakBlock } from '../components/PageBreakBlock/PageBreakBlock'
 import { NoticeBlock } from '../components/NoticeBlock/NoticeBlock'
 import { RichTextToolbar } from './RichTextToolbar'
-import type { DocumentLayout, EditorComponents } from '../document/document'
+import type {
+  DocumentBackgroundImage,
+  DocumentLayout,
+  EditorComponents,
+} from '../document/document'
 import { VariableNode } from './VariableNode'
 import type { VariableDefinition, VariablePreviewValues } from './variables'
 
@@ -51,6 +55,7 @@ export const defaultRichTextValue = {
 
 export function createEditorConfig(
   layout: DocumentLayout,
+  backgroundImage?: DocumentBackgroundImage,
   variableDefinitions: readonly VariableDefinition[] = [],
   previewEnabled = false,
   previewValues: VariablePreviewValues = {},
@@ -63,7 +68,7 @@ export function createEditorConfig(
   return {
     root: {
       render: ({ children }) => (
-        <DocumentCanvas layout={layout}>
+        <DocumentCanvas layout={layout} backgroundImage={backgroundImage}>
           {children}
         </DocumentCanvas>
       ),
