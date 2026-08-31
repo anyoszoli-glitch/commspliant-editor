@@ -116,17 +116,22 @@
   flex-shrink: 0;
   gap: 8px;
   font-size: 14px;
+  white-space: nowrap;
 }
 
 .document-editor__layout-controls {
   position: relative;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
   gap: 8px;
 }
 
 .document-editor__preview-toggle {
   display: flex;
+  flex-shrink: 0;
   overflow: hidden;
   border: 1px solid #c7c7c7;
   border-radius: 6px;
@@ -247,28 +252,39 @@
 }
 
 .document-editor__layout-switch span {
-  margin-right: 4px;
   font-weight: 600;
 }
 
-.document-editor__layout-switch button {
+.document-editor__layout-segmented-control {
+  display: flex;
+  overflow: hidden;
   border: 1px solid #c7c7c7;
   border-radius: 6px;
+  background: #ffffff;
+}
+
+.document-editor__layout-segmented-control button {
+  border: 0;
+  border-right: 1px solid #c7c7c7;
   padding: 6px 10px;
   background: #ffffff;
   color: #18181b;
   cursor: pointer;
 }
 
-.document-editor__layout-switch button[aria-pressed='true'] {
-  border-color: #5b45e0;
-  background: #eeeafe;
-  color: #3825a8;
+.document-editor__layout-segmented-control button:last-child {
+  border-right: 0;
 }
 
-.document-editor__layout-switch button:focus-visible {
+.document-editor__layout-segmented-control button[aria-checked='true'] {
+  background: #eeeafe;
+  color: #3825a8;
+  font-weight: 650;
+}
+
+.document-editor__layout-segmented-control button:focus-visible {
   outline: 2px solid #5b45e0;
-  outline-offset: 2px;
+  outline-offset: -2px;
 }
 
 .document-identity {
@@ -400,7 +416,7 @@
 
 /* Keep Puck's header controls while replacing its generic title with document identity above. */
 .document-editor [class*='_PuckHeader-title_'] {
-  visibility: hidden;
+  display: none;
 }
 
 .commspliant-text-block > :first-child {
@@ -544,4 +560,64 @@
   border-radius: 4px;
   background: var(--puck-drawer-item-color-text);
   color: var(--puck-sidebar-left-color-bg);
+}
+
+/* Give Puck's controls the full header width and let them form clean rows. */
+.document-editor [class*='_PuckHeader-inner_'] {
+  align-items: center;
+  grid-template-areas: 'toggle tools';
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.document-editor [class*='_PuckHeader-toggle_'] {
+  grid-area: toggle;
+}
+
+.document-editor [class*='_PuckHeader-tools_'] {
+  grid-area: tools;
+  min-width: 0;
+  width: 100%;
+}
+
+/* Important actions stay directly available instead of moving into Puck's mobile menu. */
+.document-editor [class*='_PuckHeader-menuButton_'] {
+  display: none;
+}
+
+.document-editor [class*='_MenuBar_'] {
+  position: static;
+  display: block;
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.document-editor [class*='_MenuBar-inner_'] {
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.document-editor [class*='_MenuBar-history_'],
+.document-editor__header-actions > :not(.document-editor__layout-controls) {
+  flex-shrink: 0;
+}
+
+/* Keep header controls and their popovers above the editor canvas. */
+.document-editor__layout-controls {
+  z-index: 50;
+}
+
+.document-editor [class*='_PuckHeader_'] {
+  position: relative;
+  z-index: 50;
+  overflow: visible;
+}
+
+/* Keep disabled Puck header actions visible, e.g. Undo / Redo. */
+.document-editor [class*='_PuckHeader_'] [class*='_IconButton--disabled_'] {
+  opacity: 0.45;
+  visibility: visible;
 }

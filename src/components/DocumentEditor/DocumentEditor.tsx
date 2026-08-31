@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Puck } from '@puckeditor/core'
 import '@puckeditor/core/puck.css'
 
@@ -50,6 +50,8 @@ export function DocumentEditor({
   const [isPreview, setIsPreview] = useState(false)
   const [previewRevision, setPreviewRevision] = useState(0)
   const previousPreviewValues = useRef(previewValues)
+  const layoutSwitchRef = useRef<HTMLDivElement>(null)
+  const layoutFocusMode = useRef<DocumentLayout['mode'] | undefined>(undefined)
   const validVariableDefinitions = useMemo(
     () => normalizeVariableDefinitions(variableDefinitions),
     [variableDefinitions],
@@ -114,6 +116,42 @@ export function DocumentEditor({
     )
   }
 
+  const handleLayoutKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (isPreview) return
+
+    const nextMode =
+      event.key === 'ArrowRight' || event.key === 'ArrowDown'
+        ? 'fluid'
+        : event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+          ? 'paged'
+          : event.key === 'Home'
+            ? 'paged'
+            : event.key === 'End'
+              ? 'fluid'
+              : undefined
+
+    if (nextMode === undefined) return
+
+    event.preventDefault()
+    if (nextMode !== document.layout.mode) layoutFocusMode.current = nextMode
+    selectLayout(nextMode)
+  }
+
+  const setLayoutSwitchRef = (element: HTMLDivElement | null) => {
+    layoutSwitchRef.current = element
+    if (element === null || layoutFocusMode.current !== document.layout.mode) return
+
+    const requestedMode = layoutFocusMode.current
+    requestAnimationFrame(() => {
+      if (layoutFocusMode.current !== requestedMode) return
+
+      layoutSwitchRef.current
+        ?.querySelector<HTMLButtonElement>(`[data-layout-mode="${requestedMode}"]`)
+        ?.focus()
+      layoutFocusMode.current = undefined
+    })
+  }
+
   const updateLayout = (layout: DocumentLayout) => {
     if (isPreview) return
     if (layout.mode === 'paged') lastPagedLayout.current = layout
@@ -154,24 +192,38 @@ export function DocumentEditor({
                 </div>
               )}
               <div className="document-editor__layout-controls">
-                <div className="document-editor__layout-switch" aria-label="Document layout">
-                  <span>Document layout:</span>
-                  <button
-                    type="button"
-                    aria-pressed={document.layout.mode === 'paged'}
-                    onClick={() => selectLayout('paged')}
-                    disabled={isPreview}
+                <div className="document-editor__layout-switch" ref={setLayoutSwitchRef}>
+                  <span id="document-layout-label">Document layout:</span>
+                  <div
+                    className="document-editor__layout-segmented-control"
+                    role="radiogroup"
+                    aria-labelledby="document-layout-label"
                   >
-                    Paged / A4
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={document.layout.mode === 'fluid'}
-                    onClick={() => selectLayout('fluid')}
-                    disabled={isPreview}
-                  >
-                    Fluid
-                  </button>
+                    <button
+                      type="button"
+                      role="radio"
+                      data-layout-mode="paged"
+                      aria-checked={document.layout.mode === 'paged'}
+                      tabIndex={document.layout.mode === 'paged' ? 0 : -1}
+                      onClick={() => selectLayout('paged')}
+                      onKeyDown={handleLayoutKeyDown}
+                      disabled={isPreview}
+                    >
+                      Paged / A4
+                    </button>
+                    <button
+                      type="button"
+                      role="radio"
+                      data-layout-mode="fluid"
+                      aria-checked={document.layout.mode === 'fluid'}
+                      tabIndex={document.layout.mode === 'fluid' ? 0 : -1}
+                      onClick={() => selectLayout('fluid')}
+                      onKeyDown={handleLayoutKeyDown}
+                      disabled={isPreview}
+                    >
+                      Fluid
+                    </button>
+                  </div>
                 </div>
                 <LayoutSettings layout={document.layout} onChange={updateLayout} disabled={isPreview} />
               </div>

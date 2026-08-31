@@ -107,6 +107,26 @@ afterEach(() => {
 })
 
 describe('App persistence', () => {
+  it('uses a keyboard-navigable segmented control for document layout', async () => {
+    mountApp()
+
+    await expect.element(page.getByRole('radiogroup', { name: 'Document layout:' })).toBeVisible()
+    const paged = page.getByRole('radio', { name: 'Paged / A4' })
+    const fluid = page.getByRole('radio', { name: 'Fluid' })
+
+    await expect.element(paged).toHaveAttribute('aria-checked', 'true')
+    await expect.element(fluid).toHaveAttribute('aria-checked', 'false')
+
+    await userEvent.click(paged)
+    await userEvent.keyboard('{ArrowRight}')
+    await expect.element(fluid).toHaveAttribute('aria-checked', 'true')
+    await expect.element(paged).toHaveAttribute('aria-checked', 'false')
+
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    await userEvent.keyboard('{ArrowLeft}')
+    await expect.element(paged).toHaveAttribute('aria-checked', 'true')
+  })
+
   it('sanitizes rich-text HTML while preserving variable spans and literal braces', () => {
     expect(sanitizeRichTextHtml('<p onclick="alert(1)">Hello<script>alert(1)</script></p>')).toBe(
       '<p>Hello</p>',
@@ -334,9 +354,9 @@ describe('App persistence', () => {
     await userEvent.tab()
     await expect.element(await puckContent()).toHaveStyle({ top: '24mm' })
 
-    await userEvent.click(page.getByRole('button', { name: 'Fluid' }))
-    await expect.element(page.getByRole('button', { name: 'Fluid' })).toHaveAttribute(
-      'aria-pressed',
+    await userEvent.click(page.getByRole('radio', { name: 'Fluid' }))
+    await expect.element(page.getByRole('radio', { name: 'Fluid' })).toHaveAttribute(
+      'aria-checked',
       'true',
     )
 
@@ -346,11 +366,11 @@ describe('App persistence', () => {
     await userEvent.tab()
     await expect.element(await puckContent()).toHaveStyle({ width: 'min(760px, calc(100% - 48px))' })
 
-    await userEvent.click(page.getByRole('button', { name: 'Paged / A4' }))
+    await userEvent.click(page.getByRole('radio', { name: 'Paged / A4' }))
     await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
     await expect.element(page.getByRole('spinbutton', { name: 'Top margin' })).toHaveValue(24)
 
-    await userEvent.click(page.getByRole('button', { name: 'Fluid' }))
+    await userEvent.click(page.getByRole('radio', { name: 'Fluid' }))
     await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
     await expect.element(page.getByRole('spinbutton', { name: 'Content width' })).toHaveValue(760)
 
@@ -425,8 +445,8 @@ describe('App persistence', () => {
     )
     await expect.element(page.getByText(editedDescription, { exact: true })).toBeVisible()
     await expect.element(page.getByLabelText('Document status: draft')).toBeVisible()
-    await expect.element(page.getByRole('button', { name: 'Fluid' })).toHaveAttribute(
-      'aria-pressed',
+    await expect.element(page.getByRole('radio', { name: 'Fluid' })).toHaveAttribute(
+      'aria-checked',
       'true',
     )
     await userEvent.click(page.getByRole('button', { name: 'Layout settings' }))
