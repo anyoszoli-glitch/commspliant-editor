@@ -42,6 +42,15 @@ function migrateDocument(
     return undefined
   }
 
+  if (storedDocument.schemaVersion === 4) {
+    const migratedDocument = {
+      ...storedDocument,
+      schemaVersion: DOCUMENT_SCHEMA_VERSION,
+    }
+
+    return isLetterDocument(migratedDocument) ? migratedDocument : undefined
+  }
+
   let layout: unknown
 
   if (storedDocument.schemaVersion === 1 && storedDocument.page?.size === 'A4') {

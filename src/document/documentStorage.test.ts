@@ -145,6 +145,35 @@ describe('document storage', () => {
     })
   })
 
+  it('migrates a schema 4 document to schema 5 without changing its content or layout', () => {
+    const schemaFourDocument = {
+      id: 'schema-four-letter',
+      schemaVersion: 4,
+      documentType: 'letter',
+      name: 'Schema 4 letter',
+      description: 'Existing description',
+      status: 'draft',
+      createdAt,
+      updatedAt: createdAt,
+      data: {
+        content: [{ type: 'HeadingBlock', props: { id: 'heading-1', text: 'Preserved' } }],
+        root: {},
+      },
+      layout: {
+        mode: 'paged',
+        pageSize: 'A4',
+        margins: { top: 15, right: 16, bottom: 17, left: 18, unit: 'mm' },
+      },
+    }
+
+    expect(
+      loadDocument(createStorage(JSON.stringify(schemaFourDocument)), createdAt),
+    ).toEqual({
+      ...schemaFourDocument,
+      schemaVersion: DOCUMENT_SCHEMA_VERSION,
+    })
+  })
+
   it('migrates a schema 3 document without changing its identity, content, or layout', () => {
     const schemaThreeDocument = {
       id: 'schema-three-letter',
@@ -177,6 +206,30 @@ describe('document storage', () => {
       data: schemaThreeDocument.data,
       layout: schemaThreeDocument.layout,
     })
+  })
+
+  it('serializes and restores document background image settings', () => {
+    const storage = createStorage()
+    const document = createDocument('background-letter')
+
+    document.backgroundImage = {
+      src: '/api/v1/assets/background-1',
+      fit: 'cover',
+      position: 'center',
+      opacity: 0.8,
+    }
+
+    const savedDocument = saveDocument(document, storage)
+    const restoredDocument = loadDocument(storage)
+
+    expect(restoredDocument.backgroundImage).toEqual({
+      src: '/api/v1/assets/background-1',
+      fit: 'cover',
+      position: 'center',
+      opacity: 0.8,
+    })
+
+    expect(restoredDocument).toEqual(savedDocument)
   })
 
   it('round-trips serializable Puck content', () => {

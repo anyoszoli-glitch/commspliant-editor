@@ -2,7 +2,7 @@ import type { Data } from '@puckeditor/core'
 import { normalizeDocumentName } from './documentMetadata'
 import { sanitizeRichTextHtml } from './richTextSanitizer'
 
-export const DOCUMENT_SCHEMA_VERSION = 4 as const
+export const DOCUMENT_SCHEMA_VERSION = 5 as const
 export const DOCUMENT_STORAGE_KEY = 'commspliant.document.current'
 
 export type RichTextMark = {
@@ -35,7 +35,30 @@ export type EditorComponents = {
   NoticeBlock: { heading: string; text: RichTextValue }
   PageBreakBlock: {}
 }
+export type BackgroundImageFit =
+  | 'fill'
+  | 'contain'
+  | 'cover'
+  | 'none'
+  | 'scale-down'
 
+export type BackgroundImagePosition =
+  | 'center'
+  | 'top'
+  | 'bottom'
+  | 'left'
+  | 'right'
+  | 'top left'
+  | 'top right'
+  | 'bottom left'
+  | 'bottom right'
+
+export type DocumentBackgroundImage = {
+  src: string
+  fit?: BackgroundImageFit
+  position?: BackgroundImagePosition
+  opacity?: number
+}
 export type PageMargins = {
   top: number
   right: number
@@ -80,6 +103,7 @@ export type LetterDocument = {
   updatedAt: string
   data: DocumentData
   layout: DocumentLayout
+  backgroundImage?: DocumentBackgroundImage
 }
 
 type CreateDocumentOptions = {
