@@ -22,6 +22,7 @@ import { BackgroundSettings } from './BackgroundSettings'
 import type { PageDescriptor } from '../DocumentCanvas/pagination'
 import { AiAssistantPanel } from './AiAssistantPanel'
 import { PageNavigator } from './PageNavigator'
+import type { ImagePicker } from '../ImageBlock/imageTypes'
 import tiliToliEditorLogo from '../../assets/TiliToliEditorLogo.webp'
 import type {
   AiAssistantContext,
@@ -45,6 +46,7 @@ export type {
   AiAssistantSuggestion,
   AiAssistantSuggestionAction,
 } from '../../editor/aiAssistant'
+export type { ImagePicker, ImageSelection } from '../ImageBlock/imageTypes'
 
 const emptyPreviewValues: VariablePreviewValues = {}
 const emptyVariableDefinitions: readonly VariableDefinition[] = []
@@ -66,6 +68,8 @@ export type CommsPliantEditorProps = {
   onAiSuggestionAction?: (action: AiAssistantSuggestionAction, suggestion: AiAssistantSuggestion) => void
   logoHref?: string
   locale?: SupportedLocale
+  imagePicker?: ImagePicker
+  imagePickerActionLabel?: string
 }
 
 export function CommsPliantEditor({
@@ -87,6 +91,8 @@ function Editor({
   aiSuggestion,
   onAiSuggestionAction,
   logoHref,
+  imagePicker,
+  imagePickerActionLabel,
   activeLocale,
 }: Omit<CommsPliantEditorProps, 'locale'> & { activeLocale: SupportedLocale }) {
   const t = useTranslation()
@@ -231,6 +237,8 @@ function Editor({
         pageSettingsChannel.current,
         showMarginGuides,
         t,
+        imagePicker,
+        imagePickerActionLabel,
       ),
     [
       document.layout,
@@ -243,6 +251,8 @@ function Editor({
       handlePageSelect,
       handlePagesChange,
       t,
+      imagePicker,
+      imagePickerActionLabel,
     ],
   )
 

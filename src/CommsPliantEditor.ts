@@ -9,6 +9,8 @@ export {
   type AiAssistantRequest,
   type AiAssistantSuggestion,
   type AiAssistantSuggestionAction,
+  type ImagePicker,
+  type ImageSelection,
 } from './components/DocumentEditor/DocumentEditor'
 export { type SupportedLocale } from './i18n'
 export {
@@ -26,6 +28,8 @@ export {
   type DocumentLayout,
   type EditorComponents,
   type FluidDocumentLayout,
+  type ImageAlignment,
+  type ImageBlockData,
   type LetterDocument,
   type PageMargins,
   type PageSettings,

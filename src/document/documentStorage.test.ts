@@ -107,6 +107,41 @@ describe('document storage', () => {
     expect(pagedDocument.layout.mode).toBe('paged')
   })
 
+  it('persists normal Image block data and removes unsafe image sources on save', () => {
+    const storage = createStorage()
+    const document = createDocument('image-letter')
+    document.data.content.push({
+      type: 'ImageBlock',
+      props: {
+        id: 'image-letterhead',
+        image: {
+          src: 'https://images.example.test/letterhead.png',
+          alt: 'Company letterhead',
+          title: 'Company',
+          width: 75,
+          alignment: 'right',
+          horizontalOffset: -12,
+        },
+      },
+    })
+    document.data.content.push({
+      type: 'ImageBlock',
+      props: { id: 'image-unsafe', image: { src: 'javascript:alert(1)' } },
+    })
+
+    saveDocument(document, storage)
+    const restored = loadDocument(storage)
+
+    expect(restored.data.content[0]).toMatchObject({
+      type: 'ImageBlock',
+      props: { image: { src: 'https://images.example.test/letterhead.png', alt: 'Company letterhead', title: 'Company', width: 75, alignment: 'right', horizontalOffset: -12 } },
+    })
+    expect(restored.data.content[1]).toMatchObject({
+      type: 'ImageBlock',
+      props: { image: { src: undefined, width: 100, alignment: 'center' } },
+    })
+  })
+
   it('migrates a schema 1 document to schema 4', () => {
     const phaseOneDocument = {
       id: 'old-letter',
