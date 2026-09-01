@@ -3,6 +3,12 @@ export {
   type CommsPliantEditorProps,
   type VariableDefinition,
   type VariablePreviewValues,
+  type AiAssistantAction,
+  type AiAssistantBlockContext,
+  type AiAssistantContext,
+  type AiAssistantRequest,
+  type AiAssistantSuggestion,
+  type AiAssistantSuggestionAction,
 } from './components/DocumentEditor/DocumentEditor'
 export {
   DOCUMENT_SCHEMA_VERSION,
@@ -23,4 +29,8 @@ export {
   type RichTextMark,
   type RichTextNode,
   type RichTextValue,
+  type SpacerSize,
+  type TableAlignment,
+  type TableData,
+  type TableRow,
 } from './document/document'

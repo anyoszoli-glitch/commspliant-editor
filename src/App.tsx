@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { CommsPliantEditor } from './CommsPliantEditor'
 import { DocumentIdentity } from './components/DocumentEditor/DocumentIdentity'
 import { loadDocument, saveDocument } from './document/documentStorage'
+import tiliToliEditorLogo from './assets/TiliToliEditorLogo.webp'
 import './demo.css'
 
 const variableDefinitions = [
@@ -32,16 +33,23 @@ function App() {
           status={document.status}
         />
       </div>
-      <CommsPliantEditor
-        document={document}
-        variableDefinitions={variableDefinitions}
-        previewValues={previewValues}
-        height="calc(100vh - 64px)"
-        onChange={setDocument}
-        onSave={(savedDocument) => {
-          setDocument(saveDocument(savedDocument))
-        }}
-      />
+      <div className="standalone-editor__workspace">
+        <img
+          className="standalone-editor__corner-logo"
+          src={tiliToliEditorLogo}
+          alt="Tili Toli Editor"
+        />
+        <CommsPliantEditor
+          document={document}
+          variableDefinitions={variableDefinitions}
+          previewValues={previewValues}
+          height="calc(100vh - 64px)"
+          onChange={setDocument}
+          onSave={(savedDocument) => {
+            setDocument(saveDocument(savedDocument))
+          }}
+        />
+      </div>
     </>
   )
 }

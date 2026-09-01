@@ -22,7 +22,7 @@ describe('inline variables', () => {
   it('registers the shared atomic variable extension in constrained rich text', () => {
     const field = createConstrainedRichTextField([{ key: 'customerName', label: 'Customer name' }])
 
-    expect(field.tiptap?.extensions?.[0].name).toBe('variable')
+    expect(field.tiptap?.extensions?.some((extension) => extension.name === 'variable')).toBe(true)
     expect(VariableNode.name).toBe('variable')
   })
 

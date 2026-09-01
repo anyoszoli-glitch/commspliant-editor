@@ -5,6 +5,11 @@ import { HeadingBlock } from '../components/HeadingBlock/HeadingBlock'
 import { TextBlock } from '../components/TextBlock/TextBlock'
 import { PageBreakBlock } from '../components/PageBreakBlock/PageBreakBlock'
 import { NoticeBlock } from '../components/NoticeBlock/NoticeBlock'
+import { DividerBlock } from '../components/DividerBlock/DividerBlock'
+import { SpacerBlock } from '../components/SpacerBlock/SpacerBlock'
+import { TableBlock } from '../components/TableBlock/TableBlock'
+import { TableEditorField } from '../components/TableBlock/TableEditorField'
+import { defaultTableData } from '../components/TableBlock/tableModel'
 import { RichTextToolbar } from './RichTextToolbar'
 import type {
   DocumentBackgroundImage,
@@ -12,12 +17,14 @@ import type {
   EditorComponents,
 } from '../document/document'
 import { VariableNode } from './VariableNode'
+import { typographyExtensions } from './TypographyExtensions'
 import type { VariableDefinition, VariablePreviewValues } from './variables'
 
 export function createConstrainedRichTextField(
   variableDefinitions: readonly VariableDefinition[] = [],
   previewEnabled = false,
   previewValues: VariablePreviewValues = {},
+  onRequestAi?: (selectedText: string) => void,
 ) {
   return {
   type: 'richtext' as const,
@@ -28,17 +35,31 @@ export function createConstrainedRichTextField(
     codeBlock: false,
     heading: { levels: [2, 3] },
     horizontalRule: false,
-    strike: false,
-    textAlign: false,
+    strike: {},
+    textAlign: {},
     },
     tiptap: {
-      extensions: [VariableNode.configure({ variableDefinitions, previewEnabled, previewValues })],
+      extensions: [
+        ...typographyExtensions,
+        VariableNode.configure({ variableDefinitions, previewEnabled, previewValues }),
+      ],
     },
     renderMenu: (props: Parameters<typeof RichTextToolbar>[0]) => (
-      <RichTextToolbar {...props} variableDefinitions={variableDefinitions} readOnly={props.readOnly || previewEnabled} />
+      <RichTextToolbar
+        {...props}
+        variableDefinitions={variableDefinitions}
+        readOnly={props.readOnly || previewEnabled}
+        onRequestAi={onRequestAi}
+      />
     ),
     renderInlineMenu: (props: Parameters<typeof RichTextToolbar>[0]) => (
-      <RichTextToolbar {...props} variableDefinitions={variableDefinitions} readOnly={props.readOnly || previewEnabled} />
+      <RichTextToolbar
+        {...props}
+        inline
+        variableDefinitions={variableDefinitions}
+        readOnly={props.readOnly || previewEnabled}
+        onRequestAi={onRequestAi}
+      />
     ),
   } satisfies RichtextField
 }
@@ -59,11 +80,13 @@ export function createEditorConfig(
   variableDefinitions: readonly VariableDefinition[] = [],
   previewEnabled = false,
   previewValues: VariablePreviewValues = {},
+  onRequestAi?: (selectedText: string) => void,
 ): Config<EditorComponents> {
   const constrainedRichTextField = createConstrainedRichTextField(
     variableDefinitions,
     previewEnabled,
     previewValues,
+    onRequestAi,
   )
   return {
     root: {
@@ -141,6 +164,51 @@ export function createEditorConfig(
         render: ({ id }) => (
           <LayoutBlock id={id} breakAfter>
             <PageBreakBlock />
+          </LayoutBlock>
+        ),
+      },
+      TableBlock: {
+        label: 'Table',
+        fields: {
+          table: {
+            type: 'custom',
+            render: ({ value, onChange, readOnly }) => (
+              <TableEditorField value={value} onChange={onChange} readOnly={readOnly} />
+            ),
+          },
+        },
+        defaultProps: { table: defaultTableData },
+        render: ({ id, table }) => (
+          <LayoutBlock id={id}>
+            <TableBlock table={table} />
+          </LayoutBlock>
+        ),
+      },
+      DividerBlock: {
+        label: 'Divider',
+        defaultProps: {},
+        render: ({ id }) => (
+          <LayoutBlock id={id}>
+            <DividerBlock />
+          </LayoutBlock>
+        ),
+      },
+      SpacerBlock: {
+        label: 'Spacer',
+        fields: {
+          size: {
+            type: 'select',
+            options: [
+              { label: 'Small', value: 'small' },
+              { label: 'Medium', value: 'medium' },
+              { label: 'Large', value: 'large' },
+            ],
+          },
+        },
+        defaultProps: { size: 'medium' },
+        render: ({ id, size }) => (
+          <LayoutBlock id={id}>
+            <SpacerBlock size={size} showIndicator={!previewEnabled} />
           </LayoutBlock>
         ),
       },

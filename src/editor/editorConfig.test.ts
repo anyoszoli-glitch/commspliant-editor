@@ -30,11 +30,14 @@ describe('editor config', () => {
         codeBlock: false,
         heading: { levels: [2, 3] },
         horizontalRule: false,
-        strike: false,
-        textAlign: false,
+        strike: {},
+        textAlign: {},
       },
     })
     expect(config.components.PageBreakBlock.label).toBe('Page break')
+    expect(config.components.TableBlock.label).toBe('Table')
+    expect(config.components.DividerBlock.label).toBe('Divider')
+    expect(config.components.SpacerBlock.label).toBe('Spacer')
   })
 
   it('registers an Important notice with the constrained rich-text body editor', () => {
@@ -63,6 +66,29 @@ describe('editor config', () => {
     const config = createEditorConfig(defaultFluidLayout)
 
     expect(config.components.PageBreakBlock).toBeDefined()
+    expect(config.components.TableBlock).toBeDefined()
+    expect(config.components.DividerBlock).toBeDefined()
+    expect(config.components.SpacerBlock).toBeDefined()
+  })
+
+  it('uses serializable defaults for the new document blocks', () => {
+    const config = createEditorConfig(defaultPagedLayout)
+
+    expect(config.components.TableBlock.defaultProps).toEqual({
+      table: {
+        headerRow: true,
+        alignment: 'left',
+        rows: [
+          { cells: ['Column 1', 'Column 2', 'Column 3'] },
+          { cells: ['', '', ''] },
+          { cells: ['', '', ''] },
+        ],
+      },
+    })
+    expect(config.components.DividerBlock.defaultProps).toEqual({})
+    expect(config.components.SpacerBlock.defaultProps).toEqual({ size: 'medium' })
+    expect(JSON.parse(JSON.stringify(config.components.TableBlock.defaultProps)))
+      .toEqual(config.components.TableBlock.defaultProps)
   })
 
   it('renders page indicators only outside Preview output', () => {

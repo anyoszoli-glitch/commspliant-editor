@@ -10,6 +10,22 @@
   color: #18181b;
 }
 
+.standalone-editor__workspace {
+  position: relative;
+}
+
+.standalone-editor__corner-logo {
+  position: absolute;
+  z-index: 30;
+  top: 3px;
+  left: 11px;
+  width: 34px;
+  height: 34px;
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+}
+
 .document-identity {
   min-width: 0;
   text-align: center;
@@ -135,4 +151,13 @@
   font-size: 12px;
   font-weight: 650;
   line-height: 1.2;
+}
+
+@media (max-width: 637px) {
+  .standalone-editor__corner-logo {
+    top: 5px;
+    left: 8px;
+    width: 30px;
+    height: 30px;
+  }
 }

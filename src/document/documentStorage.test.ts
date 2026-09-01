@@ -245,6 +245,51 @@ describe('document storage', () => {
     expect(loadDocument(storage)).toEqual(savedDocument)
   })
 
+  it('round-trips typography and the table, divider, and spacer block data', () => {
+    const storage = createStorage()
+    const document = createDocument('formatted-letter')
+    document.data.content.push(
+      {
+        type: 'TextBlock',
+        props: {
+          id: 'text-1',
+          text: {
+            type: 'doc',
+            content: [{
+              type: 'paragraph',
+              attrs: { lineSpacing: '1.5', textAlign: 'center' },
+              content: [{
+                type: 'text',
+                text: 'Formatted',
+                marks: [
+                  { type: 'fontFamily', attrs: { family: 'Georgia' } },
+                  { type: 'textColour', attrs: { colour: '#1d4ed8' } },
+                  { type: 'textHighlight', attrs: { colour: '#fff3bf' } },
+                ],
+              }],
+            }],
+          },
+        },
+      },
+      {
+        type: 'TableBlock',
+        props: {
+          id: 'table-1',
+          table: {
+            headerRow: true,
+            alignment: 'center',
+            rows: [{ cells: ['Name', 'Value'] }, { cells: ['Status', 'Approved'] }],
+          },
+        },
+      },
+      { type: 'DividerBlock', props: { id: 'divider-1' } },
+      { type: 'SpacerBlock', props: { id: 'spacer-1', size: 'large' } },
+    )
+
+    const savedDocument = saveDocument(document, storage)
+    expect(loadDocument(storage)).toEqual(savedDocument)
+  })
+
   it('imports and normalizes the legacy standalone name without deleting it', () => {
     const schemaThreeDocument = {
       id: 'legacy-name-letter',

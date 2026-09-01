@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Puck, type Viewports } from '@puckeditor/core'
 import '@puckeditor/core/puck.css'
 import '../../App.css'
@@ -17,6 +17,13 @@ import { createEditorConfig } from '../../editor/editorConfig'
 import { BlockPickerItem } from './BlockPickerItem'
 import { LayoutSettings } from './LayoutSettings'
 import { BackgroundSettings } from './BackgroundSettings'
+import { AiAssistantPanel } from './AiAssistantPanel'
+import type {
+  AiAssistantContext,
+  AiAssistantRequest,
+  AiAssistantSuggestion,
+  AiAssistantSuggestionAction,
+} from '../../editor/aiAssistant'
 import {
   normalizeVariableDefinitions,
   type VariableDefinition,
@@ -24,6 +31,14 @@ import {
 } from '../../editor/variables'
 
 export type { VariableDefinition, VariablePreviewValues } from '../../editor/variables'
+export type {
+  AiAssistantAction,
+  AiAssistantBlockContext,
+  AiAssistantContext,
+  AiAssistantRequest,
+  AiAssistantSuggestion,
+  AiAssistantSuggestionAction,
+} from '../../editor/aiAssistant'
 
 const emptyPreviewValues: VariablePreviewValues = {}
 
@@ -48,6 +63,9 @@ export type CommsPliantEditorProps = {
   variableDefinitions?: readonly VariableDefinition[]
   previewValues?: VariablePreviewValues
   height?: string
+  onAiRequest?: (request: AiAssistantRequest) => void
+  aiSuggestion?: AiAssistantSuggestion
+  onAiSuggestionAction?: (action: AiAssistantSuggestionAction, suggestion: AiAssistantSuggestion) => void
 }
 
 export function CommsPliantEditor({
@@ -57,13 +75,24 @@ export function CommsPliantEditor({
   variableDefinitions = [],
   previewValues,
   height = '100vh',
+  onAiRequest,
+  aiSuggestion,
+  onAiSuggestionAction,
 }: CommsPliantEditorProps) {
   const [isPreview, setIsPreview] = useState(false)
   const [previewRevision, setPreviewRevision] = useState(0)
   const [isBackgroundSettingsOpen, setIsBackgroundSettingsOpen] = useState(false)
+  const [rightSidebarMode, setRightSidebarMode] = useState<'properties' | 'assistant'>('properties')
+  const [aiContext, setAiContext] = useState<AiAssistantContext>('document')
+  const [selectedText, setSelectedText] = useState<string>()
   const previousPreviewValues = useRef(previewValues)
   const layoutSwitchRef = useRef<HTMLDivElement>(null)
   const layoutFocusMode = useRef<DocumentLayout['mode'] | undefined>(undefined)
+  const handleRichTextAiRequest = useCallback((text: string) => {
+    setSelectedText(text)
+    setAiContext('selection')
+    setRightSidebarMode('assistant')
+  }, [])
   const validVariableDefinitions = useMemo(
     () => normalizeVariableDefinitions(variableDefinitions),
     [variableDefinitions],
@@ -97,8 +126,16 @@ export function CommsPliantEditor({
         validVariableDefinitions,
         isPreview,
         previewValues ?? emptyPreviewValues,
+        handleRichTextAiRequest,
       ),
-    [document.layout, document.backgroundImage, isPreview, previewValues, validVariableDefinitions],
+    [
+      document.layout,
+      document.backgroundImage,
+      isPreview,
+      previewValues,
+      validVariableDefinitions,
+      handleRichTextAiRequest,
+    ],
   )
 
   useEffect(() => {
@@ -197,6 +234,45 @@ export function CommsPliantEditor({
         permissions={isPreview ? { drag: false, duplicate: false, delete: false, edit: false, insert: false } : undefined}
         overrides={{
           drawerItem: ({ name }) => <BlockPickerItem name={name} />,
+          fields: ({ children, itemSelector }) => (
+            <>
+              <div
+                className="document-editor__sidebar-mode-switch"
+                role="tablist"
+                aria-label="Sidebar mode"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={rightSidebarMode === 'properties'}
+                  onClick={() => setRightSidebarMode('properties')}
+                >
+                  Properties
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={rightSidebarMode === 'assistant'}
+                  onClick={() => setRightSidebarMode('assistant')}
+                >
+                  ✨ AI Assistant
+                </button>
+              </div>
+              {rightSidebarMode === 'properties' ? (
+                children
+              ) : (
+                <AiAssistantPanel
+                  context={aiContext}
+                  onContextChange={setAiContext}
+                  selectedText={selectedText}
+                  blockContext={itemSelector ?? undefined}
+                  suggestion={aiSuggestion}
+                  onRequest={onAiRequest}
+                  onSuggestionAction={onAiSuggestionAction}
+                />
+              )}
+            </>
+          ),
           headerActions: ({ children }) => (
             <div className="document-editor__header-actions">
               {previewValues !== undefined && (

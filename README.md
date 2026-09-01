@@ -9,16 +9,16 @@ The standalone demo supplies its own white identity header and local browser per
 
 ## Install the reusable package
 
-Install the pinned GitHub release tarball (recommended):
+Install the next GitHub release tarball (recommended):
 
 ```sh
-npm install https://github.com/anyoszoli-glitch/commspliant-editor/releases/download/v0.1.0/commspliant-tili-toli-editor-0.1.0.tgz
+npm install https://github.com/anyoszoli-glitch/commspliant-editor/releases/download/v0.2.0/commspliant-tili-toli-editor-0.2.0.tgz
 ```
 
 The repository tag can also be installed directly:
 
 ```sh
-npm install github:anyoszoli-glitch/commspliant-editor#v0.1.0
+npm install github:anyoszoli-glitch/commspliant-editor#v0.2.0
 ```
 
 The package is distributed from this repository, not from a public npm registry.
@@ -67,11 +67,39 @@ Optional variable authoring and preview values are supplied by the host:
 />
 ```
 
+The reusable editor also exposes an AI Assistant frontend shell. It is intentionally provider-neutral:
+
+```tsx
+<CommsPliantEditor
+  document={document}
+  onChange={setDocument}
+  onAiRequest={(request) => hostAiService.request(request)}
+  aiSuggestion={suggestion}
+  onAiSuggestionAction={(action, currentSuggestion) => {
+    hostSuggestionWorkflow.handle(action, currentSuggestion)
+  }}
+/>
+```
+
+`onAiRequest` receives an `AiAssistantRequest` containing the selected context, action, and
+available selection or block context. `aiSuggestion` supplies host-generated `original` and
+`suggested` text for the comparison area; `onAiSuggestionAction` receives `accept` or `reject`.
+Without these optional host callbacks, the AI actions remain disabled placeholders and the
+editor makes no AI or network calls. The contextual sparkle control in rich-text editing opens
+the Assistant in Selection mode when text is selected.
+
+The existing editor functionality remains part of this package build, including typography
+marks (font family, text colour, highlight, strikethrough), line spacing, alignment, clear
+formatting, Table/Divider/Spacer blocks, related styles, serialization support, and public types.
+Import `@commspliant/tili-toli-editor/styles.css` as shown above; no standalone branding assets
+are required.
+
 ## Supported shared-contract API
 
 The package root exports:
 
 - `CommsPliantEditor` and `CommsPliantEditorProps`;
+- `AiAssistantRequest`, `AiAssistantSuggestion`, and the related AI context/action types;
 - `LetterDocument` and all nested document/layout/rich-text contract types;
 - `DOCUMENT_SCHEMA_VERSION`;
 - `isLetterDocument` for runtime boundary validation;
@@ -79,6 +107,12 @@ The package root exports:
 - `VariableDefinition` and `VariablePreviewValues`.
 
 Consumers should validate untrusted JSON with `isLetterDocument` before passing it to the editor.
+
+The schema remains version 5. Its supported Puck content now includes `TableBlock`,
+`DividerBlock`, and `SpacerBlock` alongside the original blocks. Table content is plain-text
+cell data (`TableData`), and spacer values use `SpacerSize`. Rich-text typography is stored in
+the existing rich-text value as marks (`fontFamily`, `textColour`, `textHighlight`) and paragraph
+attributes (`lineSpacing`), so no standalone presentation store is required.
 
 ## Responsibility boundary
 

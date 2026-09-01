@@ -176,8 +176,8 @@ describe('App persistence', () => {
     await expect.poll(() => canvasRoot.style.width).toBe('818px')
     expect(getComputedStyle(canvas).paddingLeft).toBe('6px')
     expect(getComputedStyle(canvas).paddingTop).toBe('5px')
-    expect(leftSidebar.getBoundingClientRect().width).toBe(176)
-    expect(rightSidebar.getBoundingClientRect().width).toBe(224)
+    expect(leftSidebar.getBoundingClientRect().width).toBe(146)
+    expect(rightSidebar.getBoundingClientRect().width).toBe(318)
 
     let frame = document.querySelector<HTMLIFrameElement>('#preview-frame')!
     await expect
@@ -232,6 +232,31 @@ describe('App persistence', () => {
       .poll(() => frame.contentDocument?.querySelector('[data-document-content]') !== null)
       .toBe(true)
     expect(frame.contentDocument?.querySelector('[data-editor-page-indicator]')).toBeNull()
+  })
+
+  it('switches the right sidebar between Properties and the AI Assistant shell', async () => {
+    await page.viewport(1440, 900)
+    mountApp()
+    await puckContent()
+
+    const rightSidebar = document.querySelector<HTMLElement>("[class*='_Sidebar--right_']")!
+    expect(rightSidebar.getBoundingClientRect().width).toBe(318)
+    await expect.element(page.getByRole('tab', { name: 'Properties' })).toHaveAttribute('aria-selected', 'true')
+    await expect.element(page.getByRole('heading', { name: 'Page' })).toBeVisible()
+
+    await userEvent.click(page.getByRole('tab', { name: '✨ AI Assistant' }))
+    await expect.element(page.getByRole('tab', { name: '✨ AI Assistant' })).toHaveAttribute('aria-selected', 'true')
+    await expect.element(page.getByRole('region', { name: 'AI Assistant' })).toBeVisible()
+    await expect.element(page.getByRole('tab', { name: 'Selection' })).toHaveAttribute('aria-selected', 'false')
+
+    await userEvent.click(page.getByRole('tab', { name: 'Block' }))
+    await expect.element(page.getByRole('tab', { name: 'Block' })).toHaveAttribute('aria-selected', 'true')
+    await userEvent.click(page.getByRole('tab', { name: 'Document' }))
+    await expect.element(page.getByRole('tab', { name: 'Document' })).toHaveAttribute('aria-selected', 'true')
+
+    await userEvent.click(page.getByRole('tab', { name: 'Properties' }))
+    await expect.element(page.getByRole('heading', { name: 'Page' })).toBeVisible()
+    await expect.element(page.getByRole('region', { name: 'AI Assistant' })).not.toBeInTheDocument()
   })
 
   it('keeps the editor header controls visible across responsive widths', async () => {
@@ -377,6 +402,16 @@ describe('App persistence', () => {
     expect(
       sanitizeRichTextHtml('<span data-commspliant-variable="oldVariable">{{oldVariable}}</span>'),
     ).toBe('<span data-commspliant-variable="oldVariable">{{oldVariable}}</span>')
+    expect(
+      sanitizeRichTextHtml(
+        '<p style="line-height: 1.5; text-align: center; position: fixed"><span style="font-family: Georgia; color: #1d4ed8; background-color: #fff3bf">Formatted</span></p>',
+      ),
+    ).toBe(
+      '<p style="line-height: 1.5; text-align: center"><span style="font-family: Georgia; color: #1d4ed8; background-color: #fff3bf">Formatted</span></p>',
+    )
+    expect(
+      sanitizeRichTextHtml('<span style="font-family: fantasy; color: red; position: fixed">Unsafe style</span>'),
+    ).toBe('<span>Unsafe style</span>')
   })
 
   it('sanitizes rich text returned from the real schema 3 migration path', () => {

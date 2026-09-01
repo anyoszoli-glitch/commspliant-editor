@@ -29,6 +29,31 @@ function BlockIcon({ name }: BlockPickerItemProps) {
     )
   }
 
+  if (name === 'TableBlock') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="4" y="5" width="16" height="14" rx="1" />
+        <path d="M4 10h16M9.5 5v14M15 5v14" />
+      </svg>
+    )
+  }
+
+  if (name === 'DividerBlock') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 12h16" />
+      </svg>
+    )
+  }
+
+  if (name === 'SpacerBlock') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 5h14M5 19h14M12 8v8m-3-3l3 3 3-3M9 11l3-3 3 3" />
+      </svg>
+    )
+  }
+
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M5 7h14M5 12h11M5 17h13" />
@@ -41,6 +66,9 @@ const labels: Record<string, string> = {
   TextBlock: 'Text',
   NoticeBlock: 'Important notice',
   PageBreakBlock: 'Page break',
+  TableBlock: 'Table',
+  DividerBlock: 'Divider',
+  SpacerBlock: 'Spacer',
 }
 
 export function BlockPickerItem({ name }: BlockPickerItemProps) {

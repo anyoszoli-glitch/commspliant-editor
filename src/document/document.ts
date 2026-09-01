@@ -5,7 +5,15 @@ import { sanitizeRichTextHtml } from './richTextSanitizer'
 export const DOCUMENT_SCHEMA_VERSION = 5 as const
 
 export type RichTextMark = {
-  type: 'bold' | 'italic' | 'underline' | 'link'
+  type:
+    | 'bold'
+    | 'italic'
+    | 'underline'
+    | 'strike'
+    | 'link'
+    | 'fontFamily'
+    | 'textColour'
+    | 'textHighlight'
   attrs?: Record<string, unknown>
 }
 
@@ -28,11 +36,23 @@ export type RichTextNode = {
 export type RichTextDocument = RichTextNode & { type: 'doc' }
 export type RichTextValue = string | RichTextDocument
 
+export type SpacerSize = 'small' | 'medium' | 'large'
+export type TableAlignment = 'left' | 'center' | 'right'
+export type TableRow = { cells: string[] }
+export type TableData = {
+  rows: TableRow[]
+  headerRow: boolean
+  alignment: TableAlignment
+}
+
 export type EditorComponents = {
   HeadingBlock: { text: string }
   TextBlock: { text: RichTextValue }
   NoticeBlock: { heading: string; text: RichTextValue }
   PageBreakBlock: {}
+  TableBlock: { table: TableData }
+  DividerBlock: {}
+  SpacerBlock: { size: SpacerSize }
 }
 export type BackgroundImageFit =
   | 'fill'
