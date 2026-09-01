@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { DocumentBackgroundImage } from '../../document/document'
 import {
+  BACKGROUND_COLOUR_PRESETS,
   BACKGROUND_OPACITY_MAX,
   BACKGROUND_OPACITY_MIN,
   parseBackgroundOpacity,
@@ -17,6 +18,12 @@ const image: DocumentBackgroundImage = {
 }
 
 describe('background settings', () => {
+  it('provides a compact palette of valid six-digit colours', () => {
+    expect(BACKGROUND_COLOUR_PRESETS).toHaveLength(6)
+    expect(new Set(BACKGROUND_COLOUR_PRESETS.map(({ value }) => value)).size).toBe(6)
+    expect(BACKGROUND_COLOUR_PRESETS.every(({ value }) => /^#[0-9a-f]{6}$/.test(value))).toBe(true)
+  })
+
   it.each([BACKGROUND_OPACITY_MIN, 50, BACKGROUND_OPACITY_MAX])(
     'accepts %i percent opacity',
     (value) => {

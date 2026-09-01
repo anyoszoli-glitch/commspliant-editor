@@ -10,6 +10,15 @@ describe('reusable package boundary', () => {
 
     expect(document.schemaVersion).toBe(publicApi.DOCUMENT_SCHEMA_VERSION)
     expect(publicApi.isLetterDocument(document)).toBe(true)
+    document.backgroundColour = '#eaf0f4'
+    expect(publicApi.isDocumentBackgroundColour(document.backgroundColour)).toBe(true)
+    expect(publicApi.isLetterDocument(document)).toBe(true)
+    expect(publicApi.isDocumentBackgroundColour('light blue')).toBe(false)
+    expect(publicApi.isPageNumbering('number-of-total')).toBe(true)
+    expect(publicApi.isPageNumbering('custom-footer')).toBe(false)
+    expect(
+      publicApi.isLetterDocument({ ...document, backgroundColour: 'light blue' }),
+    ).toBe(false)
   })
 
   it('does not expose standalone persistence through the package root', () => {

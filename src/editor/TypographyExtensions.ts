@@ -35,8 +35,8 @@ export const lineSpacingOptions = [
 ] as const
 
 export type FontFamily = Exclude<(typeof fontFamilyOptions)[number]['value'], ''>
-export type TextColour = Exclude<(typeof textColourOptions)[number]['value'], ''>
-export type HighlightColour = Exclude<(typeof highlightColourOptions)[number]['value'], ''>
+export type TextColour = `#${string}`
+export type HighlightColour = `#${string}`
 export type LineSpacing = (typeof lineSpacingOptions)[number]['value']
 
 const fontFamilyValues = fontFamilyOptions.flatMap(({ value }) => value ? [value] : [])
@@ -64,10 +64,20 @@ const colourAliases: Record<string, string> = {
   'rgb(243, 232, 255)': '#f3e8ff',
 }
 
-function normalizeColour(value: unknown, allowedValues: readonly string[]): string | null {
+function rgbToHex(value: string): string | null {
+  const match = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*1(?:\.0+)?)?\s*\)$/i.exec(value)
+  if (!match) return null
+
+  const channels = match.slice(1, 4).map(Number)
+  if (channels.some((channel) => channel > 255)) return null
+  return `#${channels.map((channel) => channel.toString(16).padStart(2, '0')).join('')}`
+}
+
+function normalizeColour(value: unknown, _allowedValues: readonly string[]): string | null {
   if (typeof value !== 'string') return null
-  const normalized = colourAliases[value.trim().toLowerCase()] ?? value.trim().toLowerCase()
-  return allowedValues.includes(normalized) ? normalized : null
+  const rawValue = value.trim().toLowerCase()
+  const normalized = colourAliases[rawValue] ?? rgbToHex(rawValue) ?? rawValue
+  return /^#[0-9a-f]{6}$/.test(normalized) ? normalized : null
 }
 
 export const FontFamilyMark = Mark.create({

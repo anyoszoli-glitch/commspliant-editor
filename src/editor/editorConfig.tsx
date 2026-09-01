@@ -1,3 +1,4 @@
+import { createContext, useContext, type ReactNode } from 'react'
 import type { Config, RichtextField } from '@puckeditor/core'
 import { DocumentCanvas } from '../components/DocumentCanvas/DocumentCanvas'
 import { LayoutBlock } from '../components/DocumentCanvas/LayoutBlock'
@@ -12,6 +13,7 @@ import { TableEditorField } from '../components/TableBlock/TableEditorField'
 import { defaultTableData } from '../components/TableBlock/tableModel'
 import { RichTextToolbar } from './RichTextToolbar'
 import type {
+  DocumentBackgroundColour,
   DocumentBackgroundImage,
   DocumentLayout,
   EditorComponents,
@@ -74,6 +76,41 @@ export const defaultRichTextValue = {
   ],
 }
 
+type DocumentAppearance = {
+  backgroundImage?: DocumentBackgroundImage
+  backgroundColour?: DocumentBackgroundColour
+}
+
+export const DocumentAppearanceContext = createContext<DocumentAppearance | null>(null)
+
+function EditorDocumentCanvas({
+  children,
+  layout,
+  fallbackBackgroundImage,
+  isEditorCanvas,
+}: {
+  children?: ReactNode
+  layout: DocumentLayout
+  fallbackBackgroundImage?: DocumentBackgroundImage
+  isEditorCanvas: boolean
+}) {
+  const appearance = useContext(DocumentAppearanceContext)
+
+  return (
+    <DocumentCanvas
+      layout={layout}
+      backgroundImage={
+        appearance ? appearance.backgroundImage : fallbackBackgroundImage
+      }
+      backgroundColour={appearance?.backgroundColour}
+      isEditorCanvas={isEditorCanvas}
+      showEditorPageIndicators={isEditorCanvas}
+    >
+      {children}
+    </DocumentCanvas>
+  )
+}
+
 export function createEditorConfig(
   layout: DocumentLayout,
   backgroundImage?: DocumentBackgroundImage,
@@ -96,14 +133,13 @@ export function createEditorConfig(
         const isEditorCanvas = !previewEnabled
 
         return (
-          <DocumentCanvas
+          <EditorDocumentCanvas
             layout={layout}
-            backgroundImage={backgroundImage}
+            fallbackBackgroundImage={backgroundImage}
             isEditorCanvas={isEditorCanvas}
-            showEditorPageIndicators={isEditorCanvas}
           >
             {children}
-          </DocumentCanvas>
+          </EditorDocumentCanvas>
         )
       },
     },

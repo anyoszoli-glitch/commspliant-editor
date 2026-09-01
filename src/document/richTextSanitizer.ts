@@ -11,6 +11,8 @@ const allowedColours = new Set([
   'rgb(219, 234, 254)', 'rgb(220, 252, 231)', 'rgb(254, 226, 226)',
   'rgb(243, 232, 255)',
 ])
+const safeHexColour = /^#[0-9a-f]{6}$/i
+const safeRgbColour = /^rgb\(\s*(?:\d{1,3})\s*,\s*(?:\d{1,3})\s*,\s*(?:\d{1,3})\s*\)$/i
 const allowedLineSpacing = new Set(['1', '1.15', '1.5', '2'])
 const allowedTextAlign = new Set(['left', 'center', 'right', 'justify'])
 
@@ -31,8 +33,13 @@ export function sanitizeRichTextStyle(style: string): string {
         return family ? [`font-family: ${family}`] : []
       }
 
-      if ((property === 'color' || property === 'background-color') && allowedColours.has(value.toLowerCase())) {
-        return [`${property}: ${value.toLowerCase()}`]
+      if (property === 'color' || property === 'background-color') {
+        const normalizedColour = value.toLowerCase()
+        const safeRgb = safeRgbColour.test(normalizedColour) &&
+          (normalizedColour.match(/\d+/g) ?? []).every((channel) => Number(channel) <= 255)
+        if (allowedColours.has(normalizedColour) || safeHexColour.test(normalizedColour) || safeRgb) {
+          return [`${property}: ${normalizedColour}`]
+        }
       }
 
       if (property === 'line-height' && allowedLineSpacing.has(value)) {

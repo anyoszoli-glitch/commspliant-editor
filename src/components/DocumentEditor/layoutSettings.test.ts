@@ -10,11 +10,13 @@ import {
   FLUID_WIDTH_MIN,
   PAGED_MARGIN_MAX,
   PAGED_MARGIN_MIN,
+  PAGE_NUMBERING_OPTIONS,
   parseLayoutInteger,
   resetFluidContentWidth,
-  resetPagedMargins,
+  resetPagedSettings,
   updateFluidContentWidth,
   updatePagedMargin,
+  updatePageNumbering,
 } from './layoutSettingsModel'
 
 describe('layout settings', () => {
@@ -47,13 +49,31 @@ describe('layout settings', () => {
     expect(document.data).toBe(originalData)
   })
 
-  it('resets only exposed paged margins to their defaults', () => {
+  it('offers and updates every supported page-numbering format', () => {
+    expect(PAGE_NUMBERING_OPTIONS.map(({ label }) => label)).toEqual([
+      'None',
+      'Page 1',
+      'Page 1 of 3',
+      '1',
+      '1 / 3',
+    ])
+    expect(updatePageNumbering(defaultPagedLayout, 'page-number-of-total')).toMatchObject({
+      pageNumbering: 'page-number-of-total',
+      margins: defaultPagedLayout.margins,
+    })
+  })
+
+  it('resets exposed paged settings to their defaults', () => {
     const layout = {
       ...defaultPagedLayout,
       margins: { top: 12, right: 13, bottom: 14, left: 15, unit: 'mm' as const },
+      pageNumbering: 'number-of-total' as const,
     }
 
-    expect(resetPagedMargins(layout).margins).toEqual(defaultPagedLayout.margins)
+    expect(resetPagedSettings(layout)).toMatchObject({
+      margins: defaultPagedLayout.margins,
+      pageNumbering: 'none',
+    })
   })
 
   it('resets only fluid content width and preserves fluid padding', () => {

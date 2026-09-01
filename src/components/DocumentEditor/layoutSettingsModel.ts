@@ -3,12 +3,21 @@ import {
   defaultPagedLayout,
   type FluidDocumentLayout,
   type PagedDocumentLayout,
+  type PageNumbering,
 } from '../../document/document'
 
 export const PAGED_MARGIN_MIN = 10
 export const PAGED_MARGIN_MAX = 40
 export const FLUID_WIDTH_MIN = 480
 export const FLUID_WIDTH_MAX = 960
+
+export const PAGE_NUMBERING_OPTIONS: Array<{ value: PageNumbering; label: string }> = [
+  { value: 'none', label: 'None' },
+  { value: 'page-number', label: 'Page 1' },
+  { value: 'page-number-of-total', label: 'Page 1 of 3' },
+  { value: 'number', label: '1' },
+  { value: 'number-of-total', label: '1 / 3' },
+]
 
 export type PagedMargin = keyof PagedDocumentLayout['margins'] extends infer Key
   ? Key extends 'top' | 'right' | 'bottom' | 'left'
@@ -36,6 +45,13 @@ export function updatePagedMargin(
   return { ...layout, margins: { ...layout.margins, [margin]: value } }
 }
 
+export function updatePageNumbering(
+  layout: PagedDocumentLayout,
+  pageNumbering: PageNumbering,
+): PagedDocumentLayout {
+  return { ...layout, pageNumbering }
+}
+
 export function updateFluidContentWidth(
   layout: FluidDocumentLayout,
   value: number,
@@ -43,9 +59,10 @@ export function updateFluidContentWidth(
   return { ...layout, maxWidth: { ...layout.maxWidth, value } }
 }
 
-export function resetPagedMargins(layout: PagedDocumentLayout): PagedDocumentLayout {
+export function resetPagedSettings(layout: PagedDocumentLayout): PagedDocumentLayout {
   return {
     ...layout,
+    pageNumbering: defaultPagedLayout.pageNumbering,
     margins: {
       ...layout.margins,
       top: defaultPagedLayout.margins.top,

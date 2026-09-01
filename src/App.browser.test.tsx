@@ -59,10 +59,12 @@ function EmbeddedEditorHarness({
   initialDocument,
   changes,
   saves,
+  previewValues,
 }: {
   initialDocument: LetterDocument
   changes: LetterDocument[]
   saves: LetterDocument[]
+  previewValues?: Record<string, string>
 }) {
   const [document, setDocument] = useState(initialDocument)
 
@@ -74,6 +76,7 @@ function EmbeddedEditorHarness({
         setDocument(updatedDocument)
       }}
       onSave={(updatedDocument) => saves.push(updatedDocument)}
+      previewValues={previewValues}
     />
   )
 }
@@ -159,6 +162,103 @@ describe('App persistence', () => {
     await expect.poll(() => saves.length).toBe(1)
     expect(saves[0].layout.mode).toBe('fluid')
     expect(saves[0]).toEqual(changes.at(-1))
+  })
+
+  it('keeps the embedded background opacity slider mounted across continuous updates', async () => {
+    const changes: LetterDocument[] = []
+    const editorDocument = createDocument('embedded-background-document')
+    editorDocument.backgroundImage = {
+      src: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="10" height="10"/%3E',
+      opacity: 0.2,
+    }
+
+    container = document.createElement('div')
+    document.body.append(container)
+    root = createRoot(container)
+    root.render(
+      <EmbeddedEditorHarness
+        initialDocument={editorDocument}
+        changes={changes}
+        saves={[]}
+      />,
+    )
+
+    await puckContent()
+    await userEvent.click(page.getByRole('button', { name: 'Background settings' }))
+
+    const range = document.querySelector<HTMLInputElement>(
+      "input[aria-label='Background image opacity']",
+    )!
+    const nativeValueSetter = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      'value',
+    )!.set!
+
+    for (const value of ['30', '45', '60', '75']) {
+      nativeValueSetter.call(range, value)
+      range.dispatchEvent(new Event('input', { bubbles: true }))
+      await expect.poll(() => changes.at(-1)?.backgroundImage?.opacity).toBe(Number(value) / 100)
+      expect(document.querySelector("input[aria-label='Background image opacity']")).toBe(range)
+    }
+
+    await userEvent.click(page.getByRole('button', { name: 'Light blue' }))
+    await expect.poll(() => changes.at(-1)?.backgroundColour).toBe('#eaf0f4')
+  })
+
+  it('renders dynamic page numbering in Author and Preview and exposes shared custom colour inputs', async () => {
+    const changes: LetterDocument[] = []
+    const editorDocument = createDocument('embedded-numbered-document')
+    if (editorDocument.layout.mode !== 'paged') throw new Error('Expected paged document')
+    editorDocument.layout.pageNumbering = 'page-number-of-total'
+    editorDocument.data.content = [
+      { type: 'TextBlock', props: { id: 'first', text: '<p>First page</p>' } },
+      { type: 'PageBreakBlock', props: { id: 'break-one' } },
+      { type: 'TextBlock', props: { id: 'second', text: '<p>Second page</p>' } },
+      { type: 'PageBreakBlock', props: { id: 'break-two' } },
+      { type: 'TextBlock', props: { id: 'third', text: '<p>Third page</p>' } },
+    ]
+
+    container = document.createElement('div')
+    document.body.append(container)
+    root = createRoot(container)
+    root.render(
+      <EmbeddedEditorHarness
+        initialDocument={editorDocument}
+        changes={changes}
+        saves={[]}
+        previewValues={{}}
+      />,
+    )
+
+    await puckText('First page')
+
+    const pageNumberTexts = () => {
+      const frame = document.querySelector<HTMLIFrameElement>('#preview-frame')
+      return [...(frame?.contentDocument?.querySelectorAll('[data-document-page-number]') ?? [])]
+        .map((element) => element.textContent)
+    }
+
+    await expect.poll(pageNumberTexts).toEqual(['Page 1 of 3', 'Page 2 of 3', 'Page 3 of 3'])
+
+    await userEvent.click(page.getByRole('button', { name: 'Page setup' }))
+    await userEvent.selectOptions(
+      page.getByRole('combobox', { name: 'Page numbering' }),
+      'number-of-total',
+    )
+    await expect.poll(() => changes.at(-1)?.layout).toMatchObject({
+      mode: 'paged',
+      pageNumbering: 'number-of-total',
+    })
+    await expect.poll(pageNumberTexts).toEqual(['1 / 3', '2 / 3', '3 / 3'])
+
+    const firstPageText = await puckText('First page')
+    await firstPageText.hover()
+    await firstPageText.click()
+    expect(document.querySelectorAll("input[aria-label='Custom text colour']").length).toBeGreaterThan(0)
+    expect(document.querySelectorAll("input[aria-label='Custom text highlight']").length).toBeGreaterThan(0)
+
+    await userEvent.click(page.getByRole('button', { name: 'Preview' }))
+    await expect.poll(pageNumberTexts).toEqual(['1 / 3', '2 / 3', '3 / 3'])
   })
 
   it('gives paged and fluid documents compact frames without changing document geometry', async () => {
@@ -412,6 +512,13 @@ describe('App persistence', () => {
     expect(
       sanitizeRichTextHtml('<span style="font-family: fantasy; color: red; position: fixed">Unsafe style</span>'),
     ).toBe('<span>Unsafe style</span>')
+    expect(
+      sanitizeRichTextHtml(
+        '<p><span style="color: rgb(47, 107, 87); background-color: rgb(246, 207, 226)">Custom colours</span></p>',
+      ),
+    ).toBe(
+      '<p><span style="color: rgb(47, 107, 87); background-color: rgb(246, 207, 226)">Custom colours</span></p>',
+    )
   })
 
   it('sanitizes rich text returned from the real schema 3 migration path', () => {

@@ -78,6 +78,14 @@ export type DocumentBackgroundImage = {
   position?: BackgroundImagePosition
   opacity?: number
 }
+export type DocumentBackgroundColour = `#${string}`
+
+export function isDocumentBackgroundColour(
+  value: unknown,
+): value is DocumentBackgroundColour {
+  return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value)
+}
+
 export type PageMargins = {
   top: number
   right: number
@@ -86,10 +94,47 @@ export type PageMargins = {
   unit: 'mm'
 }
 
+export type PageNumbering =
+  | 'none'
+  | 'page-number'
+  | 'page-number-of-total'
+  | 'number'
+  | 'number-of-total'
+
+export function isPageNumbering(value: unknown): value is PageNumbering {
+  return [
+    'none',
+    'page-number',
+    'page-number-of-total',
+    'number',
+    'number-of-total',
+  ].includes(String(value))
+}
+
+export function formatPageNumber(
+  format: PageNumbering | undefined,
+  page: number,
+  total: number,
+): string | undefined {
+  switch (format) {
+    case 'page-number':
+      return `Page ${page}`
+    case 'page-number-of-total':
+      return `Page ${page} of ${total}`
+    case 'number':
+      return String(page)
+    case 'number-of-total':
+      return `${page} / ${total}`
+    default:
+      return undefined
+  }
+}
+
 export type PagedDocumentLayout = {
   mode: 'paged'
   pageSize: 'A4'
   margins: PageMargins
+  pageNumbering?: PageNumbering
 }
 
 export type FluidDocumentLayout = {
@@ -123,6 +168,7 @@ export type LetterDocument = {
   data: DocumentData
   layout: DocumentLayout
   backgroundImage?: DocumentBackgroundImage
+  backgroundColour?: DocumentBackgroundColour
 }
 
 export type CreateDocumentOptions = {
@@ -135,6 +181,7 @@ export const defaultPagedLayout: PagedDocumentLayout = {
   mode: 'paged',
   pageSize: 'A4',
   margins: { top: 20, right: 20, bottom: 20, left: 20, unit: 'mm' },
+  pageNumbering: 'none',
 }
 
 export const defaultFluidLayout: FluidDocumentLayout = {
@@ -227,11 +274,16 @@ export function isLetterDocument(value: unknown): value is LetterDocument {
       typeof layout.padding?.left === 'number') ||
     (layout?.mode === 'paged' &&
       layout.pageSize === 'A4' &&
+      (layout.pageNumbering === undefined || isPageNumbering(layout.pageNumbering)) &&
       layout.margins?.unit === 'mm' &&
       typeof layout.margins?.top === 'number' &&
       typeof layout.margins?.right === 'number' &&
       typeof layout.margins?.bottom === 'number' &&
       typeof layout.margins?.left === 'number')
+
+  const validBackgroundColour =
+    document.backgroundColour === undefined ||
+    isDocumentBackgroundColour(document.backgroundColour)
 
   return (
     typeof document.id === 'string' &&
@@ -249,6 +301,7 @@ export function isLetterDocument(value: unknown): value is LetterDocument {
     Array.isArray(document.data?.content) &&
     typeof document.data?.root === 'object' &&
     document.data.root !== null &&
-    validLayout
+    validLayout &&
+    validBackgroundColour
   )
 }

@@ -6,12 +6,14 @@ import {
   FLUID_WIDTH_MIN,
   PAGED_MARGIN_MAX,
   PAGED_MARGIN_MIN,
+  PAGE_NUMBERING_OPTIONS,
   layoutValidationMessage,
   parseLayoutInteger,
   resetFluidContentWidth,
-  resetPagedMargins,
+  resetPagedSettings,
   updateFluidContentWidth,
   updatePagedMargin,
+  updatePageNumbering,
   type PagedMargin,
 } from './layoutSettingsModel'
 
@@ -113,7 +115,7 @@ export function LayoutSettings({ layout, onChange, disabled = false }: LayoutSet
   const reset = () => {
     setErrors({})
     setResetVersion((version) => version + 1)
-    onChange(layout.mode === 'paged' ? resetPagedMargins(layout) : resetFluidContentWidth(layout))
+    onChange(layout.mode === 'paged' ? resetPagedSettings(layout) : resetFluidContentWidth(layout))
   }
 
   const togglePanel = () => {
@@ -170,6 +172,26 @@ export function LayoutSettings({ layout, onChange, disabled = false }: LayoutSet
                   </label>
                 )
               })}
+              <label className="document-editor__layout-field" htmlFor="layout-settings-page-numbering">
+                <span>Page numbering</span>
+                <select
+                  id="layout-settings-page-numbering"
+                  value={layout.pageNumbering ?? 'none'}
+                  disabled={disabled}
+                  onChange={(event) =>
+                    onChange(
+                      updatePageNumbering(
+                        layout,
+                        event.currentTarget.value as (typeof PAGE_NUMBERING_OPTIONS)[number]['value'],
+                      ),
+                    )
+                  }
+                >
+                  {PAGE_NUMBERING_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </label>
             </div>
           ) : (
             <div className="document-editor__layout-settings-fields">

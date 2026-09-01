@@ -23,10 +23,16 @@
     "./styles.css": {
       "types": "./styles.d.ts",
       "default": "./dist-package/styles.css"
+    },
+    "./logo.webp": {
+      "types": "./logo.d.ts",
+      "default": "./src/assets/TiliToliEditorLogo.webp"
     }
   },
   "files": [
     "dist-package",
+    "src/assets/TiliToliEditorLogo.webp",
+    "logo.d.ts",
     "styles.d.ts",
     "README.md",
     "LICENSE"

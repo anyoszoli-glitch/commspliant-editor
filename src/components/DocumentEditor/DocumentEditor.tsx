@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
-import { Puck, type Viewports } from '@puckeditor/core'
+import { Puck, type Config, type Overrides, type Viewports } from '@puckeditor/core'
 import '@puckeditor/core/puck.css'
 import '../../App.css'
 
@@ -9,11 +9,12 @@ import {
   defaultPagedLayout,
   type DocumentData,
   type DocumentLayout,
+  type EditorComponents,
   type FluidDocumentLayout,
   type PagedDocumentLayout,
   type LetterDocument,
 } from '../../document/document'
-import { createEditorConfig } from '../../editor/editorConfig'
+import { createEditorConfig, DocumentAppearanceContext } from '../../editor/editorConfig'
 import { BlockPickerItem } from './BlockPickerItem'
 import { LayoutSettings } from './LayoutSettings'
 import { BackgroundSettings } from './BackgroundSettings'
@@ -41,6 +42,7 @@ export type {
 } from '../../editor/aiAssistant'
 
 const emptyPreviewValues: VariablePreviewValues = {}
+const emptyVariableDefinitions: readonly VariableDefinition[] = []
 
 // Puck's default desktop viewport is 1280px wide, which is appropriate for a web page but
 // makes a fixed A4 document unnecessarily small. Keep a slim canvas frame around the page
@@ -72,7 +74,7 @@ export function CommsPliantEditor({
   document,
   onChange,
   onSave,
-  variableDefinitions = [],
+  variableDefinitions = emptyVariableDefinitions,
   previewValues,
   height = '100vh',
   onAiRequest,
@@ -112,6 +114,17 @@ export function CommsPliantEditor({
     [document.layout],
   )
   const currentData = useRef<DocumentData>(document.data)
+  const documentRef = useRef(document)
+  const onChangeRef = useRef(onChange)
+  documentRef.current = document
+  onChangeRef.current = onChange
+  const documentAppearance = useMemo(
+    () => ({
+      backgroundImage: document.backgroundImage,
+      backgroundColour: document.backgroundColour,
+    }),
+    [document.backgroundColour, document.backgroundImage],
+  )
   const lastPagedLayout = useRef<PagedDocumentLayout>(
     document.layout.mode === 'paged' ? document.layout : defaultPagedLayout,
   )
@@ -122,7 +135,7 @@ export function CommsPliantEditor({
     () =>
       createEditorConfig(
         document.layout,
-        document.backgroundImage,
+        undefined,
         validVariableDefinitions,
         isPreview,
         previewValues ?? emptyPreviewValues,
@@ -130,7 +143,6 @@ export function CommsPliantEditor({
       ),
     [
       document.layout,
-      document.backgroundImage,
       isPreview,
       previewValues,
       validVariableDefinitions,
@@ -164,14 +176,15 @@ export function CommsPliantEditor({
   }
 
   const selectLayout = (mode: DocumentLayout['mode']) => {
+    const currentDocument = documentRef.current
     if (isPreview) return
-    if (mode === document.layout.mode) return
-    if (document.layout.mode === 'paged') lastPagedLayout.current = document.layout
-    if (document.layout.mode === 'fluid') lastFluidLayout.current = document.layout
+    if (mode === currentDocument.layout.mode) return
+    if (currentDocument.layout.mode === 'paged') lastPagedLayout.current = currentDocument.layout
+    if (currentDocument.layout.mode === 'fluid') lastFluidLayout.current = currentDocument.layout
 
-    onChange(
+    onChangeRef.current(
       changeDocumentLayout(
-        { ...document, data: currentData.current },
+        { ...currentDocument, data: currentData.current },
         mode,
         lastPagedLayout.current,
         lastFluidLayout.current,
@@ -216,142 +229,179 @@ export function CommsPliantEditor({
   }
 
   const updateLayout = (layout: DocumentLayout) => {
+    const currentDocument = documentRef.current
     if (isPreview) return
     if (layout.mode === 'paged') lastPagedLayout.current = layout
     if (layout.mode === 'fluid') lastFluidLayout.current = layout
-    onChange({ ...document, data: currentData.current, layout })
+    onChangeRef.current({ ...currentDocument, data: currentData.current, layout })
   }
+
+  const puckOverrides = useMemo<Partial<Overrides<Config<EditorComponents>>>>(
+    () => ({
+      drawerItem: ({ name }) => <BlockPickerItem name={name} />,
+      fields: ({ children, itemSelector }) => (
+        <>
+          <div
+            className="document-editor__sidebar-mode-switch"
+            role="tablist"
+            aria-label="Sidebar mode"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={rightSidebarMode === 'properties'}
+              onClick={() => setRightSidebarMode('properties')}
+            >
+              Properties
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={rightSidebarMode === 'assistant'}
+              onClick={() => setRightSidebarMode('assistant')}
+            >
+              ✨ AI Assistant
+            </button>
+          </div>
+          {rightSidebarMode === 'properties' ? (
+            children
+          ) : (
+            <AiAssistantPanel
+              context={aiContext}
+              onContextChange={setAiContext}
+              selectedText={selectedText}
+              blockContext={itemSelector ?? undefined}
+              suggestion={aiSuggestion}
+              onRequest={onAiRequest}
+              onSuggestionAction={onAiSuggestionAction}
+            />
+          )}
+        </>
+      ),
+      headerActions: ({ children }) => {
+        const currentDocument = documentRef.current
+
+        return (
+          <div className="document-editor__header-actions">
+            {previewValues !== undefined && (
+              <div className="document-editor__preview-toggle" aria-label="Variable presentation">
+                <button type="button" aria-pressed={!isPreview} onClick={() => togglePreview(false)}>
+                  Author
+                </button>
+                <button type="button" aria-pressed={isPreview} onClick={() => togglePreview(true)}>
+                  Preview
+                </button>
+              </div>
+            )}
+            <div className="document-editor__layout-controls">
+              <div className="document-editor__layout-switch" ref={setLayoutSwitchRef}>
+                <span id="document-layout-label">Layout:</span>
+                <div
+                  className="document-editor__layout-segmented-control"
+                  role="radiogroup"
+                  aria-labelledby="document-layout-label"
+                >
+                  <button
+                    type="button"
+                    role="radio"
+                    data-layout-mode="paged"
+                    aria-checked={currentDocument.layout.mode === 'paged'}
+                    tabIndex={currentDocument.layout.mode === 'paged' ? 0 : -1}
+                    onClick={() => selectLayout('paged')}
+                    onKeyDown={handleLayoutKeyDown}
+                    disabled={isPreview}
+                  >
+                    Paged / A4
+                  </button>
+                  <button
+                    type="button"
+                    role="radio"
+                    data-layout-mode="fluid"
+                    aria-checked={currentDocument.layout.mode === 'fluid'}
+                    tabIndex={currentDocument.layout.mode === 'fluid' ? 0 : -1}
+                    onClick={() => selectLayout('fluid')}
+                    onKeyDown={handleLayoutKeyDown}
+                    disabled={isPreview}
+                  >
+                    Fluid
+                  </button>
+                </div>
+              </div>
+              <div className="document-editor__settings-controls">
+                <LayoutSettings
+                  layout={currentDocument.layout}
+                  onChange={updateLayout}
+                  disabled={isPreview}
+                />
+                <BackgroundSettings
+                  image={currentDocument.backgroundImage}
+                  colour={currentDocument.backgroundColour}
+                  open={isBackgroundSettingsOpen}
+                  onOpenChange={setIsBackgroundSettingsOpen}
+                  disabled={isPreview}
+                  onImageChange={(backgroundImage) => {
+                    const latestDocument = documentRef.current
+                    onChangeRef.current({
+                      ...latestDocument,
+                      data: currentData.current,
+                      backgroundImage,
+                    })
+                  }}
+                  onColourChange={(backgroundColour) => {
+                    const latestDocument = documentRef.current
+                    onChangeRef.current({
+                      ...latestDocument,
+                      data: currentData.current,
+                      backgroundColour,
+                    })
+                  }}
+                />
+              </div>
+            </div>
+            {children}
+          </div>
+        )
+      },
+    }),
+    [
+      aiContext,
+      aiSuggestion,
+      document.layout,
+      isBackgroundSettingsOpen,
+      isPreview,
+      onAiRequest,
+      onAiSuggestionAction,
+      previewValues,
+      rightSidebarMode,
+      selectedText,
+    ],
+  )
 
   return (
     <div className="document-editor">
-      <Puck
-        key={`${document.id}-${document.layout.mode}-${previewRevision}`}
-        config={config}
-        data={currentData.current}
-        dictionary={{ 'header-publish': 'Save draft' }}
-        height={height}
-        viewports={documentViewports}
-        permissions={isPreview ? { drag: false, duplicate: false, delete: false, edit: false, insert: false } : undefined}
-        overrides={{
-          drawerItem: ({ name }) => <BlockPickerItem name={name} />,
-          fields: ({ children, itemSelector }) => (
-            <>
-              <div
-                className="document-editor__sidebar-mode-switch"
-                role="tablist"
-                aria-label="Sidebar mode"
-              >
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={rightSidebarMode === 'properties'}
-                  onClick={() => setRightSidebarMode('properties')}
-                >
-                  Properties
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={rightSidebarMode === 'assistant'}
-                  onClick={() => setRightSidebarMode('assistant')}
-                >
-                  ✨ AI Assistant
-                </button>
-              </div>
-              {rightSidebarMode === 'properties' ? (
-                children
-              ) : (
-                <AiAssistantPanel
-                  context={aiContext}
-                  onContextChange={setAiContext}
-                  selectedText={selectedText}
-                  blockContext={itemSelector ?? undefined}
-                  suggestion={aiSuggestion}
-                  onRequest={onAiRequest}
-                  onSuggestionAction={onAiSuggestionAction}
-                />
-              )}
-            </>
-          ),
-          headerActions: ({ children }) => (
-            <div className="document-editor__header-actions">
-              {previewValues !== undefined && (
-                <div className="document-editor__preview-toggle" aria-label="Variable presentation">
-                  <button type="button" aria-pressed={!isPreview} onClick={() => togglePreview(false)}>
-                    Author
-                  </button>
-                  <button type="button" aria-pressed={isPreview} onClick={() => togglePreview(true)}>
-                    Preview
-                  </button>
-                </div>
-              )}
-              <div className="document-editor__layout-controls">
-                <div className="document-editor__layout-switch" ref={setLayoutSwitchRef}>
-                  <span id="document-layout-label">Layout:</span>
-                  <div
-                    className="document-editor__layout-segmented-control"
-                    role="radiogroup"
-                    aria-labelledby="document-layout-label"
-                  >
-                    <button
-                      type="button"
-                      role="radio"
-                      data-layout-mode="paged"
-                      aria-checked={document.layout.mode === 'paged'}
-                      tabIndex={document.layout.mode === 'paged' ? 0 : -1}
-                      onClick={() => selectLayout('paged')}
-                      onKeyDown={handleLayoutKeyDown}
-                      disabled={isPreview}
-                    >
-                      Paged / A4
-                    </button>
-                    <button
-                      type="button"
-                      role="radio"
-                      data-layout-mode="fluid"
-                      aria-checked={document.layout.mode === 'fluid'}
-                      tabIndex={document.layout.mode === 'fluid' ? 0 : -1}
-                      onClick={() => selectLayout('fluid')}
-                      onKeyDown={handleLayoutKeyDown}
-                      disabled={isPreview}
-                    >
-                      Fluid
-                    </button>
-                  </div>
-                </div>
-                <div className="document-editor__settings-controls">
-                  <LayoutSettings layout={document.layout} onChange={updateLayout} disabled={isPreview} />
-                  <BackgroundSettings
-                    image={document.backgroundImage}
-                    open={isBackgroundSettingsOpen}
-                    onOpenChange={setIsBackgroundSettingsOpen}
-                    disabled={isPreview}
-                    onChange={(backgroundImage) =>
-                      onChange({
-                        ...document,
-                        data: currentData.current,
-                        backgroundImage,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-              {children}
-            </div>
-          ),
-        }}
-        onChange={(data) => {
-          if (isPreview) return
-          currentData.current = data
-          onChange({ ...document, data })
-        }}
-        onPublish={(data) => {
-          currentData.current = data
-          const savedDocument = { ...document, data }
-          onChange(savedDocument)
-          onSave?.(savedDocument)
-        }}
-      />
+      <DocumentAppearanceContext.Provider value={documentAppearance}>
+        <Puck
+          key={`${document.id}-${document.layout.mode}-${previewRevision}`}
+          config={config}
+          data={currentData.current}
+          dictionary={{ 'header-publish': 'Save draft' }}
+          height={height}
+          viewports={documentViewports}
+          permissions={isPreview ? { drag: false, duplicate: false, delete: false, edit: false, insert: false } : undefined}
+          overrides={puckOverrides}
+          onChange={(data) => {
+            if (isPreview) return
+            currentData.current = data
+            onChange({ ...document, data })
+          }}
+          onPublish={(data) => {
+            currentData.current = data
+            const savedDocument = { ...document, data }
+            onChange(savedDocument)
+            onSave?.(savedDocument)
+          }}
+        />
+      </DocumentAppearanceContext.Provider>
     </div>
   )
 }

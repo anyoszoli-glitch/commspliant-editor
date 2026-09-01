@@ -1,5 +1,6 @@
 import { RichTextMenu, type RichtextField } from '@puckeditor/core'
 import type { ChangeEvent } from 'react'
+import { CustomColourPicker } from '../components/ColourPicker/CustomColourPicker'
 import {
   fontFamilyOptions,
   highlightColourOptions,
@@ -79,6 +80,23 @@ export function RichTextToolbar({
       chain.unsetMark(mark).run()
     }
   }
+
+  const applyCustomColour = (mark: 'textColour' | 'textHighlight', colour: string) => {
+    if (!editor) return
+
+    // Native colour inputs temporarily move browser focus outside Puck's rich-text field.
+    // Restore the editor first so Puck observes the following document transaction and
+    // includes the custom mark in controlled data, history, save, and preview output.
+    editor.commands.focus()
+    requestAnimationFrame(() => {
+      if (!editor.isDestroyed) editor.chain().setMark(mark, { colour }).run()
+    })
+  }
+
+  const isPresetColour = (
+    colour: string,
+    options: readonly { value: string }[],
+  ) => options.some((option) => option.value === colour)
 
   const changeLineSpacing = (event: ChangeEvent<HTMLSelectElement>) => {
     if (!editor) return
@@ -253,30 +271,58 @@ export function RichTextToolbar({
         </div>
         <div className="commspliant-richtext-toolbar__row commspliant-richtext-toolbar__row--responsive-pair">
           <RichTextMenu.Group>
-            <select
-              className="commspliant-richtext-toolbar__style-select"
-              aria-label="Text colour"
-              value={textColour}
-              disabled={readOnly || !editor}
-              onChange={changeMark('textColour', 'colour')}
-            >
-              {textColourOptions.map(({ label, value }) => (
-                <option key={label} value={value}>{value ? label : 'Colour'}</option>
-              ))}
-            </select>
+            <div className="commspliant-richtext-toolbar__colour-control">
+              <select
+                className="commspliant-richtext-toolbar__style-select"
+                aria-label="Text colour"
+                value={textColour}
+                disabled={readOnly || !editor}
+                onChange={changeMark('textColour', 'colour')}
+              >
+                {textColourOptions.map(({ label, value }) => (
+                  <option key={label} value={value}>{value ? label : 'Colour'}</option>
+                ))}
+                {textColour && !isPresetColour(textColour, textColourOptions) && (
+                  <option value={textColour}>Custom</option>
+                )}
+              </select>
+              <CustomColourPicker
+                className="commspliant-richtext-toolbar__custom-colour"
+                ariaLabel="Custom text colour"
+                title="Custom text colour"
+                value={textColour}
+                fallbackColour="#18181b"
+                disabled={readOnly || !editor}
+                onChange={(colour) => applyCustomColour('textColour', colour)}
+              />
+            </div>
           </RichTextMenu.Group>
           <RichTextMenu.Group>
-            <select
-              className="commspliant-richtext-toolbar__style-select"
-              aria-label="Text highlight"
-              value={highlightColour}
-              disabled={readOnly || !editor}
-              onChange={changeMark('textHighlight', 'colour')}
-            >
-              {highlightColourOptions.map(({ label, value }) => (
-                <option key={label} value={value}>{value ? label : 'Highlight'}</option>
-              ))}
-            </select>
+            <div className="commspliant-richtext-toolbar__colour-control">
+              <select
+                className="commspliant-richtext-toolbar__style-select"
+                aria-label="Text highlight"
+                value={highlightColour}
+                disabled={readOnly || !editor}
+                onChange={changeMark('textHighlight', 'colour')}
+              >
+                {highlightColourOptions.map(({ label, value }) => (
+                  <option key={label} value={value}>{value ? label : 'Highlight'}</option>
+                ))}
+                {highlightColour && !isPresetColour(highlightColour, highlightColourOptions) && (
+                  <option value={highlightColour}>Custom</option>
+                )}
+              </select>
+              <CustomColourPicker
+                className="commspliant-richtext-toolbar__custom-colour"
+                ariaLabel="Custom text highlight"
+                title="Custom text highlight"
+                value={highlightColour}
+                fallbackColour="#fff3bf"
+                disabled={readOnly || !editor}
+                onChange={(colour) => applyCustomColour('textHighlight', colour)}
+              />
+            </div>
           </RichTextMenu.Group>
         </div>
         <div className="commspliant-richtext-toolbar__row commspliant-richtext-toolbar__row--actions">

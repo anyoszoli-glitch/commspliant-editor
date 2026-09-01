@@ -208,7 +208,7 @@ describe('document storage', () => {
     })
   })
 
-  it('serializes and restores document background image settings', () => {
+  it('serializes and restores independent page background colour and image settings', () => {
     const storage = createStorage()
     const document = createDocument('background-letter')
 
@@ -218,6 +218,7 @@ describe('document storage', () => {
       position: 'center',
       opacity: 0.8,
     }
+    document.backgroundColour = '#eaf0f4'
 
     const savedDocument = saveDocument(document, storage)
     const restoredDocument = loadDocument(storage)
@@ -228,7 +229,36 @@ describe('document storage', () => {
       position: 'center',
       opacity: 0.8,
     })
+    expect(restoredDocument.backgroundColour).toBe('#eaf0f4')
 
+    expect(restoredDocument).toEqual(savedDocument)
+  })
+
+  it('serializes and restores a page background colour without an image', () => {
+    const storage = createStorage()
+    const document = createDocument('colour-background-letter')
+    document.backgroundColour = '#fff7ed'
+
+    saveDocument(document, storage)
+
+    const restoredDocument = loadDocument(storage)
+    expect(restoredDocument.backgroundColour).toBe('#fff7ed')
+    expect(restoredDocument.backgroundImage).toBeUndefined()
+  })
+
+  it('serializes and restores page numbering in the existing paged layout', () => {
+    const storage = createStorage()
+    const document = createDocument('numbered-letter')
+    if (document.layout.mode !== 'paged') throw new Error('Expected paged document')
+    document.layout.pageNumbering = 'page-number-of-total'
+
+    const savedDocument = saveDocument(document, storage)
+    const restoredDocument = loadDocument(storage)
+
+    expect(restoredDocument.layout).toMatchObject({
+      mode: 'paged',
+      pageNumbering: 'page-number-of-total',
+    })
     expect(restoredDocument).toEqual(savedDocument)
   })
 
@@ -263,8 +293,8 @@ describe('document storage', () => {
                 text: 'Formatted',
                 marks: [
                   { type: 'fontFamily', attrs: { family: 'Georgia' } },
-                  { type: 'textColour', attrs: { colour: '#1d4ed8' } },
-                  { type: 'textHighlight', attrs: { colour: '#fff3bf' } },
+                  { type: 'textColour', attrs: { colour: '#2f6b57' } },
+                  { type: 'textHighlight', attrs: { colour: '#f6cfe2' } },
                 ],
               }],
             }],

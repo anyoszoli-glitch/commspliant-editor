@@ -4,10 +4,13 @@ import { createPortal } from 'react-dom'
 import type {
   BackgroundImageFit,
   BackgroundImagePosition,
+  DocumentBackgroundColour,
   DocumentBackgroundImage,
 } from '../../document/document'
+import { CustomColourPicker } from '../ColourPicker/CustomColourPicker'
 
 import {
+  BACKGROUND_COLOUR_PRESETS,
   BACKGROUND_OPACITY_MAX,
   BACKGROUND_OPACITY_MIN,
   parseBackgroundOpacity,
@@ -18,7 +21,9 @@ import {
 
 type BackgroundSettingsProps = {
   image?: DocumentBackgroundImage
-  onChange: (image: DocumentBackgroundImage | undefined) => void
+  colour?: DocumentBackgroundColour
+  onImageChange: (image: DocumentBackgroundImage | undefined) => void
+  onColourChange: (colour: DocumentBackgroundColour | undefined) => void
   open: boolean
   onOpenChange: (open: boolean) => void
   disabled?: boolean
@@ -46,7 +51,9 @@ const positions: BackgroundImagePosition[] = [
 
 export function BackgroundSettings({
   image,
-  onChange,
+  colour,
+  onImageChange,
+  onColourChange,
   open,
   onOpenChange,
   disabled = false,
@@ -139,6 +146,51 @@ export function BackgroundSettings({
             overflowY: 'auto',
           }}
         >
+          <div className="document-editor__background-field">
+            <span>Background colour</span>
+
+            <div
+              className="document-editor__background-colour-palette"
+              role="group"
+              aria-label="Background colour presets"
+            >
+              {BACKGROUND_COLOUR_PRESETS.map((preset) => (
+                <button
+                  key={preset.value}
+                  type="button"
+                  aria-label={preset.label}
+                  aria-pressed={colour?.toLowerCase() === preset.value}
+                  title={preset.label}
+                  disabled={disabled}
+                  style={{ backgroundColor: preset.value }}
+                  onClick={() => onColourChange(preset.value)}
+                />
+              ))}
+            </div>
+
+            <div className="document-editor__background-colour-custom">
+              <CustomColourPicker
+                ariaLabel="Custom background colour"
+                value={colour}
+                fallbackColour="#ffffff"
+                label="Custom"
+                disabled={disabled}
+                onChange={(value) =>
+                  onColourChange(value as DocumentBackgroundColour)
+                }
+              />
+
+              <button
+                type="button"
+                className="document-editor__background-colour-clear"
+                disabled={disabled || colour === undefined}
+                onClick={() => onColourChange(undefined)}
+              >
+                Clear colour
+              </button>
+            </div>
+          </div>
+
           {!image ? (
             <p className="document-editor__background-empty">
               No background image selected.
@@ -152,7 +204,7 @@ export function BackgroundSettings({
                   value={image.fit ?? 'cover'}
                   disabled={disabled}
                   onChange={(event) =>
-                    onChange(
+                    onImageChange(
                       updateBackgroundFit(
                         image,
                         event.currentTarget.value as BackgroundImageFit,
@@ -187,7 +239,7 @@ export function BackgroundSettings({
                       }
                       disabled={disabled}
                       onClick={() =>
-                        onChange(
+                        onImageChange(
                           updateBackgroundPosition(
                             image,
                             backgroundPosition,
@@ -205,19 +257,20 @@ export function BackgroundSettings({
                 <div className="document-editor__background-opacity">
                   <input
                     type="range"
+                    aria-label="Background image opacity"
                     min={BACKGROUND_OPACITY_MIN}
                     max={BACKGROUND_OPACITY_MAX}
                     step={1}
                     value={opacityPercent}
                     disabled={disabled}
-                    onChange={(event) => {
+                    onInput={(event) => {
                       const value = parseBackgroundOpacity(
                         event.currentTarget.value,
                       )
 
                       if (value === undefined) return
 
-                      onChange(updateBackgroundOpacity(image, value))
+                      onImageChange(updateBackgroundOpacity(image, value))
                     }}
                   />
 
@@ -229,7 +282,7 @@ export function BackgroundSettings({
                 type="button"
                 className="document-editor__background-remove"
                 disabled={disabled}
-                onClick={() => onChange(undefined)}
+                onClick={() => onImageChange(undefined)}
               >
                 Remove background
               </button>

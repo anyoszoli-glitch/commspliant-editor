@@ -8,6 +8,8 @@ import {
 } from 'react'
 import {
   defaultPagedLayout,
+  formatPageNumber,
+  type DocumentBackgroundColour,
   type DocumentBackgroundImage,
   type DocumentLayout,
   type FluidDocumentLayout,
@@ -25,6 +27,7 @@ type DocumentCanvasProps = {
   children?: ReactNode
   layout?: DocumentLayout
   backgroundImage?: DocumentBackgroundImage
+  backgroundColour?: DocumentBackgroundColour
   isEditorCanvas?: boolean
   showEditorPageIndicators?: boolean
   style?: CSSProperties
@@ -61,6 +64,7 @@ function PagedCanvas({
   children,
   layout,
   backgroundImage,
+  backgroundColour,
   isEditorCanvas,
   showEditorPageIndicators,
   style,
@@ -68,6 +72,7 @@ function PagedCanvas({
   children?: ReactNode
   layout: PagedDocumentLayout
   backgroundImage?: DocumentBackgroundImage
+  backgroundColour?: DocumentBackgroundColour
   isEditorCanvas: boolean
   showEditorPageIndicators: boolean
   style?: CSSProperties
@@ -147,12 +152,31 @@ function PagedCanvas({
             left: 0,
             width: `${A4_WIDTH_MM}mm`,
             height: `${A4_HEIGHT_MM}mm`,
-            background: '#ffffff',
+            background: backgroundColour ?? '#ffffff',
             boxShadow: '0 4px 18px rgba(0, 0, 0, 0.12)',
             isolation: 'isolate',
           }}
         >
           <BackgroundLayer image={backgroundImage} />
+          {formatPageNumber(layout.pageNumbering, index + 1, pagination.pageCount) && (
+            <span
+              data-document-page-number
+              aria-label={`Page number ${index + 1}`}
+              style={{
+                position: 'absolute',
+                zIndex: 1,
+                bottom: '6mm',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                color: '#526473',
+                fontSize: 11,
+                lineHeight: 1,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {formatPageNumber(layout.pageNumbering, index + 1, pagination.pageCount)}
+            </span>
+          )}
           {showEditorPageIndicators && (
             <span
               aria-hidden="true"
@@ -195,11 +219,13 @@ function FluidCanvas({
   children,
   layout,
   backgroundImage,
+  backgroundColour,
   style,
 }: {
   children?: ReactNode
   layout: FluidDocumentLayout
   backgroundImage?: DocumentBackgroundImage
+  backgroundColour?: DocumentBackgroundColour
   style?: CSSProperties
 }) {
   const { maxWidth, padding } = layout
@@ -216,7 +242,7 @@ function FluidCanvas({
           margin: '12px auto',
           padding: `${padding.top}${padding.unit} ${padding.right}${padding.unit} ${padding.bottom}${padding.unit} ${padding.left}${padding.unit}`,
           boxSizing: 'border-box',
-          background: '#ffffff',
+          background: backgroundColour ?? '#ffffff',
           color: '#08060d',
           position: 'relative',
           isolation: 'isolate',
@@ -236,6 +262,7 @@ export function DocumentCanvas({
   children,
   layout = defaultPagedLayout,
   backgroundImage,
+  backgroundColour,
   isEditorCanvas = false,
   showEditorPageIndicators = false,
   style,
@@ -244,6 +271,7 @@ export function DocumentCanvas({
     <PagedCanvas
       layout={layout}
       backgroundImage={backgroundImage}
+      backgroundColour={backgroundColour}
       isEditorCanvas={isEditorCanvas}
       showEditorPageIndicators={showEditorPageIndicators}
       style={style}
@@ -254,6 +282,7 @@ export function DocumentCanvas({
     <FluidCanvas
       layout={layout}
       backgroundImage={backgroundImage}
+      backgroundColour={backgroundColour}
       style={style}
     >
       {children}

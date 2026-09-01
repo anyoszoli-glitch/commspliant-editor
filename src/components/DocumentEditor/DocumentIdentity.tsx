@@ -60,7 +60,7 @@ export function DocumentIdentity({
 
   return (
     <div className="document-identity">
-      <div className="document-identity__product-label">CommsPliant document editor</div>
+      <div className="document-identity__product-label">Tili-Toli CommsPliant document editor</div>
       <div className="document-identity__title-row">
         {onDocumentNameChange ? (
           <input

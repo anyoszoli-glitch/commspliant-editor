@@ -15,4 +15,14 @@ describe('rich text style sanitizer', () => {
       'font-family: Comic Sans MS; color: expression(alert(1)); position: fixed; line-height: 99',
     )).toBe('')
   })
+
+  it('preserves safe custom text and highlight colours', () => {
+    expect(sanitizeRichTextStyle(
+      'color: #2f6b57; background-color: #f6cfe2',
+    )).toBe('color: #2f6b57; background-color: #f6cfe2')
+
+    expect(sanitizeRichTextStyle(
+      'color: rgb(47, 107, 87); background-color: rgb(246, 207, 226)',
+    )).toBe('color: rgb(47, 107, 87); background-color: rgb(246, 207, 226)')
+  })
 })
