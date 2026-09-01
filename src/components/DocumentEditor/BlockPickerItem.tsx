@@ -41,6 +41,16 @@ function BlockIcon({ name }: BlockIconProps) {
     )
   }
 
+  if (name === 'ImageBlock') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3.5" y="4.5" width="17" height="15" rx="1.5" />
+        <circle cx="9" cy="10" r="1.5" />
+        <path d="m5.5 17 4.5-4 3.25 2.75 2.25-2 3 3.25" />
+      </svg>
+    )
+  }
+
   if (name === 'DividerBlock') {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -65,7 +75,7 @@ function BlockIcon({ name }: BlockIconProps) {
 }
 
 const labels: Record<string, import('../../i18n').TranslationKey> = {
-  HeadingBlock: 'heading', TextBlock: 'text', NoticeBlock: 'importantNotice', PageBreakBlock: 'pageBreak', TableBlock: 'table', DividerBlock: 'divider', SpacerBlock: 'spacer',
+  HeadingBlock: 'heading', TextBlock: 'text', NoticeBlock: 'importantNotice', PageBreakBlock: 'pageBreak', TableBlock: 'table', ImageBlock: 'image', DividerBlock: 'divider', SpacerBlock: 'spacer',
 }
 
 export function BlockPickerItem({ name, t }: BlockPickerItemProps) {

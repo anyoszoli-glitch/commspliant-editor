@@ -80,6 +80,7 @@ describe('editor config', () => {
 
     expect(config.components.PageBreakBlock.label).toBe('Page break')
     expect(config.components.TableBlock.label).toBe('Table')
+    expect(config.components.ImageBlock.label).toBe('Image')
     expect(config.components.DividerBlock.label).toBe('Divider')
     expect(config.components.SpacerBlock.label).toBe('Spacer')
   })
@@ -131,6 +132,9 @@ describe('editor config', () => {
     })
     expect(config.components.DividerBlock.defaultProps).toEqual({})
     expect(config.components.SpacerBlock.defaultProps).toEqual({ size: 'medium' })
+    expect(config.components.ImageBlock.defaultProps).toEqual({
+      image: { alt: '', title: '', width: 100, alignment: 'center', horizontalOffset: 0 },
+    })
     expect(JSON.parse(JSON.stringify(config.components.TableBlock.defaultProps)))
       .toEqual(config.components.TableBlock.defaultProps)
   })

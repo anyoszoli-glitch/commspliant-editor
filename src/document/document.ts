@@ -38,6 +38,18 @@ export type RichTextValue = string | RichTextDocument
 
 export type SpacerSize = 'small' | 'medium' | 'large'
 export type TableAlignment = 'left' | 'center' | 'right'
+export type ImageAlignment = 'left' | 'center' | 'right'
+export const MAX_IMAGE_HORIZONTAL_OFFSET = 25
+export type ImageBlockData = {
+  src?: string
+  alt?: string
+  title?: string
+  /** Percentage of the available document content width. */
+  width?: number
+  alignment?: ImageAlignment
+  /** Percentage of the available document content width. */
+  horizontalOffset?: number
+}
 export type TableRow = { cells: string[] }
 export type TableData = {
   rows: TableRow[]
@@ -51,6 +63,7 @@ export type EditorComponents = {
   NoticeBlock: { heading: string; text: RichTextValue }
   PageBreakBlock: {}
   TableBlock: { table: TableData }
+  ImageBlock: { image: ImageBlockData }
   DividerBlock: {}
   SpacerBlock: { size: SpacerSize }
 }
@@ -298,9 +311,68 @@ export function sanitizeDocumentRichText(document: LetterDocument): LetterDocume
         if (item.type === 'NoticeBlock' && typeof item.props.text === 'string') {
           return { ...item, props: { ...item.props, text: sanitizeRichTextHtml(item.props.text) } }
         }
+        if (item.type === 'ImageBlock') {
+          return { ...item, props: { ...item.props, image: normalizeImageBlockData(item.props.image) } }
+        }
         return item
       }),
     },
+  }
+}
+
+export function isSafeImageSource(value: unknown): value is string {
+  if (typeof value !== 'string') return false
+
+  const source = value.trim()
+  if (!source) return false
+
+  try {
+    const url = new URL(source, 'https://tili-toli.local')
+    return (url.protocol === 'https:' || url.protocol === 'http:') &&
+      !/\.svgz?(?:$|[?#])/i.test(url.pathname)
+  } catch {
+    return false
+  }
+}
+
+export function getImageHorizontalOffsetBounds(
+  width: number,
+  alignment: ImageAlignment,
+) {
+  const availableSpace = Math.max(0, 100 - width)
+  const limit = Math.min(
+    MAX_IMAGE_HORIZONTAL_OFFSET,
+    alignment === 'center' ? availableSpace / 2 : availableSpace,
+  )
+
+  if (alignment === 'left') return { min: 0, max: limit }
+  if (alignment === 'right') return { min: -limit, max: 0 }
+  return { min: -limit, max: limit }
+}
+
+export function normalizeImageBlockData(value: unknown): ImageBlockData {
+  const image = value && typeof value === 'object' ? value as Partial<ImageBlockData> : {}
+  const width = typeof image.width === 'number' && Number.isFinite(image.width)
+    ? Math.min(100, Math.max(1, image.width))
+    : 100
+
+  const alignment =
+    image.alignment === 'left' || image.alignment === 'right' || image.alignment === 'center'
+      ? image.alignment
+      : 'center'
+  const offsetBounds = getImageHorizontalOffsetBounds(width, alignment)
+  const horizontalOffset =
+    typeof image.horizontalOffset === 'number' && Number.isFinite(image.horizontalOffset)
+      ? Math.min(offsetBounds.max, Math.max(offsetBounds.min, image.horizontalOffset))
+      : 0
+
+  return {
+    src: isSafeImageSource(image.src) ? image.src.trim() : undefined,
+    alt: typeof image.alt === 'string' ? image.alt : '',
+    title: typeof image.title === 'string' ? image.title : '',
+    width,
+    alignment,
+    horizontalOffset,
   }
 }
 

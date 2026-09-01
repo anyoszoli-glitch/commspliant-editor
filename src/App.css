@@ -912,6 +912,51 @@
   font-weight: 700;
 }
 
+.commspliant-image-block {
+  width: 100%;
+  margin: 0 0 16px;
+  display: flex;
+  box-sizing: border-box;
+}
+
+.commspliant-image-block img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.commspliant-image-block__placeholder {
+  width: 100%;
+  min-height: 128px;
+  padding: 20px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  border: 1px dashed #aebbc5;
+  border-radius: 4px;
+  background: #f8fafb;
+  color: #536574;
+  text-align: center;
+  font-size: 12px;
+}
+
+.commspliant-image-block__placeholder svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.commspliant-image-block__placeholder span:empty {
+  display: none;
+}
+
 .commspliant-divider-block {
   width: 100%;
   margin: 16px 0;
@@ -969,6 +1014,61 @@
   background: #314252;
   color: #eef2f5;
   font: inherit;
+}
+
+.commspliant-image-field {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  color: #eef2f5;
+  font-size: 11px;
+}
+
+.commspliant-image-field__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.commspliant-image-field__actions button,
+.commspliant-image-field__option input,
+.commspliant-image-field__option select {
+  min-width: 0;
+  min-height: 24px;
+  box-sizing: border-box;
+  border: 1px solid #526473;
+  border-radius: 4px;
+  padding: 3px 5px;
+  background: #314252;
+  color: #eef2f5;
+  font: inherit;
+}
+
+.commspliant-image-field__actions button {
+  cursor: pointer;
+}
+
+.commspliant-image-field__actions button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.commspliant-image-field__option {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.commspliant-image-field__option input,
+.commspliant-image-field__option select {
+  width: 100%;
+}
+
+.commspliant-image-field__hint {
+  margin: 0;
+  color: #c9d2da;
+  font-size: 10px;
+  line-height: 1.35;
 }
 
 .commspliant-table-field__actions {

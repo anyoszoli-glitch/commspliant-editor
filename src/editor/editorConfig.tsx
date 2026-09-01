@@ -12,6 +12,9 @@ import { SpacerBlock } from '../components/SpacerBlock/SpacerBlock'
 import { TableBlock } from '../components/TableBlock/TableBlock'
 import { TableEditorField } from '../components/TableBlock/TableEditorField'
 import { defaultTableData } from '../components/TableBlock/tableModel'
+import { ImageBlock } from '../components/ImageBlock/ImageBlock'
+import { ImageEditorField } from '../components/ImageBlock/ImageEditorField'
+import type { ImagePicker } from '../components/ImageBlock/imageTypes'
 import {
   defaultRichTextStyleOptions,
   RichTextToolbar,
@@ -178,6 +181,8 @@ export function createEditorConfig(
   pageSettingsChannel?: string,
   showMarginGuides = true,
   t: Translate = createTranslator(),
+  imagePicker?: ImagePicker,
+  imagePickerActionLabel?: string,
 ): Config<EditorComponents> {
   const constrainedRichTextField = createConstrainedRichTextField(
     variableDefinitions,
@@ -305,6 +310,32 @@ export function createEditorConfig(
         render: ({ id, table }) => (
           <LayoutBlock id={id}>
             <TableBlock table={table} />
+          </LayoutBlock>
+        ),
+      },
+      ImageBlock: {
+        label: t('image'),
+        fields: {
+          image: {
+            type: 'custom',
+            render: ({ value, onChange, readOnly }) => (
+              <ImageEditorField
+                value={value}
+                onChange={onChange}
+                readOnly={readOnly}
+                imagePicker={imagePicker}
+                imagePickerActionLabel={imagePickerActionLabel}
+                t={t}
+              />
+            ),
+          },
+        },
+        defaultProps: {
+          image: { alt: '', title: '', width: 100, alignment: 'center', horizontalOffset: 0 },
+        },
+        render: ({ id, image }) => (
+          <LayoutBlock id={id}>
+            <ImageBlock image={image} pickerAvailable={!!imagePicker} t={t} />
           </LayoutBlock>
         ),
       },

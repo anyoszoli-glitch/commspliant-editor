@@ -17,6 +17,7 @@ const english = {
   pages: 'Pages', blocks: 'Blocks', outline: 'Outline', noPagesYet: 'No pages yet', page: 'Page {page}', goToPage: 'Go to page {page}', selectPage: 'Select page {page}', pageNumberLabel: 'Page number {page}', documentContent: 'Document content', documentPage: 'Document page', fluidDocument: 'Fluid document',
   visitCommsPliant: 'Visit CommsPliant', editorLogo: 'Tili Toli Editor', saveDraft: 'Save draft',
   heading: 'Heading', text: 'Text', importantNotice: 'Important notice', pageBreak: 'Page break', table: 'Table', divider: 'Divider', spacer: 'Spacer',
+  image: 'Image', chooseImage: 'Choose image', replaceImage: 'Replace image', removeImage: 'Remove image', altText: 'Alt text', title: 'Title', width: 'Width', alignment: 'Alignment', horizontalOffset: 'Horizontal offset', useSampleImage: 'Use sample image (demo)', imagePickerUnavailable: 'Image selection is available when your host connects an image picker.', imageLoadError: 'This image could not be loaded.',
   small: 'Small', medium: 'Medium', large: 'Large', startPage: 'Start your page', dragBlock: 'Drag a block from the left and drop it here',
   documentDefaultMargins: 'Document default margins', pageMargins: 'Page margins', showMargins: 'Show margins', selectedPage: 'Selected page',
   usingCustomMargins: 'Using custom margins for this page.', usingDefaultMargins: 'Using document default margins.',
@@ -88,6 +89,19 @@ Object.assign(translations.de, {
   backgroundPositionTopLeft: 'Oben links', backgroundPositionTop: 'Oben', backgroundPositionTopRight: 'Oben rechts', backgroundPositionLeft: 'Links', backgroundPositionCenter: 'Mitte', backgroundPositionRight: 'Rechts', backgroundPositionBottomLeft: 'Unten links', backgroundPositionBottom: 'Unten', backgroundPositionBottomRight: 'Unten rechts',
   lineSpacingValue: 'Zeile {value}', variableLabel: 'Variable: {label}', unknownVariable: 'Unbekannte Variable: {label}', emptyVariable: '[Leer: {label}]', missingVariable: '[Fehlt: {label}]',
   leftPanelTitle: 'Blöcke / Gliederung', rightPanelTitle: 'Eigenschaften / KI-Assistent', dock: 'Andocken', undock: 'Abdocken', dockPanel: 'Panel {panel} andocken', undockPanel: 'Panel {panel} abdocken', resizePanel: 'Panel {panel} skalieren', resizePanelHint: 'Zum Skalieren ziehen. Die Pfeiltasten skalieren ebenfalls.',
+})
+
+Object.assign(translations.es, {
+  image: 'Imagen', chooseImage: 'Seleccionar imagen', replaceImage: 'Reemplazar imagen', removeImage: 'Eliminar imagen', altText: 'Texto alternativo', title: 'Título', width: 'Ancho', alignment: 'Alineación', horizontalOffset: 'Desplazamiento horizontal', useSampleImage: 'Usar imagen de ejemplo (demo)', imagePickerUnavailable: 'La selección de imágenes estará disponible cuando el anfitrión conecte un selector de imágenes.', imageLoadError: 'No se pudo cargar esta imagen.',
+})
+Object.assign(translations.hu, {
+  image: 'Kép', chooseImage: 'Kép kiválasztása', replaceImage: 'Kép cseréje', removeImage: 'Kép eltávolítása', altText: 'Helyettesítő szöveg', title: 'Cím', width: 'Szélesség', alignment: 'Igazítás', horizontalOffset: 'Vízszintes eltolás', useSampleImage: 'Minta kép használata (demó)', imagePickerUnavailable: 'A képválasztás akkor lesz elérhető, amikor a gazdagép képválasztót csatlakoztat.', imageLoadError: 'A kép nem tölthető be.',
+})
+Object.assign(translations.fr, {
+  image: 'Image', chooseImage: 'Choisir une image', replaceImage: 'Remplacer l’image', removeImage: 'Supprimer l’image', altText: 'Texte alternatif', title: 'Titre', width: 'Largeur', alignment: 'Alignement', horizontalOffset: 'Décalage horizontal', useSampleImage: 'Utiliser une image exemple (démo)', imagePickerUnavailable: 'La sélection d’image sera disponible lorsque l’hôte connectera un sélecteur d’images.', imageLoadError: 'Cette image n’a pas pu être chargée.',
+})
+Object.assign(translations.de, {
+  image: 'Bild', chooseImage: 'Bild auswählen', replaceImage: 'Bild ersetzen', removeImage: 'Bild entfernen', altText: 'Alternativtext', title: 'Titel', width: 'Breite', alignment: 'Ausrichtung', horizontalOffset: 'Horizontaler Versatz', useSampleImage: 'Beispielbild verwenden (Demo)', imagePickerUnavailable: 'Die Bildauswahl ist verfügbar, wenn der Host eine Bildauswahl verbindet.', imageLoadError: 'Dieses Bild konnte nicht geladen werden.',
 })
 
 export function normalizeLocale(locale: string | undefined): SupportedLocale {

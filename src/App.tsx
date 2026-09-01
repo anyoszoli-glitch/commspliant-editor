@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { CommsPliantEditor } from './CommsPliantEditor'
 import { DocumentIdentity } from './components/DocumentEditor/DocumentIdentity'
 import { loadDocument, saveDocument } from './document/documentStorage'
-import { applyDocumentLocale, I18nProvider, normalizeLocale, type SupportedLocale, useTranslation } from './i18n'
+import { applyDocumentLocale, createTranslator, I18nProvider, normalizeLocale, type SupportedLocale, useTranslation } from './i18n'
 import { AboutTiliToli } from './standalone/AboutTiliToli'
+import { standaloneSampleImagePicker } from './standalone/sampleImagePicker'
 import './demo.css'
 
 const variableDefinitions = [
@@ -85,6 +86,8 @@ function App() {
           height="calc(100vh - 64px)"
           logoHref="https://commspliant.com"
           locale={locale}
+          imagePicker={standaloneSampleImagePicker}
+          imagePickerActionLabel={createTranslator(locale)('useSampleImage')}
           onChange={setDocument}
           onSave={(savedDocument) => {
             setDocument(saveDocument(savedDocument))
