@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { CommsPliantEditor } from './CommsPliantEditor'
 import { DocumentIdentity } from './components/DocumentEditor/DocumentIdentity'
 import { loadDocument, saveDocument } from './document/documentStorage'
+import { AboutTiliToli } from './standalone/AboutTiliToli'
 import './demo.css'
 
 const variableDefinitions = [
@@ -33,6 +34,7 @@ function App() {
         />
       </div>
       <div className="standalone-editor__workspace">
+        <AboutTiliToli />
         <CommsPliantEditor
           document={document}
           variableDefinitions={variableDefinitions}

@@ -137,6 +137,48 @@ afterEach(() => {
 })
 
 describe('App persistence', () => {
+  it('keeps the About Tili-Toli experience standalone-only', async () => {
+    mountApp()
+
+    const aboutButton = page.getByRole('button', { name: 'About Tili-Toli' })
+    await expect.element(aboutButton).toBeVisible()
+    await userEvent.click(aboutButton)
+
+    const dialog = page.getByRole('dialog', { name: 'About Tili-Toli' })
+    await expect.element(dialog).toBeVisible()
+    await expect.element(page.getByRole('img', { name: 'Tili Toli Editor' }).last()).toBeVisible()
+    await expect.element(page.getByRole('heading', { name: 'Tili-Toli by CommsPliant' })).toBeVisible()
+    await expect.element(page.getByRole('link', { name: 'Explore CommsPliant' })).toHaveAttribute(
+      'href',
+      'https://commspliant.com',
+    )
+    await expect.element(page.getByRole('link', { name: 'About CommsPliant' })).toHaveAttribute(
+      'href',
+      'https://commspliant.com/about-us',
+    )
+    expect(container?.querySelector(".standalone-about__dialog a[href*='github']")).toBeNull()
+    expect(container?.querySelector('.standalone-about__dialog img')?.getAttribute('src')).not.toContain(
+      'About_Tili-Toli',
+    )
+
+    await userEvent.keyboard('{Escape}')
+    await expect.element(dialog).not.toBeInTheDocument()
+    expect(document.activeElement).toBe(container?.querySelector('.standalone-about__trigger'))
+
+    unmountApp()
+    container = document.createElement('div')
+    document.body.append(container)
+    root = createRoot(container)
+    root.render(
+      <EmbeddedEditorHarness
+        initialDocument={createDocument('embedded-about-check')}
+        changes={[]}
+        saves={[]}
+      />,
+    )
+    await expect.element(page.getByRole('button', { name: 'About Tili-Toli' })).not.toBeInTheDocument()
+  })
+
   it('exposes a controlled editor boundary without the host identity header', async () => {
     const changes: LetterDocument[] = []
     const saves: LetterDocument[] = []
