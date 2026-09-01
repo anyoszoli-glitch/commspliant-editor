@@ -62,6 +62,72 @@
   --puck-field-label-color-icon: #b8c3cc;
 }
 
+/* Keep Text properties compact without changing its controls or document typography. */
+.document-editor
+  [class*='_Sidebar--right_']
+  [class*='_SidebarSection-breadcrumbs_'],
+.document-editor
+  [class*='_Sidebar--right_']
+  [class*='_SidebarSection-breadcrumbLabel_'],
+.document-editor
+  [class*='_Sidebar--right_']
+  [class*='_SidebarSection-heading_']
+  [class*='_Heading_'],
+.document-editor
+  [class*='_Sidebar--right_']
+  [class*='_Breadcrumbs_'],
+.document-editor
+  [class*='_Sidebar--right_']
+  [class*='_Breadcrumbs-breadcrumbLabel_'] {
+  font-size: 10.5px;
+}
+
+.document-editor
+  [class*='_Sidebar--right_']
+  [class*='_Input_']:has(> [class*='_RichTextEditor--editor_'])
+  > [class*='_Input-label_'] {
+  font-size: 10.5px;
+  padding-bottom: 6px;
+}
+
+.document-editor
+  [class*='_Sidebar--right_']
+  [class*='_SidebarSection_']:has([class*='_RichTextEditor--editor_'])
+  > [class*='_SidebarSection-title_'] {
+  padding-bottom: 8px;
+}
+
+.document-editor
+  [class*='_Sidebar--right_']
+  [class*='_PuckFields-field_']:has([class*='_RichTextEditor--editor_']) {
+  container-type: inline-size;
+  padding-top: 8px;
+  padding-bottom: 4px;
+}
+
+.document-editor
+  [class*='_Sidebar--right_']
+  [class*='_RichTextEditor--editor_'] {
+  min-height: 247px;
+}
+
+.document-editor
+  [class*='_Sidebar--right_']
+  [class*='_RichTextEditor--editor_']
+  > .rich-text {
+  box-sizing: border-box;
+  min-height: 93px;
+  font-size: 9.1px;
+}
+
+@container (max-width: 170px) {
+  .document-editor
+    [class*='_Sidebar--right_']
+    [class*='_RichTextEditor--editor_'] {
+    min-height: 297px;
+  }
+}
+
 .document-editor [class*='_Sidebar--left_'] [data-puck-drawer] {
   display: grid;
   grid-template-columns: repeat(2, 64px);
@@ -202,7 +268,7 @@
 }
 
 .document-editor__sidebar-mode-switch {
-  margin: 12px 12px 0;
+  margin: 6px 12px 0;
 }
 
 .document-editor__sidebar-mode-switch button,
@@ -222,6 +288,10 @@
 .document-editor__sidebar-mode-switch button:last-child,
 .document-editor__ai-context-switch button:last-child {
   border-right: 0;
+}
+
+.document-editor__sidebar-mode-switch button {
+  padding-block: 3.5px;
 }
 
 .document-editor__sidebar-mode-switch button[aria-selected='true'],
