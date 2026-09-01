@@ -1,6 +1,6 @@
 {
   "name": "@commspliant/tili-toli-editor",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Reusable Tili-Toli document editor for the CommsPliant shared document contract",
   "type": "module",
   "license": "MIT",

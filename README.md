@@ -12,13 +12,13 @@ The standalone demo supplies its own light-blue identity header and local browse
 Install the next GitHub release tarball (recommended):
 
 ```sh
-npm install https://github.com/anyoszoli-glitch/commspliant-editor/releases/download/v0.3.0/commspliant-tili-toli-editor-0.3.0.tgz
+npm install https://github.com/anyoszoli-glitch/commspliant-editor/releases/download/v0.4.0/commspliant-tili-toli-editor-0.4.0.tgz
 ```
 
 The repository tag can also be installed directly:
 
 ```sh
-npm install github:anyoszoli-glitch/commspliant-editor#v0.3.0
+npm install github:anyoszoli-glitch/commspliant-editor#v0.4.0
 ```
 
 The package is distributed from this repository, not from a public npm registry.
