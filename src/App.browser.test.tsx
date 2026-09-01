@@ -3,7 +3,7 @@ import { page, userEvent } from 'vitest/browser'
 import { flushSync } from 'react-dom'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, describe, expect, it } from 'vitest'
-import App from './App'
+import App, { STANDALONE_LOCALE_STORAGE_KEY } from './App'
 import { CommsPliantEditor } from './CommsPliantEditor'
 import {
   createDocument,
@@ -16,6 +16,7 @@ import {
   loadDocument,
 } from './document/documentStorage'
 import { sanitizeRichTextHtml } from './document/richTextSanitizer'
+import type { SupportedLocale } from './i18n'
 
 const originalHeading = 'Original customer heading'
 const editedHeading = 'Updated customer heading'
@@ -134,9 +135,101 @@ afterEach(() => {
   unmountApp()
   localStorage.removeItem(DOCUMENT_STORAGE_KEY)
   localStorage.removeItem(DOCUMENT_NAME_STORAGE_KEY)
+  localStorage.removeItem(STANDALONE_LOCALE_STORAGE_KEY)
+  if (document.documentElement) document.documentElement.lang = 'en'
 })
 
 describe('App persistence', () => {
+  it('switches and persists the standalone locale without changing document data', async () => {
+    const customerDocument = createDocument('localized-standalone')
+    customerDocument.data.content = [
+      {
+        type: 'TextBlock',
+        props: { id: 'customer-text', text: '<p>Customer text stays unchanged.</p>' },
+      },
+    ]
+    localStorage.setItem(DOCUMENT_STORAGE_KEY, JSON.stringify(customerDocument))
+    localStorage.setItem(STANDALONE_LOCALE_STORAGE_KEY, 'invalid')
+
+    mountApp()
+    await puckText('Customer text stays unchanged.')
+
+    const languageSelector = page.getByRole('combobox', { name: 'Language' })
+    await expect.element(languageSelector).toHaveValue('en')
+    expect(container?.querySelector('.document-editor')?.getAttribute('lang')).toBe('en')
+    await expect.poll(() => localStorage.getItem(STANDALONE_LOCALE_STORAGE_KEY)).toBe('en')
+
+    await userEvent.selectOptions(languageSelector, 'es')
+    await expect.element(page.getByText('Guardar borrador', { exact: true })).toBeVisible()
+    await expect.poll(() =>
+      container?.querySelector<HTMLButtonElement>('.document-editor__panel-mode-button')
+        ?.getAttribute('aria-label'),
+    ).toBe('Desacoplar el panel Bloques / Esquema')
+    expect(container?.querySelector('.document-editor')?.getAttribute('lang')).toBe('es')
+    expect(localStorage.getItem(STANDALONE_LOCALE_STORAGE_KEY)).toBe('es')
+    await puckText('Customer text stays unchanged.')
+
+    await page.getByText('Guardar borrador', { exact: true }).click()
+    const savedDocument = JSON.parse(localStorage.getItem(DOCUMENT_STORAGE_KEY)!) as LetterDocument
+    expect(savedDocument.data.content[0]).toMatchObject({
+      type: 'TextBlock',
+      props: { text: '<p>Customer text stays unchanged.</p>' },
+    })
+    expect(savedDocument).not.toHaveProperty('locale')
+    expect(JSON.stringify(savedDocument.data)).not.toContain('locale')
+
+    unmountApp()
+    mountApp()
+    await expect.element(page.getByRole('combobox', { name: 'Idioma' })).toHaveValue('es')
+    expect(container?.querySelector('.document-editor')?.getAttribute('lang')).toBe('es')
+  })
+
+  it('updates an embedded locale live while preserving floating-panel state and runtime fallback', async () => {
+    await page.viewport(1440, 900)
+    const editorDocument = createDocument('localized-embedded')
+    editorDocument.data.content = [
+      { type: 'TextBlock', props: { id: 'embedded-text', text: '<p>Embedded customer text.</p>' } },
+    ]
+    const changes: LetterDocument[] = []
+    const renderEditor = (locale: SupportedLocale) => {
+      flushSync(() => {
+        root?.render(
+          <CommsPliantEditor
+            document={editorDocument}
+            locale={locale}
+            onChange={(document) => changes.push(document)}
+          />,
+        )
+      })
+    }
+
+    container = document.createElement('div')
+    document.body.append(container)
+    root = createRoot(container)
+    renderEditor('en')
+    await puckText('Embedded customer text.')
+
+    await expect.poll(() => container?.querySelectorAll('.document-editor__panel-mode-button').length).toBe(2)
+    container?.querySelector<HTMLButtonElement>('.document-editor__panel-mode-button')?.click()
+    await expect.poll(() => container?.querySelector('.document-editor')?.getAttribute('data-tili-left-panel-mode')).toBe('floating')
+
+    renderEditor('fr')
+    await expect.element(page.getByText('Enregistrer le brouillon', { exact: true })).toBeVisible()
+    expect(container.querySelector<HTMLButtonElement>('.document-editor__panel-mode-button')?.getAttribute('aria-label'))
+      .toBe('Ancrer le panneau Blocs / Plan')
+    await expect.poll(() =>
+      document.querySelector<HTMLButtonElement>('.document-editor__floating-panel-resize')
+        ?.getAttribute('aria-label'),
+    ).toBe('Redimensionner le panneau Blocs / Plan')
+    expect(container.querySelector('.document-editor')?.getAttribute('lang')).toBe('fr')
+    await puckText('Embedded customer text.')
+    expect(changes).toEqual([])
+
+    renderEditor('invalid' as SupportedLocale)
+    await expect.element(page.getByText('Save draft', { exact: true })).toBeVisible()
+    expect(container.querySelector('.document-editor')?.getAttribute('lang')).toBe('en')
+  })
+
   it('keeps the About Tili-Toli experience standalone-only', async () => {
     mountApp()
 

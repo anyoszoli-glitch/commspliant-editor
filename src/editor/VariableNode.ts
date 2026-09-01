@@ -5,11 +5,13 @@ import {
   type VariableDefinition,
   type VariablePreviewValues,
 } from './variables'
+import { createTranslator, type Translate } from '../i18n'
 
 type VariableNodeOptions = {
   variableDefinitions: readonly VariableDefinition[]
   previewEnabled: boolean
   previewValues: VariablePreviewValues
+  t: Translate
 }
 
 export const VariableNode = Node.create<VariableNodeOptions>({
@@ -19,7 +21,7 @@ export const VariableNode = Node.create<VariableNodeOptions>({
   atom: true,
 
   addOptions() {
-    return { variableDefinitions: [], previewEnabled: false, previewValues: {} }
+    return { variableDefinitions: [], previewEnabled: false, previewValues: {}, t: createTranslator() }
   },
 
   addAttributes() {
@@ -65,18 +67,21 @@ export const VariableNode = Node.create<VariableNodeOptions>({
       dom.setAttribute('role', 'img')
 
       if (!resolution) {
-        dom.setAttribute('aria-label', definition ? `Variable: ${definition.label}` : `Unknown variable: ${key}`)
-        dom.textContent = definition ? definition.label : `Unknown variable: ${key}`
+        const label = definition
+          ? this.options.t('variableLabel', { label: definition.label })
+          : this.options.t('unknownVariable', { label: key })
+        dom.setAttribute('aria-label', label)
+        dom.textContent = definition ? definition.label : label
       } else if (resolution.status === 'resolved') {
-        const text = resolution.value || `[Empty: ${resolution.definition.label}]`
+        const text = resolution.value || this.options.t('emptyVariable', { label: resolution.definition.label })
         dom.setAttribute('aria-label', text)
         dom.textContent = text
       } else if (resolution.status === 'missing-value') {
-        const text = `[Missing: ${resolution.definition.label}]`
+        const text = this.options.t('missingVariable', { label: resolution.definition.label })
         dom.setAttribute('aria-label', text)
         dom.textContent = text
       } else {
-        const text = `[Unknown variable: ${resolution.key}]`
+        const text = this.options.t('unknownVariable', { label: resolution.key })
         dom.setAttribute('aria-label', text)
         dom.textContent = text
       }

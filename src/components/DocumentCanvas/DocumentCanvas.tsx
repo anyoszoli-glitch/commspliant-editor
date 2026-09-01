@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -16,6 +17,7 @@ import {
   type FluidDocumentLayout,
   type PagedDocumentLayout,
 } from '../../document/document'
+import { useTranslation } from '../../i18n'
 import { LayoutContext } from './layoutContext'
 import { paginateBlocks, type PageDescriptor, type PaginationResult } from './pagination'
 
@@ -31,6 +33,7 @@ type DocumentCanvasProps = {
   backgroundColour?: DocumentBackgroundColour
   isEditorCanvas?: boolean
   showEditorPageIndicators?: boolean
+  showMarginGuides?: boolean
   selectedPageId?: string
   onPageSelect?: (pageId: string) => void
   onPagesChange?: (pages: PageDescriptor[]) => void
@@ -87,6 +90,7 @@ function PagedCanvas({
   backgroundColour,
   isEditorCanvas,
   showEditorPageIndicators,
+  showMarginGuides,
   selectedPageId,
   onPageSelect,
   onPagesChange,
@@ -99,17 +103,53 @@ function PagedCanvas({
   backgroundColour?: DocumentBackgroundColour
   isEditorCanvas: boolean
   showEditorPageIndicators: boolean
+  showMarginGuides: boolean
   selectedPageId?: string
   onPageSelect?: (pageId: string) => void
   onPagesChange?: (pages: PageDescriptor[]) => void
   pageSettingsChannel?: string
   style?: CSSProperties
 }) {
+  const t = useTranslation()
   const contentRef = useRef<HTMLDivElement>(null)
   const [pagination, setPagination] = useState(emptyPagination)
+  const [activeGuidePageId, setActiveGuidePageId] = useState(selectedPageId)
+  const requestedGuidePageId = useRef<string | undefined>(undefined)
   const pageMargins = Object.fromEntries(
     pagination.pages.map((page) => [page.number, getEffectivePageMargins(layout, page.id)]),
   )
+
+  useEffect(() => {
+    setActiveGuidePageId(selectedPageId)
+  }, [selectedPageId])
+
+  useEffect(() => {
+    if (!pageSettingsChannel) return
+
+    const handlePageSettingsMessage = (event: MessageEvent<unknown>) => {
+      const message = event.data
+      if (!message || typeof message !== 'object') return
+
+      const pageMessage = message as {
+        type?: unknown
+        channel?: unknown
+        action?: unknown
+        pageId?: unknown
+      }
+      if (
+        pageMessage.type === 'tili-toli-page-settings' &&
+        pageMessage.channel === pageSettingsChannel &&
+        pageMessage.action === 'select' &&
+        typeof pageMessage.pageId === 'string'
+      ) {
+        requestedGuidePageId.current = pageMessage.pageId
+        setActiveGuidePageId(pageMessage.pageId)
+      }
+    }
+
+    window.addEventListener('message', handlePageSettingsMessage)
+    return () => window.removeEventListener('message', handlePageSettingsMessage)
+  }, [pageSettingsChannel])
 
   const measure = useCallback(() => {
     const content = contentRef.current
@@ -186,7 +226,12 @@ function PagedCanvas({
           | HTMLElement
           | undefined
         const pageId = visiblePage?.dataset.documentPageId
-        if (pageId && pageId !== selectedPageId) onPageSelect(pageId)
+        if (!pageId) return
+
+        if (requestedGuidePageId.current && requestedGuidePageId.current !== pageId) return
+        requestedGuidePageId.current = undefined
+        setActiveGuidePageId(pageId)
+        if (pageId !== selectedPageId) onPageSelect(pageId)
       },
       { threshold: [0.25, 0.5, 0.75] },
     )
@@ -209,11 +254,11 @@ function PagedCanvas({
       }}
     >
       {isEditorCanvas && (
-        <style media="print">{'[data-editor-page-indicator] { display: none !important; }'}</style>
+        <style media="print">{'[data-editor-page-indicator], [data-editor-margin-guide] { display: none !important; }'}</style>
       )}
       {pagination.pages.map((page, index) => (
         <section
-          aria-label={`Page ${page.number}`}
+          aria-label={t('page', { page: page.number })}
           data-document-page={page.number}
           data-document-page-id={page.id}
           key={page.id}
@@ -226,13 +271,31 @@ function PagedCanvas({
             background: backgroundColour ?? '#ffffff',
             boxShadow: '0 4px 18px rgba(0, 0, 0, 0.12)',
             isolation: 'isolate',
+            overflow: 'hidden',
           }}
         >
           <BackgroundLayer image={backgroundImage} />
+          {isEditorCanvas && showMarginGuides && activeGuidePageId === page.id && (
+            <div
+              aria-hidden="true"
+              data-editor-margin-guide
+              style={{
+                position: 'absolute',
+                zIndex: 1,
+                top: `${pageMargins[page.number]?.top ?? 0}mm`,
+                right: `${pageMargins[page.number]?.right ?? 0}mm`,
+                bottom: `${pageMargins[page.number]?.bottom ?? 0}mm`,
+                left: `${pageMargins[page.number]?.left ?? 0}mm`,
+                boxSizing: 'border-box',
+                border: '0.5px dashed rgba(91, 69, 224, 0.24)',
+                pointerEvents: 'none',
+              }}
+            />
+          )}
           {formatPageNumber(layout.pageNumbering, page.number, pagination.pageCount) && (
             <span
               data-document-page-number
-              aria-label={`Page number ${page.number}`}
+              aria-label={t('pageNumberLabel', { page: page.number })}
               style={{
                 position: 'absolute',
                 zIndex: 1,
@@ -251,7 +314,7 @@ function PagedCanvas({
           {showEditorPageIndicators && (
             <button
               type="button"
-              aria-label={`Select page ${page.number}`}
+              aria-label={t('selectPage', { page: page.number })}
               aria-pressed={selectedPageId === page.id}
               data-editor-page-indicator
               style={{
@@ -267,11 +330,13 @@ function PagedCanvas({
                 cursor: 'pointer',
               }}
               onClick={() => {
+                requestedGuidePageId.current = page.id
+                setActiveGuidePageId(page.id)
                 onPageSelect?.(page.id)
                 postPageSettingsMessage(contentRef.current, pageSettingsChannel, { action: 'select', pageId: page.id })
               }}
             >
-              Page {page.number}
+              {t('page', { page: page.number })}
             </button>
           )}
         </section>
@@ -280,7 +345,7 @@ function PagedCanvas({
         <div
           ref={contentRef}
           data-document-content
-          aria-label="Document content"
+          aria-label={t('documentContent')}
           style={{
             position: 'absolute',
             top: 0,
@@ -309,6 +374,7 @@ function FluidCanvas({
   backgroundColour?: DocumentBackgroundColour
   style?: CSSProperties
 }) {
+  const t = useTranslation()
   const { maxWidth, padding } = layout
 
   return (
@@ -316,7 +382,7 @@ function FluidCanvas({
       <div
         data-document-layout="fluid"
         data-document-content
-        aria-label="Document content"
+        aria-label={t('documentContent')}
         style={{
           width: `min(${maxWidth.value}${maxWidth.unit}, calc(100% - 24px))`,
           minHeight: 'calc(100vh - 24px)',
@@ -346,6 +412,7 @@ export function DocumentCanvas({
   backgroundColour,
   isEditorCanvas = false,
   showEditorPageIndicators = false,
+  showMarginGuides = true,
   selectedPageId,
   onPageSelect,
   onPagesChange,
@@ -359,6 +426,7 @@ export function DocumentCanvas({
       backgroundColour={backgroundColour}
       isEditorCanvas={isEditorCanvas}
       showEditorPageIndicators={showEditorPageIndicators}
+      showMarginGuides={showMarginGuides}
       selectedPageId={selectedPageId}
       onPageSelect={onPageSelect}
       onPagesChange={onPagesChange}

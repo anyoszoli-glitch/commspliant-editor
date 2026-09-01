@@ -8,6 +8,7 @@ import type {
   DocumentBackgroundImage,
 } from '../../document/document'
 import { CustomColourPicker } from '../ColourPicker/CustomColourPicker'
+import type { Translate, TranslationKey } from '../../i18n'
 
 import {
   BACKGROUND_COLOUR_PRESETS,
@@ -27,14 +28,15 @@ type BackgroundSettingsProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   disabled?: boolean
+  t: Translate
 }
 
 const PANEL_WIDTH = 240
 
 const fitOptions: Array<{ value: BackgroundImageFit; label: string }> = [
-  { value: 'cover', label: 'Cover' },
-  { value: 'contain', label: 'Contain' },
-  { value: 'none', label: 'Original size' },
+  { value: 'cover', label: 'cover' },
+  { value: 'contain', label: 'contain' },
+  { value: 'none', label: 'originalSize' },
 ]
 
 const positions: BackgroundImagePosition[] = [
@@ -49,6 +51,18 @@ const positions: BackgroundImagePosition[] = [
   'bottom right',
 ]
 
+const positionLabelKeys: Record<BackgroundImagePosition, TranslationKey> = {
+  'top left': 'backgroundPositionTopLeft',
+  top: 'backgroundPositionTop',
+  'top right': 'backgroundPositionTopRight',
+  left: 'backgroundPositionLeft',
+  center: 'backgroundPositionCenter',
+  right: 'backgroundPositionRight',
+  'bottom left': 'backgroundPositionBottomLeft',
+  bottom: 'backgroundPositionBottom',
+  'bottom right': 'backgroundPositionBottomRight',
+}
+
 export function BackgroundSettings({
   image,
   colour,
@@ -57,6 +71,7 @@ export function BackgroundSettings({
   open,
   onOpenChange,
   disabled = false,
+  t,
 }: BackgroundSettingsProps) {
   const isOpen = open
   const [position, setPosition] = useState({ top: 0, left: 0 })
@@ -147,20 +162,20 @@ export function BackgroundSettings({
           }}
         >
           <div className="document-editor__background-field">
-            <span>Background colour</span>
+            <span>{t('backgroundColour')}</span>
 
             <div
               className="document-editor__background-colour-palette"
               role="group"
-              aria-label="Background colour presets"
+              aria-label={t('backgroundColourPresets')}
             >
               {BACKGROUND_COLOUR_PRESETS.map((preset) => (
                 <button
                   key={preset.value}
                   type="button"
-                  aria-label={preset.label}
+                  aria-label={t(preset.label as Parameters<Translate>[0])}
                   aria-pressed={colour?.toLowerCase() === preset.value}
-                  title={preset.label}
+                  title={t(preset.label as Parameters<Translate>[0])}
                   disabled={disabled}
                   style={{ backgroundColor: preset.value }}
                   onClick={() => onColourChange(preset.value)}
@@ -170,10 +185,10 @@ export function BackgroundSettings({
 
             <div className="document-editor__background-colour-custom">
               <CustomColourPicker
-                ariaLabel="Custom background colour"
+                ariaLabel={t('customBackgroundColour')}
                 value={colour}
                 fallbackColour="#ffffff"
-                label="Custom"
+                label={t('custom')}
                 disabled={disabled}
                 onChange={(value) =>
                   onColourChange(value as DocumentBackgroundColour)
@@ -186,19 +201,19 @@ export function BackgroundSettings({
                 disabled={disabled || colour === undefined}
                 onClick={() => onColourChange(undefined)}
               >
-                Clear colour
+                {t('clearColour')}
               </button>
             </div>
           </div>
 
           {!image ? (
             <p className="document-editor__background-empty">
-              No background image selected.
+              {t('noBackgroundImage')}
             </p>
           ) : (
             <>
               <label className="document-editor__background-field">
-                <span>Fit</span>
+                <span>{t('fit')}</span>
 
                 <select
                   value={image.fit ?? 'cover'}
@@ -214,26 +229,26 @@ export function BackgroundSettings({
                 >
                   {fitOptions.map((option) => (
                     <option key={option.value} value={option.value}>
-                      {option.label}
+                      {t(option.label as Parameters<Translate>[0])}
                     </option>
                   ))}
                 </select>
               </label>
 
               <div className="document-editor__background-field">
-                <span>Position</span>
+                <span>{t('position')}</span>
 
                 <div
                   className="document-editor__background-position-grid"
                   role="group"
-                  aria-label="Background image position"
+                  aria-label={t('backgroundImagePosition')}
                 >
                   {positions.map((backgroundPosition) => (
                     <button
                       key={backgroundPosition}
                       type="button"
-                      title={backgroundPosition}
-                      aria-label={backgroundPosition}
+                      title={t(positionLabelKeys[backgroundPosition])}
+                      aria-label={t(positionLabelKeys[backgroundPosition])}
                       aria-pressed={
                         (image.position ?? 'center') === backgroundPosition
                       }
@@ -252,12 +267,12 @@ export function BackgroundSettings({
               </div>
 
               <label className="document-editor__background-field">
-                <span>Opacity</span>
+                <span>{t('opacity')}</span>
 
                 <div className="document-editor__background-opacity">
                   <input
                     type="range"
-                    aria-label="Background image opacity"
+                    aria-label={t('backgroundImageOpacity')}
                     min={BACKGROUND_OPACITY_MIN}
                     max={BACKGROUND_OPACITY_MAX}
                     step={1}
@@ -284,7 +299,7 @@ export function BackgroundSettings({
                 disabled={disabled}
                 onClick={() => onImageChange(undefined)}
               >
-                Remove background
+                {t('removeBackground')}
               </button>
             </>
           )}
@@ -304,7 +319,7 @@ export function BackgroundSettings({
         disabled={disabled}
         onClick={() => onOpenChange(!isOpen)}
       >
-        Background settings
+        {t('backgroundSettings')}
       </button>
 
       {panel}

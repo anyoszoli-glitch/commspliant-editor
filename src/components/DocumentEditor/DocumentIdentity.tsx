@@ -4,6 +4,7 @@ import {
   commitDocumentName,
   normalizeDocumentName,
 } from '../../document/documentMetadata'
+import { useTranslation } from '../../i18n'
 
 export type DocumentIdentityProps = {
   documentName?: string
@@ -20,6 +21,7 @@ export function DocumentIdentity({
   onDocumentDescriptionChange,
   status = 'draft',
 }: DocumentIdentityProps) {
+  const t = useTranslation()
   const normalizedName = normalizeDocumentName(documentName)
   const [isEditingDescription, setIsEditingDescription] = useState(false)
   const [draftDescription, setDraftDescription] = useState('')
@@ -60,13 +62,13 @@ export function DocumentIdentity({
 
   return (
     <div className="document-identity">
-      <div className="document-identity__product-label">Tili-Toli CommsPliant document editor</div>
+      <div className="document-identity__product-label">{t('productLabel')}</div>
       <div className="document-identity__title-row">
         {onDocumentNameChange ? (
           <input
             key={normalizedName}
             className="document-identity__title-input"
-            aria-label="Document name"
+            aria-label={t('documentName')}
             defaultValue={normalizedName}
             onBlur={finishEditing}
             onKeyDown={handleKeyDown}
@@ -78,7 +80,7 @@ export function DocumentIdentity({
           {onDocumentDescriptionChange && isEditingDescription ? (
             <input
               className="document-identity__description-input"
-              aria-label="Document description"
+              aria-label={t('documentDescription')}
               autoFocus
               value={draftDescription}
               onChange={(event) => setDraftDescription(event.currentTarget.value)}
@@ -96,13 +98,13 @@ export function DocumentIdentity({
               onClick={startEditingDescription}
               onFocus={startEditingDescription}
             >
-              {normalizedDescription || 'Add a description'}
+              {normalizedDescription || t('addDescription')}
             </button>
           ) : normalizedDescription ? (
             <span className="document-identity__description-text">{normalizedDescription}</span>
           ) : null}
-          <span className="document-identity__status" aria-label={`Document status: ${status}`}>
-            Draft
+          <span className="document-identity__status" aria-label={t('documentStatus', { status: t(status) })}>
+            {t(status)}
           </span>
         </div>
       </div>

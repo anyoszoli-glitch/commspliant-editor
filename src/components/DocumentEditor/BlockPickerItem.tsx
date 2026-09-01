@@ -1,8 +1,11 @@
 type BlockPickerItemProps = {
   name: string
+  t: import('../../i18n').Translate
 }
 
-function BlockIcon({ name }: BlockPickerItemProps) {
+type BlockIconProps = Pick<BlockPickerItemProps, 'name'>
+
+function BlockIcon({ name }: BlockIconProps) {
   if (name === 'HeadingBlock') {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -61,23 +64,17 @@ function BlockIcon({ name }: BlockPickerItemProps) {
   )
 }
 
-const labels: Record<string, string> = {
-  HeadingBlock: 'Heading',
-  TextBlock: 'Text',
-  NoticeBlock: 'Important notice',
-  PageBreakBlock: 'Page break',
-  TableBlock: 'Table',
-  DividerBlock: 'Divider',
-  SpacerBlock: 'Spacer',
+const labels: Record<string, import('../../i18n').TranslationKey> = {
+  HeadingBlock: 'heading', TextBlock: 'text', NoticeBlock: 'importantNotice', PageBreakBlock: 'pageBreak', TableBlock: 'table', DividerBlock: 'divider', SpacerBlock: 'spacer',
 }
 
-export function BlockPickerItem({ name }: BlockPickerItemProps) {
+export function BlockPickerItem({ name, t }: BlockPickerItemProps) {
   return (
     <div className="commspliant-block-tile">
       <span className="commspliant-block-tile__icon">
         <BlockIcon name={name} />
       </span>
-      <span className="commspliant-block-tile__label">{labels[name] ?? name}</span>
+      <span className="commspliant-block-tile__label">{labels[name] ? t(labels[name]) : name}</span>
       <svg className="commspliant-block-tile__grip" viewBox="0 0 10 14" aria-hidden="true">
         <circle cx="3" cy="3" r="1" />
         <circle cx="7" cy="3" r="1" />

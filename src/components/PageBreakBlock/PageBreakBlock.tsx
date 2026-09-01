@@ -1,8 +1,11 @@
+import { useTranslation } from '../../i18n'
+
 export function PageBreakBlock() {
+  const t = useTranslation()
   return (
     <div
       role="separator"
-      aria-label="Page break"
+      aria-label={t('pageBreak')}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -14,7 +17,7 @@ export function PageBreakBlock() {
       }}
     >
       <span style={{ flex: 1, borderTop: '1px dashed #a1a1aa' }} />
-      <span>Page break</span>
+      <span>{t('pageBreak')}</span>
       <span style={{ flex: 1, borderTop: '1px dashed #a1a1aa' }} />
     </div>
   )

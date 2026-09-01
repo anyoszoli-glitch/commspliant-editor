@@ -4,8 +4,20 @@ import type { ReactElement } from 'react'
 import { defaultFluidLayout, defaultPagedLayout } from '../document/document'
 import { createEditorConfig } from './editorConfig'
 
-function renderRoot(isEditing: boolean, previewEnabled = false) {
-  const root = createEditorConfig(defaultPagedLayout, undefined, [], previewEnabled).root
+function renderRoot(isEditing: boolean, previewEnabled = false, showMarginGuides = true) {
+  const root = createEditorConfig(
+    defaultPagedLayout,
+    undefined,
+    [],
+    previewEnabled,
+    {},
+    undefined,
+    'page-root',
+    undefined,
+    undefined,
+    undefined,
+    showMarginGuides,
+  ).root
   if (!root?.render) throw new Error('Expected root renderer')
 
   return renderToStaticMarkup(
@@ -127,5 +139,11 @@ describe('editor config', () => {
     expect(renderRoot(true)).toContain('data-editor-page-indicator')
     expect(renderRoot(true, true)).not.toContain('data-editor-page-indicator')
     expect(renderRoot(false)).toContain('data-editor-page-indicator')
+  })
+
+  it('renders margin guides only on the selected editor page when enabled', () => {
+    expect(renderRoot(true)).toContain('data-editor-margin-guide="true"')
+    expect(renderRoot(true, false, false)).not.toContain('data-editor-margin-guide="true"')
+    expect(renderRoot(true, true)).not.toContain('data-editor-margin-guide="true"')
   })
 })

@@ -2,13 +2,13 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { DocumentLayout } from '../../document/document'
 import type { PageDescriptor } from '../DocumentCanvas/pagination'
+import type { Translate } from '../../i18n'
 import {
   FLUID_WIDTH_MAX,
   FLUID_WIDTH_MIN,
   PAGED_MARGIN_MAX,
   PAGED_MARGIN_MIN,
   PAGE_NUMBERING_OPTIONS,
-  layoutValidationMessage,
   parseLayoutInteger,
   resetFluidContentWidth,
   resetPageMarginOverride,
@@ -24,18 +24,21 @@ import {
 type LayoutSettingsProps = {
   layout: DocumentLayout
   onChange: (layout: DocumentLayout) => void
+  showMarginGuides?: boolean
+  onShowMarginGuidesChange?: (show: boolean) => void
   pages?: PageDescriptor[]
   selectedPageId?: string
   onPageSelect?: (pageId: string) => void
   pageSettingsChannel?: string
   disabled?: boolean
+  t: Translate
 }
 
-const pagedMargins: Array<{ key: PagedMargin; label: string }> = [
-  { key: 'top', label: 'Top margin' },
-  { key: 'right', label: 'Right margin' },
-  { key: 'bottom', label: 'Bottom margin' },
-  { key: 'left', label: 'Left margin' },
+const pagedMargins: Array<{ key: PagedMargin; label: 'topMargin' | 'rightMargin' | 'bottomMargin' | 'leftMargin'; pageLabel: 'pageTop' | 'pageRight' | 'pageBottom' | 'pageLeft' }> = [
+  { key: 'top', label: 'topMargin', pageLabel: 'pageTop' },
+  { key: 'right', label: 'rightMargin', pageLabel: 'pageRight' },
+  { key: 'bottom', label: 'bottomMargin', pageLabel: 'pageBottom' },
+  { key: 'left', label: 'leftMargin', pageLabel: 'pageLeft' },
 ]
 
 const PANEL_WIDTH = 220
@@ -43,11 +46,14 @@ const PANEL_WIDTH = 220
 export function LayoutSettings({
   layout,
   onChange,
+  showMarginGuides = true,
+  onShowMarginGuidesChange,
   pages = [],
   selectedPageId,
   onPageSelect,
   pageSettingsChannel,
   disabled = false,
+  t,
 }: LayoutSettingsProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [reportedPages, setReportedPages] = useState<PageDescriptor[]>(pages)
@@ -170,7 +176,7 @@ export function LayoutSettings({
   ) => {
     const value = parseLayoutInteger(rawValue, min, max)
     if (value === undefined) {
-      setErrors((current) => ({ ...current, [field]: layoutValidationMessage(min, max) }))
+      setErrors((current) => ({ ...current, [field]: t('validationInteger', { min, max }) }))
       return
     }
     setErrors((current) => {
@@ -220,14 +226,14 @@ export function LayoutSettings({
         >
           {layout.mode === 'paged' ? (
             <div className="document-editor__layout-settings-fields">
-              <span className="document-editor__layout-section-label">Document default margins</span>
+              <span className="document-editor__layout-section-label">{t('documentDefaultMargins')}</span>
               {pagedMargins.map(({ key, label }) => {
                 const error = errors[key]
                 const inputId = `layout-settings-${key}`
                 const errorId = `${inputId}-error`
                 return (
                   <label className="document-editor__layout-field" key={key} htmlFor={inputId}>
-                    <span>{label}</span>
+                    <span>{t(label)}</span>
                     <span className="document-editor__layout-input-wrap">
                       <input
                         key={`${layout.margins[key]}-${resetVersion}`}
@@ -252,11 +258,23 @@ export function LayoutSettings({
                   </label>
                 )
               })}
+              {!disabled && (
+                <label className="document-editor__layout-margin-guide-toggle" htmlFor="layout-settings-show-margins">
+                  <input
+                    id="layout-settings-show-margins"
+                    type="checkbox"
+                    checked={showMarginGuides}
+                    disabled={!onShowMarginGuidesChange}
+                    onChange={(event) => onShowMarginGuidesChange?.(event.currentTarget.checked)}
+                  />
+                  <span>{t('showMargins')}</span>
+                </label>
+              )}
               {selectedPage && (
                 <>
-                  <span className="document-editor__layout-section-label">Page margins</span>
+                  <span className="document-editor__layout-section-label">{t('pageMargins')}</span>
                   <label className="document-editor__layout-field" htmlFor="layout-settings-page">
-                    <span>Selected page</span>
+                    <span>{t('selectedPage')}</span>
                     <select
                       id="layout-settings-page"
                       value={selectedPage.id}
@@ -264,23 +282,23 @@ export function LayoutSettings({
                       onChange={(event) => selectPage(event.currentTarget.value)}
                     >
                       {availablePages.map((page) => (
-                        <option key={page.id} value={page.id}>Page {page.number}</option>
+                        <option key={page.id} value={page.id}>{t('page', { page: page.number })}</option>
                       ))}
                     </select>
                   </label>
                   <span className="document-editor__layout-page-status">
-                    {selectedPageSettings ? 'Using custom margins for this page.' : 'Using document default margins.'}
+                    {selectedPageSettings ? t('usingCustomMargins') : t('usingDefaultMargins')}
                   </span>
                   {selectedPageSettings ? (
                     <>
-                      {pagedMargins.map(({ key, label }) => {
+                      {pagedMargins.map(({ key, pageLabel }) => {
                         const errorKey = `page-${selectedPage.id}-${key}`
                         const error = errors[errorKey]
                         const inputId = `layout-settings-page-${key}`
                         const errorId = `${inputId}-error`
                         return (
                           <label className="document-editor__layout-field" key={key} htmlFor={inputId}>
-                            <span>Page {label.replace(' margin', '')}</span>
+                            <span>{t(pageLabel)}</span>
                             <span className="document-editor__layout-input-wrap">
                               <input
                                 key={`${selectedPage.id}-${selectedPageSettings.margins[key]}-${resetVersion}`}
@@ -311,7 +329,7 @@ export function LayoutSettings({
                         disabled={disabled}
                         onClick={() => onChange(resetPageMarginOverride(layout, selectedPage.id))}
                       >
-                        Reset page to document default
+                        {t('resetPageMargins')}
                       </button>
                     </>
                   ) : (
@@ -321,13 +339,13 @@ export function LayoutSettings({
                       disabled={disabled}
                       onClick={() => onChange(enablePageMarginOverride(layout, selectedPage.id))}
                     >
-                      Use custom margins for this page
+                      {t('useCustomMargins')}
                     </button>
                   )}
                 </>
               )}
               <label className="document-editor__layout-field" htmlFor="layout-settings-page-numbering">
-                <span>Page numbering</span>
+                <span>{t('pageNumbering')}</span>
                 <select
                   id="layout-settings-page-numbering"
                   value={layout.pageNumbering ?? 'none'}
@@ -342,7 +360,7 @@ export function LayoutSettings({
                   }
                 >
                   {PAGE_NUMBERING_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
+                    <option key={option.value} value={option.value}>{option.value === 'none' ? t('none') : option.value === 'page-number' ? t('pageNumberExample') : option.value === 'page-number-of-total' ? t('pageNumberTotalExample') : option.label}</option>
                   ))}
                 </select>
               </label>
@@ -350,7 +368,7 @@ export function LayoutSettings({
           ) : (
             <div className="document-editor__layout-settings-fields">
               <label className="document-editor__layout-field" htmlFor="layout-settings-content-width">
-                <span>Content width</span>
+                <span>{t('contentWidth')}</span>
                 <span className="document-editor__layout-input-wrap">
                   <input
                     key={`${layout.maxWidth.value}-${resetVersion}`}
@@ -384,7 +402,7 @@ export function LayoutSettings({
             </div>
           )}
           <button type="button" className="document-editor__layout-reset" onClick={reset}>
-            Reset to default
+            {t('resetDefault')}
           </button>
         </div>,
         document.body,
@@ -402,7 +420,7 @@ export function LayoutSettings({
         onClick={togglePanel}
         disabled={disabled}
       >
-        Page setup
+        {t('pageSetup')}
       </button>
       {panel}
     </div>

@@ -37,7 +37,7 @@ describe('document identity', () => {
   it('renders a visible, non-interactive Draft badge', () => {
     const markup = renderIdentity({})
 
-    expect(markup).toContain('aria-label="Document status: draft"')
+    expect(markup).toContain('aria-label="Document status: Draft"')
     expect(markup).toContain('>Draft</span>')
     expect(markup).not.toContain('>Draft</button>')
   })

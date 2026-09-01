@@ -9,6 +9,7 @@ import {
   type RefObject,
 } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation, type Translate } from '../../i18n'
 
 import {
   createInitialFloatingPanelGeometry,
@@ -122,7 +123,11 @@ type PanelChromeProps = {
   onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void
   onPointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void
   onPointerEnd: (event: ReactPointerEvent<HTMLDivElement>) => void
+  t: Translate
 }
+
+const panelTitle = (side: FloatingPanelSide, t: Translate) =>
+  t(side === 'left' ? 'leftPanelTitle' : 'rightPanelTitle')
 
 function PanelChrome({
   side,
@@ -131,9 +136,10 @@ function PanelChrome({
   onPointerDown,
   onPointerMove,
   onPointerEnd,
+  t,
 }: PanelChromeProps) {
-  const sideLabel = side === 'left' ? 'Blocks / Outline' : 'Properties / AI Assistant'
-  const actionLabel = `${mode === 'docked' ? 'Undock' : 'Dock'} ${sideLabel} panel`
+  const sideLabel = panelTitle(side, t)
+  const actionLabel = t(mode === 'docked' ? 'undockPanel' : 'dockPanel', { panel: sideLabel })
 
   return (
     <div
@@ -154,13 +160,14 @@ function PanelChrome({
         onClick={onModeChange}
       >
         <PanelIcon mode={mode} />
-        <span>{mode === 'docked' ? 'Undock' : 'Dock'}</span>
+        <span>{t(mode === 'docked' ? 'undock' : 'dock')}</span>
       </button>
     </div>
   )
 }
 
 export function FloatingSidePanels({ workspaceRef }: FloatingSidePanelsProps) {
+  const t = useTranslation()
   const [panels, setPanels] = useState<Record<FloatingPanelSide, PanelState>>(() => ({
     left: initialPanelState('left'),
     right: initialPanelState('right'),
@@ -448,6 +455,7 @@ export function FloatingSidePanels({ workspaceRef }: FloatingSidePanelsProps) {
         onPointerDown={(event) => startPointerOperation(event, side, 'move')}
         onPointerMove={updatePointerOperation}
         onPointerEnd={endPointerOperation}
+        t={t}
       />,
       target,
     )
@@ -461,8 +469,8 @@ export function FloatingSidePanels({ workspaceRef }: FloatingSidePanelsProps) {
       <button
         type="button"
         className="document-editor__floating-panel-resize"
-        aria-label={`Resize ${side === 'left' ? 'Blocks / Outline' : 'Properties / AI Assistant'} panel`}
-        title="Drag to resize. Arrow keys also resize."
+        aria-label={t('resizePanel', { panel: panelTitle(side, t) })}
+        title={t('resizePanelHint')}
         style={{
           left: panel.geometry.x + panel.geometry.width - 18,
           top: panel.geometry.y + panel.geometry.height - 18,

@@ -1,3 +1,6 @@
+import { useTranslation } from '../../i18n'
+
 export function DividerBlock() {
-  return <hr className="commspliant-divider-block" aria-label="Divider" />
+  const t = useTranslation()
+  return <hr className="commspliant-divider-block" aria-label={t('divider')} />
 }

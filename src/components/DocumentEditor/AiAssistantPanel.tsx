@@ -6,6 +6,7 @@ import type {
   AiAssistantSuggestion,
   AiAssistantSuggestionAction,
 } from '../../editor/aiAssistant'
+import type { Translate } from '../../i18n'
 
 type AiAssistantPanelProps = {
   context: AiAssistantContext
@@ -15,40 +16,28 @@ type AiAssistantPanelProps = {
   suggestion?: AiAssistantSuggestion
   onRequest?: (request: AiAssistantRequest) => void
   onSuggestionAction?: (action: AiAssistantSuggestionAction, suggestion: AiAssistantSuggestion) => void
+  t: Translate
 }
-
-const contexts: Array<{ value: AiAssistantContext; label: string }> = [
-  { value: 'selection', label: 'Selection' },
-  { value: 'block', label: 'Block' },
-  { value: 'document', label: 'Document' },
-]
-
-const actions: Array<{ value: AiAssistantAction; label: string }> = [
-  { value: 'rewrite', label: 'Rewrite' },
-  { value: 'shorten', label: 'Shorten' },
-  { value: 'plain-english', label: 'Plain English' },
-  { value: 'improve-clarity', label: 'Improve clarity' },
-  { value: 'change-tone', label: 'Change tone' },
-]
 
 function contextDescription(
   context: AiAssistantContext,
+  t: Translate,
   selectedText?: string,
   blockContext?: AiAssistantBlockContext,
 ) {
   if (context === 'selection') {
     return selectedText
-      ? `Selected text: “${selectedText}”`
-      : 'Select text in the document to prepare a selection.'
+      ? t('selectedText', { text: selectedText })
+      : t('selectTextForAi')
   }
 
   if (context === 'block') {
     return blockContext
-      ? `Current block ${blockContext.index + 1}${blockContext.zone ? ` · ${blockContext.zone}` : ''}`
-      : 'Select a block in the document to prepare a block context.'
+      ? t('currentBlock', { index: blockContext.index + 1, zone: blockContext.zone ? ` · ${blockContext.zone}` : '' })
+      : t('selectBlockForAi')
   }
 
-  return 'The complete document will be available to the host AI service.'
+  return t('aiDocumentContext')
 }
 
 export function AiAssistantPanel({
@@ -59,7 +48,14 @@ export function AiAssistantPanel({
   suggestion,
   onRequest,
   onSuggestionAction,
+  t,
 }: AiAssistantPanelProps) {
+  const contexts: Array<{ value: AiAssistantContext; label: string }> = [
+    { value: 'selection', label: t('selection') }, { value: 'block', label: t('block') }, { value: 'document', label: t('document') },
+  ]
+  const actions: Array<{ value: AiAssistantAction; label: string }> = [
+    { value: 'rewrite', label: t('rewrite') }, { value: 'shorten', label: t('shorten') }, { value: 'plain-english', label: t('plainEnglish') }, { value: 'improve-clarity', label: t('improveClarity') }, { value: 'change-tone', label: t('changeTone') },
+  ]
   const canRequest = Boolean(onRequest) && (context !== 'selection' || Boolean(selectedText))
 
   const requestAction = (action: AiAssistantAction) => {
@@ -78,11 +74,11 @@ export function AiAssistantPanel({
   }
 
   return (
-    <div className="document-editor__ai-panel" role="region" aria-label="AI Assistant">
+    <div className="document-editor__ai-panel" role="region" aria-label={t('aiAssistant')}>
       <div
         className="document-editor__ai-context-switch"
         role="tablist"
-        aria-label="AI context"
+        aria-label={t('aiContext')}
       >
         {contexts.map(({ value, label }) => (
           <button
@@ -98,11 +94,11 @@ export function AiAssistantPanel({
       </div>
 
       <p className="document-editor__ai-context-description">
-        {contextDescription(context, selectedText, blockContext)}
+        {contextDescription(context, t, selectedText, blockContext)}
       </p>
 
       <section className="document-editor__ai-section" aria-labelledby="ai-actions-heading">
-        <h3 id="ai-actions-heading">Actions</h3>
+        <h3 id="ai-actions-heading">{t('actions')}</h3>
         <div className="document-editor__ai-actions">
           {actions.map(({ value, label }) => (
             <button key={value} type="button" disabled={!canRequest} onClick={() => requestAction(value)}>
@@ -110,30 +106,30 @@ export function AiAssistantPanel({
             </button>
           ))}
           <button type="button" disabled={!canRequest} onClick={() => requestAction('ask')}>
-            Ask AI...
+            {t('askAi')}
           </button>
         </div>
-        {!onRequest && <p className="document-editor__ai-hint">AI actions will be enabled when the host connects a handler.</p>}
+        {!onRequest && <p className="document-editor__ai-hint">{t('aiHostHint')}</p>}
       </section>
 
       <section className="document-editor__ai-section" aria-labelledby="ai-suggestion-heading">
-        <h3 id="ai-suggestion-heading">Suggestion</h3>
+        <h3 id="ai-suggestion-heading">{t('suggestion')}</h3>
         <div className="document-editor__ai-suggestion-grid">
           <div className="document-editor__ai-suggestion-card">
-            <h4>Original</h4>
-            <p>{suggestion?.original ?? 'No suggestion yet.'}</p>
+            <h4>{t('original')}</h4>
+            <p>{suggestion?.original ?? t('noSuggestion')}</p>
           </div>
           <div className="document-editor__ai-suggestion-card">
-            <h4>Suggested</h4>
-            <p>{suggestion?.suggested ?? 'No suggestion yet.'}</p>
+            <h4>{t('suggested')}</h4>
+            <p>{suggestion?.suggested ?? t('noSuggestion')}</p>
           </div>
         </div>
         <div className="document-editor__ai-suggestion-actions">
           <button type="button" disabled={!suggestion || !onSuggestionAction} onClick={() => applySuggestionAction('reject')}>
-            Reject
+            {t('reject')}
           </button>
           <button type="button" disabled={!suggestion || !onSuggestionAction} onClick={() => applySuggestionAction('accept')}>
-            Accept
+            {t('accept')}
           </button>
         </div>
       </section>

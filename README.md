@@ -48,13 +48,14 @@ export function EditorScreen({ initialDocument, saveDocument }: EditorScreenProp
       document={document}
       onChange={setDocument}
       onSave={saveDocument}
+      locale="en"
       height="calc(100vh - 64px)"
     />
   )
 }
 ```
 
-`document` is the complete shared-contract JSON value. `onChange` receives the complete updated value after edits. `onSave` is called by the editor's **Save draft** action. The optional `height` prop defaults to `100vh`.
+`document` is the complete shared-contract JSON value. `onChange` receives the complete updated value after edits. `onSave` is called by the editor's **Save draft** action. The optional `locale` prop accepts `en`, `es`, `hu`, `fr`, or `de` and defaults to English. The optional `height` prop defaults to `100vh`.
 
 The packaged Tili-Toli logo is visible and non-clickable by default. A host may opt into a link
 with `logoHref`; only the standalone demo supplies `https://commspliant.com`.
@@ -103,7 +104,7 @@ are required.
 
 The package root exports:
 
-- `CommsPliantEditor` and `CommsPliantEditorProps`;
+- `CommsPliantEditor`, `CommsPliantEditorProps`, and `SupportedLocale`;
 - `AiAssistantRequest`, `AiAssistantSuggestion`, and the related AI context/action types;
 - `LetterDocument` and all nested document/layout/rich-text contract types;
 - `DocumentBackgroundColour`, `DocumentBackgroundImage`, and

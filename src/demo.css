@@ -1,4 +1,5 @@
 .document-editor__topbar {
+  position: relative;
   min-height: 64px;
   padding: 7px 16px;
   display: flex;
@@ -8,6 +9,39 @@
   border-bottom: 1px solid #d9d9d9;
   background: #eaf0f4;
   color: #18181b;
+}
+
+.standalone-language-selector {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.standalone-language-selector select {
+  border: 1px solid #9caeba;
+  border-radius: 6px;
+  padding: 6px 9px;
+  background: #ffffff;
+  color: #263442;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.standalone-language-selector select:focus-visible {
+  outline: 2px solid #5b45e0;
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  .document-editor__topbar {
+    padding-inline: 132px;
+  }
+
+  .document-identity__title-input {
+    width: min(420px, 48vw);
+  }
 }
 
 .standalone-editor__workspace {

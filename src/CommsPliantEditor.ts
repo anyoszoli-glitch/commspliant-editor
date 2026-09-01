@@ -10,6 +10,7 @@ export {
   type AiAssistantSuggestion,
   type AiAssistantSuggestionAction,
 } from './components/DocumentEditor/DocumentEditor'
+export { type SupportedLocale } from './i18n'
 export {
   DOCUMENT_SCHEMA_VERSION,
   createDocument,

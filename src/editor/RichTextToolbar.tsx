@@ -8,6 +8,7 @@ import {
   textColourOptions,
 } from './TypographyExtensions'
 import type { VariableDefinition } from './variables'
+import type { Translate } from '../i18n'
 
 type InlineMenuProps = Parameters<NonNullable<RichtextField['renderInlineMenu']>>[0]
 
@@ -17,6 +18,7 @@ type RichTextToolbarProps = InlineMenuProps & {
   formatWholeBlockOnEmptySelection?: boolean
   inline?: boolean
   onRequestAi?: (selectedText: string) => void
+  t: Translate
 }
 
 export type RichTextStyle = 'p' | `h${1 | 2 | 3 | 4 | 5 | 6}`
@@ -32,6 +34,14 @@ export const defaultRichTextStyleOptions: readonly RichTextStyleOption[] = [
   { label: 'Heading 3', value: 'h3' },
 ]
 
+function localizeTypographyLabel(label: string, t: Translate) {
+  const keys: Record<string, Parameters<Translate>[0]> = {
+    'Default font': 'defaultFont', 'Default colour': 'defaultColour', Charcoal: 'charcoal', Slate: 'slate', Red: 'red', Blue: 'blue', Green: 'green',
+    'No highlight': 'noHighlight', Yellow: 'yellow', Purple: 'purple',
+  }
+  return keys[label] ? t(keys[label]) : label
+}
+
 export function RichTextToolbar({
   editor,
   readOnly,
@@ -40,6 +50,7 @@ export function RichTextToolbar({
   formatWholeBlockOnEmptySelection = false,
   inline = false,
   onRequestAi,
+  t,
 }: RichTextToolbarProps) {
   const textStyle = textStyleOptions.find(({ value }) => {
     if (value === 'p') return editor?.isActive('paragraph')
@@ -58,7 +69,7 @@ export function RichTextToolbar({
     }
 
     const target = event.target as HTMLElement
-    if (target.closest('[aria-label="Insert variable"], [title="Ask AI"]')) return
+    if (target.closest(`[aria-label="${t('insertVariable')}"], [title="${t('askAi')}"]`)) return
 
     editor.chain().focus().selectAll().run()
   }
@@ -80,7 +91,7 @@ export function RichTextToolbar({
     if (!editor) return
 
     const currentHref = editor.getAttributes('link').href
-    const href = window.prompt('Link URL', typeof currentHref === 'string' ? currentHref : 'https://')
+    const href = window.prompt(t('linkUrl'), typeof currentHref === 'string' ? currentHref : 'https://')
     if (href === null) return
 
     if (href.trim()) {
@@ -168,7 +179,7 @@ export function RichTextToolbar({
 
   const linkControl = (
     <RichTextMenu.Control
-      title="Link"
+      title={t('link')}
       active={editor?.isActive('link')}
       disabled={readOnly || !editor}
       onClick={editLink}
@@ -182,7 +193,7 @@ export function RichTextToolbar({
 
   const clearFormattingControl = (
     <RichTextMenu.Control
-      title="Clear formatting"
+      title={t('clearFormatting')}
       disabled={readOnly || !editor}
       onClick={clearFormatting}
       icon={
@@ -195,7 +206,7 @@ export function RichTextToolbar({
 
   const aiControl = (
     <RichTextMenu.Control
-      title="Ask AI"
+      title={t('askAi')}
       disabled={readOnly || !editor}
       onClick={requestAi}
       icon={
@@ -244,7 +255,7 @@ export function RichTextToolbar({
           <RichTextMenu.Group>
             <select
               className="commspliant-richtext-toolbar__style-select"
-              aria-label="Text style"
+              aria-label={t('textStyle')}
               value={textStyle}
               disabled={readOnly || !editor}
               onChange={changeTextStyle}
@@ -260,13 +271,13 @@ export function RichTextToolbar({
             <RichTextMenu.Group>
               <select
                 className="commspliant-richtext-toolbar__style-select"
-                aria-label="Insert variable"
+                aria-label={t('insertVariable')}
                 defaultValue=""
                 disabled={readOnly || !editor}
                 onChange={insertVariable}
               >
                 <option value="" disabled>
-                  Insert variable
+                  {t('insertVariable')}
                 </option>
                 {variableDefinitions.map((definition) => (
                   <option key={definition.key} value={definition.key}>
@@ -281,27 +292,27 @@ export function RichTextToolbar({
           <RichTextMenu.Group>
             <select
               className="commspliant-richtext-toolbar__style-select"
-              aria-label="Font family"
+              aria-label={t('fontFamily')}
               value={fontFamily}
               disabled={readOnly || !editor}
               onChange={changeMark('fontFamily', 'family')}
             >
               {fontFamilyOptions.map(({ label, value }) => (
-                <option key={label} value={value}>{label}</option>
+                <option key={label} value={value}>{localizeTypographyLabel(label, t)}</option>
               ))}
             </select>
           </RichTextMenu.Group>
           <RichTextMenu.Group>
             <select
               className="commspliant-richtext-toolbar__style-select"
-              aria-label="Line spacing"
+              aria-label={t('lineSpacing')}
               value={lineSpacing}
               disabled={readOnly || !editor}
               onChange={changeLineSpacing}
             >
-              <option value="">Line spacing</option>
+              <option value="">{t('lineSpacing')}</option>
               {lineSpacingOptions.map(({ label, value }) => (
-                <option key={value} value={value}>{label}</option>
+                <option key={value} value={value}>{t('lineSpacingValue', { value: label.replace(/^Line /, '') })}</option>
               ))}
             </select>
           </RichTextMenu.Group>
@@ -311,22 +322,22 @@ export function RichTextToolbar({
             <div className="commspliant-richtext-toolbar__colour-control">
               <select
                 className="commspliant-richtext-toolbar__style-select"
-                aria-label="Text colour"
+                aria-label={t('colour')}
                 value={textColour}
                 disabled={readOnly || !editor}
                 onChange={changeMark('textColour', 'colour')}
               >
                 {textColourOptions.map(({ label, value }) => (
-                  <option key={label} value={value}>{value ? label : 'Colour'}</option>
+                  <option key={label} value={value}>{value ? localizeTypographyLabel(label, t) : t('colour')}</option>
                 ))}
                 {textColour && !isPresetColour(textColour, textColourOptions) && (
-                  <option value={textColour}>Custom</option>
+                  <option value={textColour}>{t('custom')}</option>
                 )}
               </select>
               <CustomColourPicker
                 className="commspliant-richtext-toolbar__custom-colour"
-                ariaLabel="Custom text colour"
-                title="Custom text colour"
+                ariaLabel={t('customTextColour')}
+                title={t('customTextColour')}
                 value={textColour}
                 fallbackColour="#18181b"
                 disabled={readOnly || !editor}
@@ -338,22 +349,22 @@ export function RichTextToolbar({
             <div className="commspliant-richtext-toolbar__colour-control">
               <select
                 className="commspliant-richtext-toolbar__style-select"
-                aria-label="Text highlight"
+                aria-label={t('highlight')}
                 value={highlightColour}
                 disabled={readOnly || !editor}
                 onChange={changeMark('textHighlight', 'colour')}
               >
                 {highlightColourOptions.map(({ label, value }) => (
-                  <option key={label} value={value}>{value ? label : 'Highlight'}</option>
+                  <option key={label} value={value}>{value ? localizeTypographyLabel(label, t) : t('highlight')}</option>
                 ))}
                 {highlightColour && !isPresetColour(highlightColour, highlightColourOptions) && (
-                  <option value={highlightColour}>Custom</option>
+                  <option value={highlightColour}>{t('custom')}</option>
                 )}
               </select>
               <CustomColourPicker
                 className="commspliant-richtext-toolbar__custom-colour"
-                ariaLabel="Custom text highlight"
-                title="Custom text highlight"
+                ariaLabel={t('customTextHighlight')}
+                title={t('customTextHighlight')}
                 value={highlightColour}
                 fallbackColour="#fff3bf"
                 disabled={readOnly || !editor}

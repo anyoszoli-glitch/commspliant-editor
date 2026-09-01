@@ -1,17 +1,19 @@
 import type { PageDescriptor } from '../DocumentCanvas/pagination'
+import type { Translate } from '../../i18n'
 
 type PageNavigatorProps = {
   pages: PageDescriptor[]
   selectedPageId?: string
   onPageSelect: (pageId: string) => void
+  t: Translate
 }
 
-export function PageNavigator({ pages, selectedPageId, onPageSelect }: PageNavigatorProps) {
+export function PageNavigator({ pages, selectedPageId, onPageSelect, t }: PageNavigatorProps) {
   return (
-    <div className="document-editor__page-navigator" aria-label="Document pages">
-      <div className="document-editor__page-navigator-title">Pages</div>
+    <div className="document-editor__page-navigator" aria-label={t('pages')}>
+      <div className="document-editor__page-navigator-title">{t('pages')}</div>
       {pages.length === 0 ? (
-        <p className="document-editor__page-navigator-empty">No pages yet</p>
+        <p className="document-editor__page-navigator-empty">{t('noPagesYet')}</p>
       ) : (
         <div className="document-editor__page-navigator-list">
           {pages.map((page) => (
@@ -20,11 +22,11 @@ export function PageNavigator({ pages, selectedPageId, onPageSelect }: PageNavig
               data-active={selectedPageId === page.id}
               key={page.id}
               type="button"
-              aria-label={`Go to page ${page.number}`}
+              aria-label={t('goToPage', { page: page.number })}
               aria-pressed={selectedPageId === page.id}
               onClick={() => onPageSelect(page.id)}
             >
-              <span className="document-editor__page-card-label">Page {page.number}</span>
+              <span className="document-editor__page-card-label">{t('page', { page: page.number })}</span>
             </button>
           ))}
         </div>

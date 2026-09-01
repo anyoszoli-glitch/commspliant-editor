@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 
 import tiliToliEditorLogo from '../assets/TiliToliEditorLogo.webp'
 import aboutTiliToliImage from './assets/About_Tili-Toli.png'
+import { useTranslation } from '../i18n'
 
 export function AboutTiliToli() {
+  const t = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
 
@@ -31,13 +33,13 @@ export function AboutTiliToli() {
         ref={triggerRef}
         type="button"
         className="standalone-about__trigger"
-        aria-label="About Tili-Toli"
+        aria-label={t('aboutTiliToli')}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         onClick={() => setIsOpen(true)}
       >
         <img src={aboutTiliToliImage} alt="" />
-        <span>About</span>
+        <span>{t('about')}</span>
       </button>
 
       {isOpen && (
@@ -46,13 +48,13 @@ export function AboutTiliToli() {
             className="standalone-about__dialog"
             role="dialog"
             aria-modal="true"
-            aria-label="About Tili-Toli"
+            aria-label={t('aboutTiliToli')}
             onMouseDown={(event) => event.stopPropagation()}
           >
             <button
               type="button"
               className="standalone-about__close"
-              aria-label="Close About Tili-Toli"
+              aria-label={t('closeAbout')}
               autoFocus
               onClick={close}
             >
@@ -61,33 +63,21 @@ export function AboutTiliToli() {
             <img
               className="standalone-about__logo"
               src={tiliToliEditorLogo}
-              alt="Tili Toli Editor"
+              alt={t('editorLogo')}
             />
             <div className="standalone-about__content">
-              <h2>Tili-Toli by CommsPliant</h2>
-              <p>
-                Tili-Toli is the standalone document editor created for CommsPliant.
-              </p>
-              <p>
-                We built it to make document editing simple, flexible and reusable, while keeping
-                the editor itself separate from the wider communication workflow.
-              </p>
-              <p>
-                In the full CommsPliant platform, Tili-Toli becomes part of a controlled
-                communication process with datasets, live preview, version control, review and
-                approval workflows, document generation, audit evidence and AI-assisted editing.
-              </p>
-              <p>
-                The standalone editor is the editing layer. CommsPliant adds the control, workflow
-                and evidence around it.
-              </p>
+              <h2>{t('aboutTitle')}</h2>
+              <p>{t('aboutIntro')}</p>
+              <p>{t('aboutBodyOne')}</p>
+              <p>{t('aboutBodyTwo')}</p>
+              <p>{t('aboutBodyThree')}</p>
               <a
                 className="standalone-about__primary-link"
                 href="https://commspliant.com"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Explore CommsPliant
+                {t('exploreCommsPliant')}
               </a>
               <a
                 className="standalone-about__secondary-link"
@@ -95,9 +85,9 @@ export function AboutTiliToli() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                About CommsPliant
+                {t('aboutCommsPliant')}
               </a>
-              <p className="standalone-about__credit">Built by CommsPliant.</p>
+              <p className="standalone-about__credit">{t('builtBy')}</p>
             </div>
           </section>
         </div>

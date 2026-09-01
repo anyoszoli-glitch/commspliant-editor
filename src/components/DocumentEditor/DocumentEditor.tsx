@@ -34,6 +34,7 @@ import {
   type VariableDefinition,
   type VariablePreviewValues,
 } from '../../editor/variables'
+import { I18nProvider, createPuckDictionary, normalizeLocale, type SupportedLocale, useTranslation } from '../../i18n'
 
 export type { VariableDefinition, VariablePreviewValues } from '../../editor/variables'
 export type {
@@ -53,15 +54,6 @@ const emptyVariableDefinitions: readonly VariableDefinition[] = []
 // while allowing Puck's supported auto-zoom behaviour to fit it to the available workspace.
 const A4_WIDTH_PX = (210 / 25.4) * 96
 const DOCUMENT_VIEWPORT_GUTTER_PX = 24
-const pagedDocumentViewports: Viewports = [
-  {
-    width: Math.round(A4_WIDTH_PX + DOCUMENT_VIEWPORT_GUTTER_PX),
-    height: 'auto',
-    icon: 'Monitor',
-    label: 'Document page',
-  },
-]
-
 export type CommsPliantEditorProps = {
   document: LetterDocument
   onChange: (document: LetterDocument) => void
@@ -73,9 +65,18 @@ export type CommsPliantEditorProps = {
   aiSuggestion?: AiAssistantSuggestion
   onAiSuggestionAction?: (action: AiAssistantSuggestionAction, suggestion: AiAssistantSuggestion) => void
   logoHref?: string
+  locale?: SupportedLocale
 }
 
 export function CommsPliantEditor({
+  locale,
+  ...props
+}: CommsPliantEditorProps) {
+  const activeLocale = normalizeLocale(locale as string | undefined)
+  return <I18nProvider locale={activeLocale}><Editor {...props} activeLocale={activeLocale} /></I18nProvider>
+}
+
+function Editor({
   document,
   onChange,
   onSave,
@@ -86,13 +87,16 @@ export function CommsPliantEditor({
   aiSuggestion,
   onAiSuggestionAction,
   logoHref,
-}: CommsPliantEditorProps) {
+  activeLocale,
+}: Omit<CommsPliantEditorProps, 'locale'> & { activeLocale: SupportedLocale }) {
+  const t = useTranslation()
   const [isPreview, setIsPreview] = useState(false)
   const [previewRevision, setPreviewRevision] = useState(0)
   const [isBackgroundSettingsOpen, setIsBackgroundSettingsOpen] = useState(false)
   const [rightSidebarMode, setRightSidebarMode] = useState<'properties' | 'assistant'>('properties')
   const [aiContext, setAiContext] = useState<AiAssistantContext>('document')
   const [selectedText, setSelectedText] = useState<string>()
+  const [showMarginGuides, setShowMarginGuides] = useState(true)
   const [pagedPages, setPagedPages] = useState<PageDescriptor[]>([])
   const [selectedPageId, setSelectedPageId] = useState<string>()
   const pageSettingsChannel = useRef(`tili-toli-page-settings-${Math.random().toString(36).slice(2)}`)
@@ -114,8 +118,17 @@ export function CommsPliantEditor({
   }, [])
   const handlePageSelect = useCallback((pageId: string) => {
     setSelectedPageId(pageId)
+    const frame = globalThis.document.querySelector<HTMLIFrameElement>('.document-editor iframe')
+    frame?.contentWindow?.postMessage(
+      {
+        type: 'tili-toli-page-settings',
+        channel: pageSettingsChannel.current,
+        action: 'select',
+        pageId,
+      },
+      '*',
+    )
     requestAnimationFrame(() => {
-      const frame = globalThis.document.querySelector<HTMLIFrameElement>('.document-editor iframe')
       frame?.contentDocument?.querySelector<HTMLElement>(`[data-document-page-id="${pageId}"]`)
         ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     })
@@ -167,16 +180,23 @@ export function CommsPliantEditor({
   const documentViewports = useMemo<Viewports>(
     () =>
       document.layout.mode === 'paged'
-        ? pagedDocumentViewports
+        ? [
+            {
+              width: Math.round(A4_WIDTH_PX + DOCUMENT_VIEWPORT_GUTTER_PX),
+              height: 'auto',
+              icon: 'Monitor',
+              label: t('documentPage'),
+            },
+          ]
         : [
             {
               width: document.layout.maxWidth.value + DOCUMENT_VIEWPORT_GUTTER_PX,
               height: 'auto',
               icon: 'Monitor',
-              label: 'Fluid document',
+              label: t('fluidDocument'),
             },
           ],
-    [document.layout],
+    [document.layout, t],
   )
   const currentData = useRef<DocumentData>(document.data)
   const documentRef = useRef(document)
@@ -209,6 +229,8 @@ export function CommsPliantEditor({
         handlePageSelect,
         handlePagesChange,
         pageSettingsChannel.current,
+        showMarginGuides,
+        t,
       ),
     [
       document.layout,
@@ -216,9 +238,11 @@ export function CommsPliantEditor({
       previewValues,
       validVariableDefinitions,
       handleRichTextAiRequest,
+      showMarginGuides,
       selectedPageId,
       handlePageSelect,
       handlePagesChange,
+      t,
     ],
   )
 
@@ -317,13 +341,13 @@ export function CommsPliantEditor({
 
   const puckOverrides = useMemo<Partial<Overrides<Config<EditorComponents>>>>(
     () => ({
-      drawerItem: ({ name }) => <BlockPickerItem name={name} />,
+      drawerItem: ({ name }) => <BlockPickerItem name={name} t={t} />,
       fields: ({ children, itemSelector }) => (
         <>
           <div
             className="document-editor__sidebar-mode-switch"
             role="tablist"
-            aria-label="Sidebar mode"
+            aria-label={t('sidebarMode')}
           >
             <button
               type="button"
@@ -331,7 +355,7 @@ export function CommsPliantEditor({
               aria-selected={rightSidebarMode === 'properties'}
               onClick={() => setRightSidebarMode('properties')}
             >
-              Properties
+              {t('properties')}
             </button>
             <button
               type="button"
@@ -339,20 +363,21 @@ export function CommsPliantEditor({
               aria-selected={rightSidebarMode === 'assistant'}
               onClick={() => setRightSidebarMode('assistant')}
             >
-              ✨ AI Assistant
+              ✨ {t('aiAssistant')}
             </button>
           </div>
           {rightSidebarMode === 'properties' ? (
             children
           ) : (
-            <AiAssistantPanel
+              <AiAssistantPanel
               context={aiContext}
               onContextChange={setAiContext}
               selectedText={selectedText}
               blockContext={itemSelector ?? undefined}
               suggestion={aiSuggestion}
               onRequest={onAiRequest}
-              onSuggestionAction={onAiSuggestionAction}
+                onSuggestionAction={onAiSuggestionAction}
+                t={t}
             />
           )}
         </>
@@ -363,18 +388,18 @@ export function CommsPliantEditor({
         return (
           <div className="document-editor__header-actions">
             {previewValues !== undefined && (
-              <div className="document-editor__preview-toggle" aria-label="Variable presentation">
+              <div className="document-editor__preview-toggle" aria-label={t('variablePresentation')}>
                 <button type="button" aria-pressed={!isPreview} onClick={() => togglePreview(false)}>
-                  Author
+                  {t('author')}
                 </button>
                 <button type="button" aria-pressed={isPreview} onClick={() => togglePreview(true)}>
-                  Preview
+                  {t('preview')}
                 </button>
               </div>
             )}
             <div className="document-editor__layout-controls">
               <div className="document-editor__layout-switch" ref={setLayoutSwitchRef}>
-                <span id="document-layout-label">Layout:</span>
+                <span id="document-layout-label">{t('layout')}</span>
                 <div
                   className="document-editor__layout-segmented-control"
                   role="radiogroup"
@@ -390,7 +415,7 @@ export function CommsPliantEditor({
                     onKeyDown={handleLayoutKeyDown}
                     disabled={isPreview}
                   >
-                    Paged / A4
+                    {t('pagedA4')}
                   </button>
                   <button
                     type="button"
@@ -402,7 +427,7 @@ export function CommsPliantEditor({
                     onKeyDown={handleLayoutKeyDown}
                     disabled={isPreview}
                   >
-                    Fluid
+                    {t('fluid')}
                   </button>
                 </div>
               </div>
@@ -410,11 +435,14 @@ export function CommsPliantEditor({
                 <LayoutSettings
                   layout={currentDocument.layout}
                   onChange={updateLayout}
+                  showMarginGuides={showMarginGuides}
+                  onShowMarginGuidesChange={setShowMarginGuides}
                   pages={pagedPages}
                   selectedPageId={selectedPageId}
                   onPageSelect={handlePageSelect}
                   pageSettingsChannel={pageSettingsChannel.current}
                   disabled={isPreview}
+                  t={t}
                 />
                 <BackgroundSettings
                   image={currentDocument.backgroundImage}
@@ -438,6 +466,7 @@ export function CommsPliantEditor({
                       backgroundColour,
                     })
                   }}
+                  t={t}
                 />
               </div>
             </div>
@@ -457,6 +486,8 @@ export function CommsPliantEditor({
       previewValues,
       rightSidebarMode,
       selectedText,
+      showMarginGuides,
+      t,
     ],
   )
 
@@ -464,34 +495,35 @@ export function CommsPliantEditor({
     () => [
       {
         name: 'pages',
-        label: 'Pages',
+        label: t('pages'),
         icon: '▤',
         render: () => (
           <PageNavigator
             pages={document.layout.mode === 'paged' ? pagedPages : []}
             selectedPageId={selectedPageId}
             onPageSelect={handlePageSelect}
+            t={t}
           />
         ),
       },
     ],
-    [document.layout.mode, handlePageSelect, pagedPages, selectedPageId],
+    [document.layout.mode, handlePageSelect, pagedPages, selectedPageId, t],
   )
 
   return (
-    <div className="document-editor" ref={workspaceRef}>
+    <div className="document-editor" ref={workspaceRef} lang={activeLocale}>
       {logoHref ? (
         <a
           className="document-editor__corner-logo-slot"
           href={logoHref}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Visit CommsPliant"
+          aria-label={t('visitCommsPliant')}
         >
           <img
             className="document-editor__corner-logo"
             src={tiliToliEditorLogo}
-            alt="Tili Toli Editor"
+            alt={t('editorLogo')}
           />
         </a>
       ) : (
@@ -499,7 +531,7 @@ export function CommsPliantEditor({
           <img
             className="document-editor__corner-logo"
             src={tiliToliEditorLogo}
-            alt="Tili Toli Editor"
+            alt={t('editorLogo')}
           />
         </div>
       )}
@@ -508,7 +540,7 @@ export function CommsPliantEditor({
           key={`${document.id}-${document.layout.mode}-${previewRevision}`}
           config={config}
           data={currentData.current}
-          dictionary={{ 'header-publish': 'Save draft' }}
+          dictionary={createPuckDictionary(t)}
           height={height}
           viewports={documentViewports}
           plugins={plugins}

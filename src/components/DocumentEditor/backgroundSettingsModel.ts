@@ -12,12 +12,12 @@ export const BACKGROUND_COLOUR_PRESETS: ReadonlyArray<{
   label: string
   value: DocumentBackgroundColour
 }> = [
-  { label: 'White', value: '#ffffff' },
-  { label: 'Warm white', value: '#f7f4ed' },
-  { label: 'Light blue', value: '#eaf0f4' },
-  { label: 'Light grey', value: '#eef2f5' },
-  { label: 'Soft cream', value: '#fff7ed' },
-  { label: 'Soft green', value: '#f0fdf4' },
+  { label: 'white', value: '#ffffff' },
+  { label: 'warmWhite', value: '#f7f4ed' },
+  { label: 'lightBlue', value: '#eaf0f4' },
+  { label: 'lightGrey', value: '#eef2f5' },
+  { label: 'softCream', value: '#fff7ed' },
+  { label: 'softGreen', value: '#f0fdf4' },
 ]
 
 export function parseBackgroundOpacity(rawValue: string): number | undefined {

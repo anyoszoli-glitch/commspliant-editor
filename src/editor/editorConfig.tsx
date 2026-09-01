@@ -26,6 +26,7 @@ import type {
 import { VariableNode } from './VariableNode'
 import { typographyExtensions } from './TypographyExtensions'
 import type { VariableDefinition, VariablePreviewValues } from './variables'
+import { createTranslator, type Translate } from '../i18n'
 
 export function createConstrainedRichTextField(
   variableDefinitions: readonly VariableDefinition[] = [],
@@ -34,6 +35,7 @@ export function createConstrainedRichTextField(
   onRequestAi?: (selectedText: string) => void,
   textStyleOptions: readonly RichTextStyleOption[] = defaultRichTextStyleOptions,
   formatWholeBlockOnEmptySelection = false,
+  t: Translate = createTranslator(),
 ) {
   const headingLevels = textStyleOptions.flatMap(({ value }) =>
     value === 'p' ? [] : [Number(value.slice(1)) as 1 | 2 | 3 | 4 | 5 | 6],
@@ -54,10 +56,10 @@ export function createConstrainedRichTextField(
     tiptap: {
       extensions: [
         ...typographyExtensions,
-        VariableNode.configure({ variableDefinitions, previewEnabled, previewValues }),
+        VariableNode.configure({ variableDefinitions, previewEnabled, previewValues, t }),
       ],
     },
-    renderMenu: (props: Parameters<typeof RichTextToolbar>[0]) => (
+    renderMenu: (props: { children: ReactNode; editor: Parameters<typeof RichTextToolbar>[0]['editor']; editorState: Parameters<typeof RichTextToolbar>[0]['editorState']; readOnly: boolean }) => (
       <RichTextToolbar
         {...props}
         variableDefinitions={variableDefinitions}
@@ -65,9 +67,10 @@ export function createConstrainedRichTextField(
         formatWholeBlockOnEmptySelection={formatWholeBlockOnEmptySelection}
         readOnly={props.readOnly || previewEnabled}
         onRequestAi={onRequestAi}
+        t={t}
       />
     ),
-    renderInlineMenu: (props: Parameters<typeof RichTextToolbar>[0]) => (
+    renderInlineMenu: (props: { children: ReactNode; editor: Parameters<typeof RichTextToolbar>[0]['editor']; editorState: Parameters<typeof RichTextToolbar>[0]['editorState']; readOnly: boolean }) => (
       <RichTextToolbar
         {...props}
         inline
@@ -76,6 +79,7 @@ export function createConstrainedRichTextField(
         formatWholeBlockOnEmptySelection={formatWholeBlockOnEmptySelection}
         readOnly={props.readOnly || previewEnabled}
         onRequestAi={onRequestAi}
+        t={t}
       />
     ),
   } satisfies RichtextField
@@ -123,6 +127,7 @@ function EditorDocumentCanvas({
   layout,
   fallbackBackgroundImage,
   isEditorCanvas,
+  showMarginGuides,
   selectedPageId,
   onPageSelect,
   onPagesChange,
@@ -132,6 +137,7 @@ function EditorDocumentCanvas({
   layout: DocumentLayout
   fallbackBackgroundImage?: DocumentBackgroundImage
   isEditorCanvas: boolean
+  showMarginGuides: boolean
   selectedPageId?: string
   onPageSelect?: (pageId: string) => void
   onPagesChange?: (pages: PageDescriptor[]) => void
@@ -148,6 +154,7 @@ function EditorDocumentCanvas({
       backgroundColour={appearance?.backgroundColour}
       isEditorCanvas={isEditorCanvas}
       showEditorPageIndicators={isEditorCanvas}
+      showMarginGuides={showMarginGuides}
       selectedPageId={selectedPageId}
       onPageSelect={onPageSelect}
       onPagesChange={onPagesChange}
@@ -169,20 +176,26 @@ export function createEditorConfig(
   onPageSelect?: (pageId: string) => void,
   onPagesChange?: (pages: PageDescriptor[]) => void,
   pageSettingsChannel?: string,
+  showMarginGuides = true,
+  t: Translate = createTranslator(),
 ): Config<EditorComponents> {
   const constrainedRichTextField = createConstrainedRichTextField(
     variableDefinitions,
     previewEnabled,
     previewValues,
     onRequestAi,
+    defaultRichTextStyleOptions.map((option) => ({ ...option, label: option.value === 'p' ? t('paragraph') : option.value === 'h2' ? t('heading2') : t('heading3') })),
+    false,
+    t,
   )
   const headingRichTextField = createConstrainedRichTextField(
     variableDefinitions,
     previewEnabled,
     previewValues,
     onRequestAi,
-    headingTextStyleOptions,
+    headingTextStyleOptions.map((option) => ({ ...option, label: t(`heading${option.value.slice(1)}` as Parameters<Translate>[0]) })),
     true,
+    t,
   )
   return {
     root: {
@@ -196,6 +209,7 @@ export function createEditorConfig(
             layout={layout}
             fallbackBackgroundImage={backgroundImage}
             isEditorCanvas={isEditorCanvas}
+            showMarginGuides={showMarginGuides}
             selectedPageId={selectedPageId}
             onPageSelect={onPageSelect}
             onPagesChange={onPagesChange}
@@ -209,8 +223,8 @@ export function createEditorConfig(
                   <span className="document-editor__empty-drop-helper-arrow">→</span>
                   <span className="document-editor__empty-drop-helper-arrow">↓</span>
                 </span>
-                <strong>Start your page</strong>
-                <span>Drag a block from the left and drop it here</span>
+                <strong>{t('startPage')}</strong>
+                <span>{t('dragBlock')}</span>
               </div>
             </div>
           </EditorDocumentCanvas>
@@ -219,7 +233,7 @@ export function createEditorConfig(
     },
     components: {
       HeadingBlock: {
-        label: 'Heading',
+        label: t('heading'),
         fields: { text: { ...headingRichTextField } },
         defaultProps: { text: defaultHeadingValue },
         render: ({ id, text }) => (
@@ -229,7 +243,7 @@ export function createEditorConfig(
         ),
       },
       TextBlock: {
-        label: 'Text',
+        label: t('text'),
         fields: {
           text: {
             ...constrainedRichTextField,
@@ -245,7 +259,7 @@ export function createEditorConfig(
         ),
       },
       NoticeBlock: {
-        label: 'Important notice',
+        label: t('importantNotice'),
         fields: {
           heading: { type: 'text', contentEditable: true },
           text: { ...constrainedRichTextField },
@@ -269,7 +283,7 @@ export function createEditorConfig(
         ),
       },
       PageBreakBlock: {
-        label: 'Page break',
+        label: t('pageBreak'),
         defaultProps: {},
         render: ({ id }) => (
           <LayoutBlock id={id} breakAfter>
@@ -278,12 +292,12 @@ export function createEditorConfig(
         ),
       },
       TableBlock: {
-        label: 'Table',
+        label: t('table'),
         fields: {
           table: {
             type: 'custom',
             render: ({ value, onChange, readOnly }) => (
-              <TableEditorField value={value} onChange={onChange} readOnly={readOnly} />
+              <TableEditorField value={value} onChange={onChange} readOnly={readOnly} t={t} />
             ),
           },
         },
@@ -295,7 +309,7 @@ export function createEditorConfig(
         ),
       },
       DividerBlock: {
-        label: 'Divider',
+        label: t('divider'),
         defaultProps: {},
         render: ({ id }) => (
           <LayoutBlock id={id}>
@@ -304,14 +318,14 @@ export function createEditorConfig(
         ),
       },
       SpacerBlock: {
-        label: 'Spacer',
+        label: t('spacer'),
         fields: {
           size: {
             type: 'select',
             options: [
-              { label: 'Small', value: 'small' },
-              { label: 'Medium', value: 'medium' },
-              { label: 'Large', value: 'large' },
+              { label: t('small'), value: 'small' },
+              { label: t('medium'), value: 'medium' },
+              { label: t('large'), value: 'large' },
             ],
           },
         },
