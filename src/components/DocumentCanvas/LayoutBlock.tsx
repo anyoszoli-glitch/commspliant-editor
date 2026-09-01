@@ -8,8 +8,9 @@ type LayoutBlockProps = {
 }
 
 export function LayoutBlock({ id, children, breakAfter = false }: LayoutBlockProps) {
-  const { mode, placements } = useContext(LayoutContext)
+  const { mode, placements, pageMargins } = useContext(LayoutContext)
   const placement = placements[id]
+  const margins = placement ? pageMargins[placement.page] : undefined
 
   return (
     <div
@@ -19,6 +20,11 @@ export function LayoutBlock({ id, children, breakAfter = false }: LayoutBlockPro
       style={{
         display: 'flow-root',
         marginTop: mode === 'paged' && placement ? placement.offsetBefore : undefined,
+        marginLeft: mode === 'paged' && margins ? `${margins.left}${margins.unit}` : undefined,
+        width:
+          mode === 'paged' && margins
+            ? `${210 - margins.left - margins.right}${margins.unit}`
+            : undefined,
       }}
     >
       {children}

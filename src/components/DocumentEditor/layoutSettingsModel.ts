@@ -6,8 +6,8 @@ import {
   type PageNumbering,
 } from '../../document/document'
 
-export const PAGED_MARGIN_MIN = 10
-export const PAGED_MARGIN_MAX = 40
+export const PAGED_MARGIN_MIN = 0
+export const PAGED_MARGIN_MAX = 100
 export const FLUID_WIDTH_MIN = 480
 export const FLUID_WIDTH_MAX = 960
 
@@ -43,6 +43,52 @@ export function updatePagedMargin(
   value: number,
 ): PagedDocumentLayout {
   return { ...layout, margins: { ...layout.margins, [margin]: value } }
+}
+
+export function enablePageMarginOverride(
+  layout: PagedDocumentLayout,
+  pageId: string,
+): PagedDocumentLayout {
+  if (layout.pageSettings?.[pageId]) return layout
+
+  return {
+    ...layout,
+    pageSettings: {
+      ...layout.pageSettings,
+      [pageId]: { margins: { ...layout.margins } },
+    },
+  }
+}
+
+export function updatePageMargin(
+  layout: PagedDocumentLayout,
+  pageId: string,
+  margin: PagedMargin,
+  value: number,
+): PagedDocumentLayout {
+  const updatedLayout = enablePageMarginOverride(layout, pageId)
+  const currentMargins = updatedLayout.pageSettings?.[pageId]?.margins ?? updatedLayout.margins
+
+  return {
+    ...updatedLayout,
+    pageSettings: {
+      ...updatedLayout.pageSettings,
+      [pageId]: { margins: { ...currentMargins, [margin]: value } },
+    },
+  }
+}
+
+export function resetPageMarginOverride(
+  layout: PagedDocumentLayout,
+  pageId: string,
+): PagedDocumentLayout {
+  if (!layout.pageSettings?.[pageId]) return layout
+
+  const { [pageId]: _removed, ...pageSettings } = layout.pageSettings
+  return {
+    ...layout,
+    ...(Object.keys(pageSettings).length > 0 ? { pageSettings } : { pageSettings: undefined }),
+  }
 }
 
 export function updatePageNumbering(

@@ -94,6 +94,10 @@ export type PageMargins = {
   unit: 'mm'
 }
 
+export type PageSettings = {
+  margins: PageMargins
+}
+
 export type PageNumbering =
   | 'none'
   | 'page-number'
@@ -134,6 +138,11 @@ export type PagedDocumentLayout = {
   mode: 'paged'
   pageSize: 'A4'
   margins: PageMargins
+  /**
+   * Optional margin overrides keyed by stable rendered-page anchors. Pages without an
+   * entry inherit the document-level margins above.
+   */
+  pageSettings?: Record<string, PageSettings>
   pageNumbering?: PageNumbering
 }
 
@@ -190,6 +199,26 @@ export const defaultFluidLayout: FluidDocumentLayout = {
   padding: { top: 32, right: 32, bottom: 32, left: 32, unit: 'px' },
 }
 
+function clonePageSettings(
+  pageSettings: PagedDocumentLayout['pageSettings'],
+): PagedDocumentLayout['pageSettings'] {
+  if (!pageSettings) return undefined
+
+  return Object.fromEntries(
+    Object.entries(pageSettings).map(([pageId, settings]) => [
+      pageId,
+      { ...settings, margins: { ...settings.margins } },
+    ]),
+  )
+}
+
+export function getEffectivePageMargins(
+  layout: PagedDocumentLayout,
+  pageId: string,
+): PageMargins {
+  return layout.pageSettings?.[pageId]?.margins ?? layout.margins
+}
+
 export function createDocument(
   id = 'current-document',
   layout: DocumentLayout = defaultPagedLayout,
@@ -209,7 +238,11 @@ export function createDocument(
     data: { content: [], root: {} },
     layout:
       layout.mode === 'paged'
-        ? { ...layout, margins: { ...layout.margins } }
+        ? {
+            ...layout,
+            margins: { ...layout.margins },
+            pageSettings: clonePageSettings(layout.pageSettings),
+          }
         : {
             ...layout,
             maxWidth: { ...layout.maxWidth },
@@ -228,7 +261,11 @@ export function changeDocumentLayout(
     ...document,
     layout:
       mode === 'paged'
-        ? { ...pagedLayout, margins: { ...pagedLayout.margins } }
+        ? {
+            ...pagedLayout,
+            margins: { ...pagedLayout.margins },
+            pageSettings: clonePageSettings(pagedLayout.pageSettings),
+          }
         : {
             ...fluidLayout,
             maxWidth: { ...fluidLayout.maxWidth },
@@ -291,7 +328,20 @@ export function isLetterDocument(value: unknown): value is LetterDocument {
       typeof layout.margins?.top === 'number' &&
       typeof layout.margins?.right === 'number' &&
       typeof layout.margins?.bottom === 'number' &&
-      typeof layout.margins?.left === 'number')
+      typeof layout.margins?.left === 'number' &&
+      (layout.pageSettings === undefined ||
+        (typeof layout.pageSettings === 'object' &&
+          layout.pageSettings !== null &&
+          Object.values(layout.pageSettings).every(
+            (settings) =>
+              !!settings &&
+              typeof settings === 'object' &&
+              (settings as PageSettings).margins?.unit === 'mm' &&
+              typeof (settings as PageSettings).margins?.top === 'number' &&
+              typeof (settings as PageSettings).margins?.right === 'number' &&
+              typeof (settings as PageSettings).margins?.bottom === 'number' &&
+              typeof (settings as PageSettings).margins?.left === 'number',
+          ))))
 
   const validBackgroundColour =
     document.backgroundColour === undefined ||

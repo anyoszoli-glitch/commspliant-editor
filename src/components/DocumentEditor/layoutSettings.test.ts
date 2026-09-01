@@ -13,8 +13,11 @@ import {
   PAGE_NUMBERING_OPTIONS,
   parseLayoutInteger,
   resetFluidContentWidth,
+  resetPageMarginOverride,
   resetPagedSettings,
+  enablePageMarginOverride,
   updateFluidContentWidth,
+  updatePageMargin,
   updatePagedMargin,
   updatePageNumbering,
 } from './layoutSettingsModel'
@@ -24,7 +27,7 @@ describe('layout settings', () => {
     expect(parseLayoutInteger(String(value), PAGED_MARGIN_MIN, PAGED_MARGIN_MAX)).toBe(value)
   })
 
-  it.each(['9', '41', '20.5', 'twenty'])('rejects invalid paged margins: %s', (value) => {
+  it.each(['101', '20.5', 'twenty'])('rejects invalid paged margins: %s', (value) => {
     expect(parseLayoutInteger(value, PAGED_MARGIN_MIN, PAGED_MARGIN_MAX)).toBeUndefined()
   })
 
@@ -60,6 +63,20 @@ describe('layout settings', () => {
     expect(updatePageNumbering(defaultPagedLayout, 'page-number-of-total')).toMatchObject({
       pageNumbering: 'page-number-of-total',
       margins: defaultPagedLayout.margins,
+    })
+  })
+
+  it('adds, updates, and removes only the selected page margin override', () => {
+    const pageOne = enablePageMarginOverride(defaultPagedLayout, 'page-root')
+    const pageTwo = updatePageMargin(pageOne, 'page-after-break-1', 'top', 45)
+    const adjustedPageOne = updatePageMargin(pageTwo, 'page-root', 'left', 0)
+
+    expect(adjustedPageOne.pageSettings).toEqual({
+      'page-root': { margins: { top: 20, right: 20, bottom: 20, left: 0, unit: 'mm' } },
+      'page-after-break-1': { margins: { top: 45, right: 20, bottom: 20, left: 20, unit: 'mm' } },
+    })
+    expect(resetPageMarginOverride(adjustedPageOne, 'page-after-break-1').pageSettings).toEqual({
+      'page-root': { margins: { top: 20, right: 20, bottom: 20, left: 0, unit: 'mm' } },
     })
   })
 

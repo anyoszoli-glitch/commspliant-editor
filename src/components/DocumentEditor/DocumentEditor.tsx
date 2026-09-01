@@ -18,6 +18,7 @@ import { createEditorConfig, DocumentAppearanceContext } from '../../editor/edit
 import { BlockPickerItem } from './BlockPickerItem'
 import { LayoutSettings } from './LayoutSettings'
 import { BackgroundSettings } from './BackgroundSettings'
+import type { PageDescriptor } from '../DocumentCanvas/pagination'
 import { AiAssistantPanel } from './AiAssistantPanel'
 import tiliToliEditorLogo from '../../assets/TiliToliEditorLogo.webp'
 import type {
@@ -90,6 +91,9 @@ export function CommsPliantEditor({
   const [rightSidebarMode, setRightSidebarMode] = useState<'properties' | 'assistant'>('properties')
   const [aiContext, setAiContext] = useState<AiAssistantContext>('document')
   const [selectedText, setSelectedText] = useState<string>()
+  const [pagedPages, setPagedPages] = useState<PageDescriptor[]>([])
+  const [selectedPageId, setSelectedPageId] = useState<string>()
+  const pageSettingsChannel = useRef(`tili-toli-page-settings-${Math.random().toString(36).slice(2)}`)
   const previousPreviewValues = useRef(previewValues)
   const layoutSwitchRef = useRef<HTMLDivElement>(null)
   const layoutFocusMode = useRef<DocumentLayout['mode'] | undefined>(undefined)
@@ -98,6 +102,61 @@ export function CommsPliantEditor({
     setAiContext('selection')
     setRightSidebarMode('assistant')
   }, [])
+  const handlePagesChange = useCallback((pages: PageDescriptor[]) => {
+    setPagedPages((current) =>
+      current.length === pages.length && current.every((page, index) => page.id === pages[index]?.id)
+        ? current
+        : pages,
+    )
+  }, [])
+  const handlePageSelect = useCallback((pageId: string) => {
+    setSelectedPageId(pageId)
+    requestAnimationFrame(() => {
+      const frame = globalThis.document.querySelector<HTMLIFrameElement>('.document-editor iframe')
+      frame?.contentDocument?.querySelector<HTMLElement>(`[data-document-page-id="${pageId}"]`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [])
+  useEffect(() => {
+    const handlePageSettingsMessage = (event: MessageEvent<unknown>) => {
+      const message = event.data
+      if (!message || typeof message !== 'object') return
+
+      const pageMessage = message as {
+        type?: unknown
+        channel?: unknown
+        action?: unknown
+        pageId?: unknown
+        pages?: unknown
+      }
+      if (
+        pageMessage.type !== 'tili-toli-page-settings' ||
+        pageMessage.channel !== pageSettingsChannel.current
+      ) {
+        return
+      }
+
+      if (pageMessage.action === 'select' && typeof pageMessage.pageId === 'string') {
+        handlePageSelect(pageMessage.pageId)
+      }
+      if (
+        pageMessage.action === 'pages' &&
+        Array.isArray(pageMessage.pages) &&
+        pageMessage.pages.every(
+          (page): page is PageDescriptor =>
+            !!page &&
+            typeof page === 'object' &&
+            typeof page.id === 'string' &&
+            typeof page.number === 'number',
+        )
+      ) {
+        handlePagesChange(pageMessage.pages)
+      }
+    }
+
+    window.addEventListener('message', handlePageSettingsMessage)
+    return () => window.removeEventListener('message', handlePageSettingsMessage)
+  }, [handlePageSelect, handlePagesChange])
   const validVariableDefinitions = useMemo(
     () => normalizeVariableDefinitions(variableDefinitions),
     [variableDefinitions],
@@ -143,6 +202,10 @@ export function CommsPliantEditor({
         isPreview,
         previewValues ?? emptyPreviewValues,
         handleRichTextAiRequest,
+        selectedPageId,
+        handlePageSelect,
+        handlePagesChange,
+        pageSettingsChannel.current,
       ),
     [
       document.layout,
@@ -150,6 +213,9 @@ export function CommsPliantEditor({
       previewValues,
       validVariableDefinitions,
       handleRichTextAiRequest,
+      selectedPageId,
+      handlePageSelect,
+      handlePagesChange,
     ],
   )
 
@@ -158,6 +224,13 @@ export function CommsPliantEditor({
     if (document.layout.mode === 'paged') lastPagedLayout.current = document.layout
     if (document.layout.mode === 'fluid') lastFluidLayout.current = document.layout
   }, [document])
+
+  useEffect(() => {
+    if (pagedPages.length === 0) return
+    if (selectedPageId && pagedPages.some((page) => page.id === selectedPageId)) return
+
+    setSelectedPageId(pagedPages[0].id)
+  }, [pagedPages, selectedPageId])
 
   useEffect(() => {
     const previewValuesChanged = previousPreviewValues.current !== previewValues
@@ -334,6 +407,10 @@ export function CommsPliantEditor({
                 <LayoutSettings
                   layout={currentDocument.layout}
                   onChange={updateLayout}
+                  pages={pagedPages}
+                  selectedPageId={selectedPageId}
+                  onPageSelect={handlePageSelect}
+                  pageSettingsChannel={pageSettingsChannel.current}
                   disabled={isPreview}
                 />
                 <BackgroundSettings

@@ -9,6 +9,7 @@ import {
 import {
   defaultPagedLayout,
   formatPageNumber,
+  getEffectivePageMargins,
   type DocumentBackgroundColour,
   type DocumentBackgroundImage,
   type DocumentLayout,
@@ -16,7 +17,7 @@ import {
   type PagedDocumentLayout,
 } from '../../document/document'
 import { LayoutContext } from './layoutContext'
-import { paginateBlocks, type PaginationResult } from './pagination'
+import { paginateBlocks, type PageDescriptor, type PaginationResult } from './pagination'
 
 const A4_WIDTH_MM = 210
 const A4_HEIGHT_MM = 297
@@ -30,10 +31,18 @@ type DocumentCanvasProps = {
   backgroundColour?: DocumentBackgroundColour
   isEditorCanvas?: boolean
   showEditorPageIndicators?: boolean
+  selectedPageId?: string
+  onPageSelect?: (pageId: string) => void
+  onPagesChange?: (pages: PageDescriptor[]) => void
+  pageSettingsChannel?: string
   style?: CSSProperties
 }
 
-const emptyPagination: PaginationResult = { pageCount: 1, placements: {} }
+const emptyPagination: PaginationResult = {
+  pageCount: 1,
+  pages: [{ id: 'page-root', number: 1 }],
+  placements: {},
+}
 
 function BackgroundLayer({ image }: { image?: DocumentBackgroundImage }) {
   if (!image?.src) return null
@@ -60,6 +69,17 @@ function BackgroundLayer({ image }: { image?: DocumentBackgroundImage }) {
   )
 }
 
+function postPageSettingsMessage(
+  source: Element | null,
+  channel: string | undefined,
+  payload: Record<string, unknown>,
+) {
+  const sourceWindow = source?.ownerDocument.defaultView
+  if (!channel || !sourceWindow || sourceWindow.parent === sourceWindow) return
+
+  sourceWindow.parent.postMessage({ type: 'tili-toli-page-settings', channel, ...payload }, '*')
+}
+
 function PagedCanvas({
   children,
   layout,
@@ -67,6 +87,10 @@ function PagedCanvas({
   backgroundColour,
   isEditorCanvas,
   showEditorPageIndicators,
+  selectedPageId,
+  onPageSelect,
+  onPagesChange,
+  pageSettingsChannel,
   style,
 }: {
   children?: ReactNode
@@ -75,11 +99,17 @@ function PagedCanvas({
   backgroundColour?: DocumentBackgroundColour
   isEditorCanvas: boolean
   showEditorPageIndicators: boolean
+  selectedPageId?: string
+  onPageSelect?: (pageId: string) => void
+  onPagesChange?: (pages: PageDescriptor[]) => void
+  pageSettingsChannel?: string
   style?: CSSProperties
 }) {
   const contentRef = useRef<HTMLDivElement>(null)
   const [pagination, setPagination] = useState(emptyPagination)
-  const { margins } = layout
+  const pageMargins = Object.fromEntries(
+    pagination.pages.map((page) => [page.number, getEffectivePageMargins(layout, page.id)]),
+  )
 
   const measure = useCallback(() => {
     const content = contentRef.current
@@ -94,15 +124,22 @@ function PagedCanvas({
     )
     const nextPagination = paginateBlocks(blocks, {
       pageHeight: A4_HEIGHT_MM * MM_TO_PX,
-      marginTop: margins.top * MM_TO_PX,
-      marginBottom: margins.bottom * MM_TO_PX,
+      marginTop: layout.margins.top * MM_TO_PX,
+      marginBottom: layout.margins.bottom * MM_TO_PX,
       pageGap: PAGE_GAP_PX,
+      getPageMargins: (pageId) => {
+        const margins = getEffectivePageMargins(layout, pageId)
+        return {
+          top: margins.top * MM_TO_PX,
+          bottom: margins.bottom * MM_TO_PX,
+        }
+      },
     })
 
     setPagination((current) =>
       JSON.stringify(current) === JSON.stringify(nextPagination) ? current : nextPagination,
     )
-  }, [margins.bottom, margins.top])
+  }, [layout])
 
   useLayoutEffect(() => {
     const content = contentRef.current
@@ -124,6 +161,12 @@ function PagedCanvas({
     }
   }, [children, measure])
 
+  useLayoutEffect(() => {
+    onPagesChange?.(pagination.pages)
+    postPageSettingsMessage(contentRef.current, pageSettingsChannel, { action: 'pages', pages: pagination.pages })
+  }, [onPagesChange, pageSettingsChannel, pagination.pages])
+
+
   const totalHeight = `calc(${pagination.pageCount * A4_HEIGHT_MM}mm + ${(pagination.pageCount - 1) * PAGE_GAP_PX}px)`
 
   return (
@@ -141,11 +184,12 @@ function PagedCanvas({
       {isEditorCanvas && (
         <style media="print">{'[data-editor-page-indicator] { display: none !important; }'}</style>
       )}
-      {Array.from({ length: pagination.pageCount }, (_, index) => (
+      {pagination.pages.map((page, index) => (
         <section
-          aria-label={`Page ${index + 1}`}
-          data-document-page={index + 1}
-          key={index}
+          aria-label={`Page ${page.number}`}
+          data-document-page={page.number}
+          data-document-page-id={page.id}
+          key={page.id}
           style={{
             position: 'absolute',
             top: `calc(${index * A4_HEIGHT_MM}mm + ${index * PAGE_GAP_PX}px)`,
@@ -158,10 +202,10 @@ function PagedCanvas({
           }}
         >
           <BackgroundLayer image={backgroundImage} />
-          {formatPageNumber(layout.pageNumbering, index + 1, pagination.pageCount) && (
+          {formatPageNumber(layout.pageNumbering, page.number, pagination.pageCount) && (
             <span
               data-document-page-number
-              aria-label={`Page number ${index + 1}`}
+              aria-label={`Page number ${page.number}`}
               style={{
                 position: 'absolute',
                 zIndex: 1,
@@ -174,12 +218,14 @@ function PagedCanvas({
                 whiteSpace: 'nowrap',
               }}
             >
-              {formatPageNumber(layout.pageNumbering, index + 1, pagination.pageCount)}
+              {formatPageNumber(layout.pageNumbering, page.number, pagination.pageCount)}
             </span>
           )}
           {showEditorPageIndicators && (
-            <span
-              aria-hidden="true"
+            <button
+              type="button"
+              aria-label={`Select page ${page.number}`}
+              aria-pressed={selectedPageId === page.id}
               data-editor-page-indicator
               style={{
                 position: 'absolute',
@@ -188,23 +234,31 @@ function PagedCanvas({
                 color: '#71717a',
                 fontSize: 12,
                 lineHeight: 1,
+                border: 0,
+                background: 'transparent',
+                padding: 0,
+                cursor: 'pointer',
+              }}
+              onClick={() => {
+                onPageSelect?.(page.id)
+                postPageSettingsMessage(contentRef.current, pageSettingsChannel, { action: 'select', pageId: page.id })
               }}
             >
-              Page {index + 1}
-            </span>
+              Page {page.number}
+            </button>
           )}
         </section>
       ))}
-      <LayoutContext.Provider value={{ mode: 'paged', placements: pagination.placements }}>
+      <LayoutContext.Provider value={{ mode: 'paged', placements: pagination.placements, pageMargins }}>
         <div
           ref={contentRef}
           data-document-content
           aria-label="Document content"
           style={{
             position: 'absolute',
-            top: `${margins.top}${margins.unit}`,
-            left: `${margins.left}${margins.unit}`,
-            width: `${A4_WIDTH_MM - margins.left - margins.right}${margins.unit}`,
+            top: 0,
+            left: 0,
+            width: `${A4_WIDTH_MM}mm`,
             color: '#08060d',
           }}
         >
@@ -231,7 +285,7 @@ function FluidCanvas({
   const { maxWidth, padding } = layout
 
   return (
-    <LayoutContext.Provider value={{ mode: 'fluid', placements: {} }}>
+    <LayoutContext.Provider value={{ mode: 'fluid', placements: {}, pageMargins: {} }}>
       <div
         data-document-layout="fluid"
         data-document-content
@@ -265,6 +319,10 @@ export function DocumentCanvas({
   backgroundColour,
   isEditorCanvas = false,
   showEditorPageIndicators = false,
+  selectedPageId,
+  onPageSelect,
+  onPagesChange,
+  pageSettingsChannel,
   style,
 }: DocumentCanvasProps) {
   return layout.mode === 'paged' ? (
@@ -274,6 +332,10 @@ export function DocumentCanvas({
       backgroundColour={backgroundColour}
       isEditorCanvas={isEditorCanvas}
       showEditorPageIndicators={showEditorPageIndicators}
+      selectedPageId={selectedPageId}
+      onPageSelect={onPageSelect}
+      onPagesChange={onPagesChange}
+      pageSettingsChannel={pageSettingsChannel}
       style={style}
     >
       {children}

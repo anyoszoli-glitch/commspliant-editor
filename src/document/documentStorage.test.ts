@@ -72,6 +72,26 @@ describe('document storage', () => {
     })
   })
 
+  it('serializes page margin overrides while documents without them retain default margins', () => {
+    const storage = createStorage()
+    const document = createDocument('page-margins-letter')
+    if (document.layout.mode !== 'paged') throw new Error('Expected a paged document')
+    document.layout = {
+      ...document.layout,
+      pageSettings: {
+        'page-root': { margins: { top: 0, right: 0, bottom: 0, left: 0, unit: 'mm' } },
+        'page-after-page-break-1': {
+          margins: { top: 40, right: 25, bottom: 30, left: 25, unit: 'mm' },
+        },
+      },
+    }
+
+    saveDocument(document, storage)
+
+    expect(loadDocument(storage).layout).toEqual(document.layout)
+    expect(loadDocument(createStorage()).layout).toEqual(createDocument().layout)
+  })
+
   it('preserves Puck content when switching layouts', () => {
     const document = createDocument()
     document.data.content.push({

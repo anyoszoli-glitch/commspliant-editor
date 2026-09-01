@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { paginateBlocks } from './pagination'
+import { pageIdAfterBreak, paginateBlocks } from './pagination'
 
 const metrics = {
   pageHeight: 1000,
@@ -82,5 +82,50 @@ describe('paginateBlocks', () => {
     expect(result.pageCount).toBe(2)
     expect(result.placements.break.page).toBe(1)
     expect(result.placements.following.page).toBe(2)
+  })
+
+  it('uses stable page anchors and the matching margins for each generated page', () => {
+    const result = paginateBlocks(
+      [
+        { id: 'heading', height: 100 },
+        { id: 'break', height: 20, breakAfter: true },
+        { id: 'text', height: 200 },
+      ],
+      {
+        ...metrics,
+        getPageMargins: (pageId) =>
+          pageId === pageIdAfterBreak('break')
+            ? { top: 200, bottom: 120 }
+            : { top: 100, bottom: 100 },
+      },
+    )
+
+    expect(result.pages).toEqual([
+      { id: 'page-root', number: 1 },
+      { id: pageIdAfterBreak('break'), number: 2 },
+    ])
+    expect(result.placements.text).toEqual({ page: 2, offsetBefore: 1010 })
+  })
+
+  it('keeps an explicit page boundary identity when another page is inserted before it', () => {
+    const original = paginateBlocks(
+      [
+        { id: 'break-one', height: 20, breakAfter: true },
+        { id: 'page-two-content', height: 100 },
+      ],
+      metrics,
+    )
+    const withInsertedPage = paginateBlocks(
+      [
+        { id: 'break-new', height: 20, breakAfter: true },
+        { id: 'inserted-content', height: 100 },
+        { id: 'break-one', height: 20, breakAfter: true },
+        { id: 'page-two-content', height: 100 },
+      ],
+      metrics,
+    )
+
+    expect(original.pages[1].id).toBe(pageIdAfterBreak('break-one'))
+    expect(withInsertedPage.pages[2].id).toBe(pageIdAfterBreak('break-one'))
   })
 })

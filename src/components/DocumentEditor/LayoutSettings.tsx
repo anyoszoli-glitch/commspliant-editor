@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { DocumentLayout } from '../../document/document'
+import type { PageDescriptor } from '../DocumentCanvas/pagination'
 import {
   FLUID_WIDTH_MAX,
   FLUID_WIDTH_MIN,
@@ -10,8 +11,11 @@ import {
   layoutValidationMessage,
   parseLayoutInteger,
   resetFluidContentWidth,
+  resetPageMarginOverride,
   resetPagedSettings,
+  enablePageMarginOverride,
   updateFluidContentWidth,
+  updatePageMargin,
   updatePagedMargin,
   updatePageNumbering,
   type PagedMargin,
@@ -20,6 +24,10 @@ import {
 type LayoutSettingsProps = {
   layout: DocumentLayout
   onChange: (layout: DocumentLayout) => void
+  pages?: PageDescriptor[]
+  selectedPageId?: string
+  onPageSelect?: (pageId: string) => void
+  pageSettingsChannel?: string
   disabled?: boolean
 }
 
@@ -32,8 +40,18 @@ const pagedMargins: Array<{ key: PagedMargin; label: string }> = [
 
 const PANEL_WIDTH = 220
 
-export function LayoutSettings({ layout, onChange, disabled = false }: LayoutSettingsProps) {
+export function LayoutSettings({
+  layout,
+  onChange,
+  pages = [],
+  selectedPageId,
+  onPageSelect,
+  pageSettingsChannel,
+  disabled = false,
+}: LayoutSettingsProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [reportedPages, setReportedPages] = useState<PageDescriptor[]>(pages)
+  const [reportedSelectedPageId, setReportedSelectedPageId] = useState<string | undefined>(selectedPageId)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [resetVersion, setResetVersion] = useState(0)
   const [position, setPosition] = useState({ top: 0, left: 0 })
@@ -93,6 +111,56 @@ export function LayoutSettings({ layout, onChange, disabled = false }: LayoutSet
     }
   }, [isOpen])
 
+  useEffect(() => {
+    if (pages.length > 0) setReportedPages(pages)
+  }, [pages])
+
+  useEffect(() => {
+    if (selectedPageId !== undefined) setReportedSelectedPageId(selectedPageId)
+  }, [selectedPageId])
+
+  useEffect(() => {
+    if (!pageSettingsChannel) return
+
+    const handlePageSettingsMessage = (event: MessageEvent<unknown>) => {
+      const message = event.data
+      if (!message || typeof message !== 'object') return
+
+      const pageMessage = message as {
+        type?: unknown
+        channel?: unknown
+        action?: unknown
+        pageId?: unknown
+        pages?: unknown
+      }
+      if (
+        pageMessage.type !== 'tili-toli-page-settings' ||
+        pageMessage.channel !== pageSettingsChannel
+      ) {
+        return
+      }
+      if (
+        pageMessage.action === 'pages' &&
+        Array.isArray(pageMessage.pages) &&
+        pageMessage.pages.every(
+          (page): page is PageDescriptor =>
+            !!page &&
+            typeof page === 'object' &&
+            typeof page.id === 'string' &&
+            typeof page.number === 'number',
+        )
+      ) {
+        setReportedPages(pageMessage.pages)
+      }
+      if (pageMessage.action === 'select' && typeof pageMessage.pageId === 'string') {
+        setReportedSelectedPageId(pageMessage.pageId)
+      }
+    }
+
+    window.addEventListener('message', handlePageSettingsMessage)
+    return () => window.removeEventListener('message', handlePageSettingsMessage)
+  }, [pageSettingsChannel])
+
   const updateValue = (
     field: string,
     rawValue: string,
@@ -118,9 +186,20 @@ export function LayoutSettings({ layout, onChange, disabled = false }: LayoutSet
     onChange(layout.mode === 'paged' ? resetPagedSettings(layout) : resetFluidContentWidth(layout))
   }
 
+  const availablePages = reportedPages.length > 0 ? reportedPages : pages
+  const selectedPage =
+    availablePages.find((page) => page.id === reportedSelectedPageId) ?? availablePages[0]
+  const selectedPageSettings =
+    layout.mode === 'paged' && selectedPage ? layout.pageSettings?.[selectedPage.id] : undefined
+
   const togglePanel = () => {
     if (isOpen) setErrors({})
     setIsOpen((open) => !open)
+  }
+
+  const selectPage = (pageId: string) => {
+    setReportedSelectedPageId(pageId)
+    onPageSelect?.(pageId)
   }
 
   const panel = isOpen
@@ -141,6 +220,7 @@ export function LayoutSettings({ layout, onChange, disabled = false }: LayoutSet
         >
           {layout.mode === 'paged' ? (
             <div className="document-editor__layout-settings-fields">
+              <span className="document-editor__layout-section-label">Document default margins</span>
               {pagedMargins.map(({ key, label }) => {
                 const error = errors[key]
                 const inputId = `layout-settings-${key}`
@@ -172,6 +252,80 @@ export function LayoutSettings({ layout, onChange, disabled = false }: LayoutSet
                   </label>
                 )
               })}
+              {selectedPage && (
+                <>
+                  <span className="document-editor__layout-section-label">Page margins</span>
+                  <label className="document-editor__layout-field" htmlFor="layout-settings-page">
+                    <span>Selected page</span>
+                    <select
+                      id="layout-settings-page"
+                      value={selectedPage.id}
+                      disabled={disabled}
+                      onChange={(event) => selectPage(event.currentTarget.value)}
+                    >
+                      {availablePages.map((page) => (
+                        <option key={page.id} value={page.id}>Page {page.number}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <span className="document-editor__layout-page-status">
+                    {selectedPageSettings ? 'Using custom margins for this page.' : 'Using document default margins.'}
+                  </span>
+                  {selectedPageSettings ? (
+                    <>
+                      {pagedMargins.map(({ key, label }) => {
+                        const errorKey = `page-${selectedPage.id}-${key}`
+                        const error = errors[errorKey]
+                        const inputId = `layout-settings-page-${key}`
+                        const errorId = `${inputId}-error`
+                        return (
+                          <label className="document-editor__layout-field" key={key} htmlFor={inputId}>
+                            <span>Page {label.replace(' margin', '')}</span>
+                            <span className="document-editor__layout-input-wrap">
+                              <input
+                                key={`${selectedPage.id}-${selectedPageSettings.margins[key]}-${resetVersion}`}
+                                id={inputId}
+                                type="number"
+                                inputMode="numeric"
+                                min={PAGED_MARGIN_MIN}
+                                max={PAGED_MARGIN_MAX}
+                                step={1}
+                                defaultValue={selectedPageSettings.margins[key]}
+                                aria-invalid={error ? true : undefined}
+                                aria-describedby={error ? errorId : undefined}
+                                onBlur={(event) =>
+                                  updateValue(errorKey, event.currentTarget.value, PAGED_MARGIN_MIN, PAGED_MARGIN_MAX, (value) =>
+                                    onChange(updatePageMargin(layout, selectedPage.id, key, value)),
+                                  )
+                                }
+                              />
+                              <span aria-hidden="true">mm</span>
+                            </span>
+                            {error && <span id={errorId} className="document-editor__layout-error">{error}</span>}
+                          </label>
+                        )
+                      })}
+                      <button
+                        type="button"
+                        className="document-editor__layout-reset"
+                        disabled={disabled}
+                        onClick={() => onChange(resetPageMarginOverride(layout, selectedPage.id))}
+                      >
+                        Reset page to document default
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="document-editor__layout-reset"
+                      disabled={disabled}
+                      onClick={() => onChange(enablePageMarginOverride(layout, selectedPage.id))}
+                    >
+                      Use custom margins for this page
+                    </button>
+                  )}
+                </>
+              )}
               <label className="document-editor__layout-field" htmlFor="layout-settings-page-numbering">
                 <span>Page numbering</span>
                 <select

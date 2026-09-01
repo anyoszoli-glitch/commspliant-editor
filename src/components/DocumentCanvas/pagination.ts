@@ -9,8 +9,14 @@ export type BlockPlacement = {
   offsetBefore: number
 }
 
+export type PageDescriptor = {
+  id: string
+  number: number
+}
+
 export type PaginationResult = {
   pageCount: number
+  pages: PageDescriptor[]
   placements: Record<string, BlockPlacement>
 }
 
@@ -19,39 +25,61 @@ type PaginationMetrics = {
   marginTop: number
   marginBottom: number
   pageGap: number
+  getPageMargins?: (pageId: string) => { top: number; bottom: number }
+}
+
+export const ROOT_PAGE_ID = 'page-root'
+
+export function pageIdAfterBreak(blockId: string): string {
+  return `page-after-${blockId}`
+}
+
+export function pageIdBeforeBlock(blockId: string): string {
+  return `page-before-${blockId}`
 }
 
 export function paginateBlocks(
   blocks: MeasuredBlock[],
   metrics: PaginationMetrics,
 ): PaginationResult {
-  const usableHeight = metrics.pageHeight - metrics.marginTop - metrics.marginBottom
+  const marginsFor = (pageId: string) =>
+    metrics.getPageMargins?.(pageId) ?? {
+      top: metrics.marginTop,
+      bottom: metrics.marginBottom,
+    }
+  const pages: PageDescriptor[] = [{ id: ROOT_PAGE_ID, number: 1 }]
   const placements: Record<string, BlockPlacement> = {}
   let page = 1
+  let pageId = ROOT_PAGE_ID
+  let { top: marginTop, bottom: marginBottom } = marginsFor(pageId)
   let usedHeight = 0
-  let pendingOffset = 0
+  let pageStartOffset = marginTop
 
-  for (const block of blocks) {
-    let offsetBefore = pendingOffset
-    pendingOffset = 0
-
-    if (!block.breakAfter && usedHeight > 0 && block.height > usableHeight - usedHeight) {
-      offsetBefore +=
-        usableHeight - usedHeight + metrics.marginBottom + metrics.pageGap + metrics.marginTop
-      page += 1
-      usedHeight = 0
-    }
-
-    placements[block.id] = { page, offsetBefore }
-    usedHeight += block.height
-
-    if (block.breakAfter) {
-      pendingOffset =
-        usableHeight - usedHeight + metrics.marginBottom + metrics.pageGap + metrics.marginTop
-      page += 1
-      usedHeight = 0
-    }
+  const startPage = (nextPageId: string) => {
+    page += 1
+    pageId = nextPageId
+    const previousMarginTop = marginTop
+    const previousUsedHeight = usedHeight
+    ;({ top: marginTop, bottom: marginBottom } = marginsFor(pageId))
+    pages.push({ id: pageId, number: page })
+    pageStartOffset =
+      metrics.pageHeight + metrics.pageGap + marginTop - previousMarginTop - previousUsedHeight
+    usedHeight = 0
   }
 
-  return { pageCount: page, placements }
+  for (const block of blocks) {
+    const usableHeight = metrics.pageHeight - marginTop - marginBottom
+
+    if (!block.breakAfter && usedHeight > 0 && block.height > usableHeight - usedHeight) {
+      startPage(pageIdBeforeBlock(block.id))
+    }
+
+    placements[block.id] = { page, offsetBefore: pageStartOffset }
+    pageStartOffset = 0
+    usedHeight += block.height
+
+    if (block.breakAfter) startPage(pageIdAfterBreak(block.id))
+  }
+
+  return { pageCount: pages.length, pages, placements }
 }

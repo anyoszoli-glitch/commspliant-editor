@@ -27,6 +27,7 @@ export {
   type FluidDocumentLayout,
   type LetterDocument,
   type PageMargins,
+  type PageSettings,
   type PageNumbering,
   type PagedDocumentLayout,
   type RichTextDocument,

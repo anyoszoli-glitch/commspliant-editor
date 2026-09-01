@@ -2,6 +2,7 @@ import { createContext, useContext, type ReactNode } from 'react'
 import type { Config, RichtextField } from '@puckeditor/core'
 import { DocumentCanvas } from '../components/DocumentCanvas/DocumentCanvas'
 import { LayoutBlock } from '../components/DocumentCanvas/LayoutBlock'
+import type { PageDescriptor } from '../components/DocumentCanvas/pagination'
 import { HeadingBlock } from '../components/HeadingBlock/HeadingBlock'
 import { TextBlock } from '../components/TextBlock/TextBlock'
 import { PageBreakBlock } from '../components/PageBreakBlock/PageBreakBlock'
@@ -122,11 +123,19 @@ function EditorDocumentCanvas({
   layout,
   fallbackBackgroundImage,
   isEditorCanvas,
+  selectedPageId,
+  onPageSelect,
+  onPagesChange,
+  pageSettingsChannel,
 }: {
   children?: ReactNode
   layout: DocumentLayout
   fallbackBackgroundImage?: DocumentBackgroundImage
   isEditorCanvas: boolean
+  selectedPageId?: string
+  onPageSelect?: (pageId: string) => void
+  onPagesChange?: (pages: PageDescriptor[]) => void
+  pageSettingsChannel?: string
 }) {
   const appearance = useContext(DocumentAppearanceContext)
 
@@ -139,6 +148,10 @@ function EditorDocumentCanvas({
       backgroundColour={appearance?.backgroundColour}
       isEditorCanvas={isEditorCanvas}
       showEditorPageIndicators={isEditorCanvas}
+      selectedPageId={selectedPageId}
+      onPageSelect={onPageSelect}
+      onPagesChange={onPagesChange}
+      pageSettingsChannel={pageSettingsChannel}
     >
       {children}
     </DocumentCanvas>
@@ -152,6 +165,10 @@ export function createEditorConfig(
   previewEnabled = false,
   previewValues: VariablePreviewValues = {},
   onRequestAi?: (selectedText: string) => void,
+  selectedPageId?: string,
+  onPageSelect?: (pageId: string) => void,
+  onPagesChange?: (pages: PageDescriptor[]) => void,
+  pageSettingsChannel?: string,
 ): Config<EditorComponents> {
   const constrainedRichTextField = createConstrainedRichTextField(
     variableDefinitions,
@@ -179,6 +196,10 @@ export function createEditorConfig(
             layout={layout}
             fallbackBackgroundImage={backgroundImage}
             isEditorCanvas={isEditorCanvas}
+            selectedPageId={selectedPageId}
+            onPageSelect={onPageSelect}
+            onPagesChange={onPagesChange}
+            pageSettingsChannel={pageSettingsChannel}
           >
             {children}
           </EditorDocumentCanvas>

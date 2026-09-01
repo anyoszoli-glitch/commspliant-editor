@@ -469,6 +469,22 @@
   gap: 9px;
 }
 
+.document-editor__layout-section-label {
+  padding-top: 3px;
+  color: #526473;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.document-editor__layout-page-status {
+  color: #526473;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
 .document-editor__layout-field {
   display: grid;
   gap: 4px;

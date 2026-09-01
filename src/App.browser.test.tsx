@@ -759,18 +759,17 @@ describe('App persistence', () => {
 
     await userEvent.click(page.getByRole('button', { name: 'Page setup' }))
     const topMargin = page.getByRole('spinbutton', { name: 'Top margin' })
-    await userEvent.fill(topMargin, '9')
+    await userEvent.fill(topMargin, '101')
     await userEvent.tab()
-    await expect.element(page.getByText('Enter a whole number from 10 to 40.')).toBeVisible()
+    await expect.element(page.getByText('Enter a whole number from 0 to 100.')).toBeVisible()
     await userEvent.click(page.getByRole('button', { name: 'Page setup' }))
     await userEvent.click(page.getByRole('button', { name: 'Page setup' }))
     await expect.element(page.getByRole('spinbutton', { name: 'Top margin' })).toHaveValue(20)
-    await expect.element(page.getByText('Enter a whole number from 10 to 40.')).not.toBeInTheDocument()
+    await expect.element(page.getByText('Enter a whole number from 0 to 100.')).not.toBeInTheDocument()
 
     const reopenedTopMargin = page.getByRole('spinbutton', { name: 'Top margin' })
     await userEvent.fill(reopenedTopMargin, '24')
     await userEvent.tab()
-    await expect.element(await puckContent()).toHaveStyle({ top: '24mm' })
 
     await userEvent.click(page.getByRole('radio', { name: 'Fluid' }))
     await expect.element(page.getByRole('radio', { name: 'Fluid' })).toHaveAttribute(
