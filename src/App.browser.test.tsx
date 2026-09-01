@@ -753,6 +753,88 @@ describe('App persistence', () => {
     expect(changeCount).toBe(0)
   })
 
+  it('commits Page Navigator reordering to the Puck document state', async () => {
+    await page.viewport(1440, 900)
+    const pageMargins = (value: number) => ({
+      top: value,
+      right: value,
+      bottom: value,
+      left: value,
+      unit: 'mm' as const,
+    })
+    const initialDocument: LetterDocument = {
+      ...createDocument('page-navigator-callback'),
+      data: {
+        root: {},
+        content: [
+          {
+            type: 'ImageBlock',
+            props: {
+              id: 'image-page',
+              image: {
+                alt: 'Product image',
+                title: 'Product title',
+                width: 72,
+                alignment: 'right',
+                horizontalOffset: -18,
+              },
+            },
+          },
+          { type: 'PageBreakBlock', props: { id: 'break-one' } },
+          { type: 'TextBlock', props: { id: 'second-page', text: '<p>Second page</p>' } },
+          { type: 'PageBreakBlock', props: { id: 'break-two' } },
+          { type: 'TextBlock', props: { id: 'third-page', text: '<p>Third page</p>' } },
+        ],
+      },
+      layout: {
+        mode: 'paged',
+        pageSize: 'A4',
+        margins: pageMargins(20),
+        pageSettings: {
+          'page-root': { margins: pageMargins(11) },
+          'page-after-break-one': { margins: pageMargins(22) },
+          'page-after-break-two': { margins: pageMargins(33) },
+        },
+      },
+    }
+    const changes: LetterDocument[] = []
+    const saves: LetterDocument[] = []
+    container = document.createElement('div')
+    document.body.append(container)
+    root = createRoot(container)
+    root.render(
+      <EmbeddedEditorHarness
+        initialDocument={initialDocument}
+        changes={changes}
+        saves={saves}
+      />,
+    )
+
+    await userEvent.click(page.getByText('Pages', { exact: true }).first())
+    const firstPage = page.getByRole('button', { name: 'Go to page 1' })
+    await expect.element(firstPage).toBeVisible()
+    await userEvent.click(firstPage)
+    await userEvent.keyboard('{ArrowDown}')
+    await userEvent.click(page.getByText('Save draft', { exact: true }))
+
+    await expect.poll(() => saves.length).toBe(1)
+    expect(saves[0].data.content.map((block) => block.props.id)).toEqual([
+      'second-page',
+      'break-one',
+      'image-page',
+      'break-two',
+      'third-page',
+    ])
+    expect(saves[0].data.content[2]).toEqual(initialDocument.data.content[0])
+    expect(saves[0].layout).toMatchObject({
+      pageSettings: {
+        'page-root': { margins: pageMargins(22) },
+        'page-after-break-one': { margins: pageMargins(11) },
+        'page-after-break-two': { margins: pageMargins(33) },
+      },
+    })
+  })
+
   it('saves and restores one canonical draft after editing content, metadata, and layout', async () => {
     await page.viewport(1440, 900)
     localStorage.removeItem(DOCUMENT_STORAGE_KEY)

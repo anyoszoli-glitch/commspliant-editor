@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
-import { Puck, type Config, type Overrides, type Plugin, type Viewports } from '@puckeditor/core'
+import {
+  Puck,
+  createUsePuck,
+  type Config,
+  type Overrides,
+  type Plugin,
+  type PuckAction,
+  type Viewports,
+} from '@puckeditor/core'
 import '@puckeditor/core/puck.css'
 import '../../App.css'
 
@@ -57,6 +65,26 @@ const emptyVariableDefinitions: readonly VariableDefinition[] = []
 // while allowing Puck's supported auto-zoom behaviour to fit it to the available workspace.
 const A4_WIDTH_PX = (210 / 25.4) * 96
 const DOCUMENT_VIEWPORT_GUTTER_PX = 24
+const useEditorPuck = createUsePuck<Config<EditorComponents>>()
+type PageNavigatorPluginProps = {
+  pages: PageDescriptor[]
+  selectedPageId?: string
+  onPageSelect: (pageId: string) => void
+  onPageReorder: (fromIndex: number, toIndex: number, dispatch: (action: PuckAction) => void) => void
+  t: ReturnType<typeof useTranslation>
+}
+
+function PageNavigatorPlugin({ onPageReorder, ...props }: PageNavigatorPluginProps) {
+  const dispatch = useEditorPuck((puck) => puck.dispatch)
+
+  return (
+    <PageNavigator
+      {...props}
+      onPageReorder={(fromIndex, toIndex) => onPageReorder(fromIndex, toIndex, dispatch)}
+    />
+  )
+}
+
 export type CommsPliantEditorProps = {
   document: LetterDocument
   onChange: (document: LetterDocument) => void
@@ -143,7 +171,11 @@ function Editor({
         ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     })
   }, [])
-  const handlePageReorder = useCallback((fromIndex: number, toIndex: number) => {
+  const handlePageReorder = useCallback((
+    fromIndex: number,
+    toIndex: number,
+    dispatch: (action: PuckAction) => void,
+  ) => {
     const currentDocument = documentRef.current
     if (currentDocument.layout.mode !== 'paged') return
 
@@ -158,9 +190,11 @@ function Editor({
     if (!result) return
 
     const nextData = { ...currentData.current, content: result.content }
+    const nextDocument = { ...currentDocument, data: nextData, layout: result.layout }
     currentData.current = nextData
+    documentRef.current = nextDocument
     setSelectedPageId(result.activePageId)
-    onChangeRef.current({ ...currentDocument, data: nextData, layout: result.layout })
+    dispatch({ type: 'setData', data: nextData, recordHistory: true })
     requestAnimationFrame(() => {
       const frame = globalThis.document.querySelector<HTMLIFrameElement>('.document-editor iframe')
       frame?.contentDocument?.querySelector<HTMLElement>(`[data-document-page-id="${result.activePageId}"]`)
@@ -536,7 +570,7 @@ function Editor({
         label: t('pages'),
         icon: '▤',
         render: () => (
-          <PageNavigator
+          <PageNavigatorPlugin
             pages={document.layout.mode === 'paged' ? pagedPages : []}
             selectedPageId={selectedPageId}
             onPageSelect={handlePageSelect}
@@ -588,7 +622,7 @@ function Editor({
           onChange={(data) => {
             if (isPreview) return
             currentData.current = data
-            onChange({ ...document, data })
+            onChangeRef.current({ ...documentRef.current, data })
           }}
           onPublish={(data) => {
             currentData.current = data
