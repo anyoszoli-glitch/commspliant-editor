@@ -49,6 +49,23 @@ describe('editor config', () => {
         textAlign: {},
       },
     })
+
+    const headingField = config.components.HeadingBlock.fields?.text
+    const textField = config.components.TextBlock.fields?.text
+    if (headingField?.type !== 'richtext' || textField?.type !== 'richtext') {
+      throw new Error('Expected rich-text fields')
+    }
+
+    const menuProps = { children: null, editor: null, editorState: null, readOnly: false }
+    const headingMenu = headingField.renderMenu?.(menuProps) as ReactElement<{
+      formatWholeBlockOnEmptySelection?: boolean
+    }>
+    const textMenu = textField.renderMenu?.(menuProps) as ReactElement<{
+      formatWholeBlockOnEmptySelection?: boolean
+    }>
+    expect(headingMenu.props.formatWholeBlockOnEmptySelection).toBe(true)
+    expect(textMenu.props.formatWholeBlockOnEmptySelection).toBe(false)
+
     expect(config.components.PageBreakBlock.label).toBe('Page break')
     expect(config.components.TableBlock.label).toBe('Table')
     expect(config.components.DividerBlock.label).toBe('Divider')

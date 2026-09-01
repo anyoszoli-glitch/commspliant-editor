@@ -1,5 +1,5 @@
 import { RichTextMenu, type RichtextField } from '@puckeditor/core'
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, SyntheticEvent } from 'react'
 import { CustomColourPicker } from '../components/ColourPicker/CustomColourPicker'
 import {
   fontFamilyOptions,
@@ -14,6 +14,7 @@ type InlineMenuProps = Parameters<NonNullable<RichtextField['renderInlineMenu']>
 type RichTextToolbarProps = InlineMenuProps & {
   variableDefinitions?: readonly VariableDefinition[]
   textStyleOptions?: readonly RichTextStyleOption[]
+  formatWholeBlockOnEmptySelection?: boolean
   inline?: boolean
   onRequestAi?: (selectedText: string) => void
 }
@@ -36,6 +37,7 @@ export function RichTextToolbar({
   readOnly,
   variableDefinitions = [],
   textStyleOptions = defaultRichTextStyleOptions,
+  formatWholeBlockOnEmptySelection = false,
   inline = false,
   onRequestAi,
 }: RichTextToolbarProps) {
@@ -49,6 +51,17 @@ export function RichTextToolbar({
   const lineSpacing = String(
     editor?.getAttributes(editor?.isActive('heading') ? 'heading' : 'paragraph').lineSpacing ?? '',
   )
+
+  const prepareFormattingSelection = (event: SyntheticEvent<HTMLDivElement>) => {
+    if (!editor || readOnly || !formatWholeBlockOnEmptySelection || !editor.state.selection.empty) {
+      return
+    }
+
+    const target = event.target as HTMLElement
+    if (target.closest('[aria-label="Insert variable"], [title="Ask AI"]')) return
+
+    editor.chain().focus().selectAll().run()
+  }
 
   const changeTextStyle = (event: ChangeEvent<HTMLSelectElement>) => {
     if (!editor) return
@@ -195,7 +208,11 @@ export function RichTextToolbar({
 
   if (inline) {
     return (
-      <div className="commspliant-richtext-toolbar commspliant-richtext-toolbar--inline">
+      <div
+        className="commspliant-richtext-toolbar commspliant-richtext-toolbar--inline"
+        onClickCapture={prepareFormattingSelection}
+        onChangeCapture={prepareFormattingSelection}
+      >
         <RichTextMenu>
           <RichTextMenu.Group>
             <RichTextMenu.Bold />
@@ -217,7 +234,11 @@ export function RichTextToolbar({
   }
 
   return (
-    <div className="commspliant-richtext-toolbar">
+    <div
+      className="commspliant-richtext-toolbar"
+      onClickCapture={prepareFormattingSelection}
+      onChangeCapture={prepareFormattingSelection}
+    >
       <RichTextMenu>
         <div className="commspliant-richtext-toolbar__row">
           <RichTextMenu.Group>

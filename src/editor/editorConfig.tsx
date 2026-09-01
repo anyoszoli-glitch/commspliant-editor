@@ -32,6 +32,7 @@ export function createConstrainedRichTextField(
   previewValues: VariablePreviewValues = {},
   onRequestAi?: (selectedText: string) => void,
   textStyleOptions: readonly RichTextStyleOption[] = defaultRichTextStyleOptions,
+  formatWholeBlockOnEmptySelection = false,
 ) {
   const headingLevels = textStyleOptions.flatMap(({ value }) =>
     value === 'p' ? [] : [Number(value.slice(1)) as 1 | 2 | 3 | 4 | 5 | 6],
@@ -60,6 +61,7 @@ export function createConstrainedRichTextField(
         {...props}
         variableDefinitions={variableDefinitions}
         textStyleOptions={textStyleOptions}
+        formatWholeBlockOnEmptySelection={formatWholeBlockOnEmptySelection}
         readOnly={props.readOnly || previewEnabled}
         onRequestAi={onRequestAi}
       />
@@ -70,6 +72,7 @@ export function createConstrainedRichTextField(
         inline
         variableDefinitions={variableDefinitions}
         textStyleOptions={textStyleOptions}
+        formatWholeBlockOnEmptySelection={formatWholeBlockOnEmptySelection}
         readOnly={props.readOnly || previewEnabled}
         onRequestAi={onRequestAi}
       />
@@ -162,6 +165,7 @@ export function createEditorConfig(
     previewValues,
     onRequestAi,
     headingTextStyleOptions,
+    true,
   )
   return {
     root: {
