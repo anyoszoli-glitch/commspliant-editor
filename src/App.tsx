@@ -34,11 +34,19 @@ function App() {
         />
       </div>
       <div className="standalone-editor__workspace">
-        <img
-          className="standalone-editor__corner-logo"
-          src={tiliToliEditorLogo}
-          alt="Tili Toli Editor"
-        />
+        <a
+          className="standalone-editor__corner-logo-link"
+          href="https://commspliant.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Visit CommsPliant"
+        >
+          <img
+            className="standalone-editor__corner-logo"
+            src={tiliToliEditorLogo}
+            alt="Tili Toli Editor"
+          />
+        </a>
         <CommsPliantEditor
           document={document}
           variableDefinitions={variableDefinitions}
