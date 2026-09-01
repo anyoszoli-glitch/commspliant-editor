@@ -16,6 +16,7 @@ import {
 } from '../../document/document'
 import { createEditorConfig, DocumentAppearanceContext } from '../../editor/editorConfig'
 import { BlockPickerItem } from './BlockPickerItem'
+import { FloatingSidePanels } from './FloatingSidePanels'
 import { LayoutSettings } from './LayoutSettings'
 import { BackgroundSettings } from './BackgroundSettings'
 import type { PageDescriptor } from '../DocumentCanvas/pagination'
@@ -95,6 +96,7 @@ export function CommsPliantEditor({
   const [pagedPages, setPagedPages] = useState<PageDescriptor[]>([])
   const [selectedPageId, setSelectedPageId] = useState<string>()
   const pageSettingsChannel = useRef(`tili-toli-page-settings-${Math.random().toString(36).slice(2)}`)
+  const workspaceRef = useRef<HTMLDivElement>(null)
   const previousPreviewValues = useRef(previewValues)
   const layoutSwitchRef = useRef<HTMLDivElement>(null)
   const layoutFocusMode = useRef<DocumentLayout['mode'] | undefined>(undefined)
@@ -477,7 +479,7 @@ export function CommsPliantEditor({
   )
 
   return (
-    <div className="document-editor">
+    <div className="document-editor" ref={workspaceRef}>
       {logoHref ? (
         <a
           className="document-editor__corner-logo-slot"
@@ -525,6 +527,7 @@ export function CommsPliantEditor({
           }}
         />
       </DocumentAppearanceContext.Provider>
+      <FloatingSidePanels workspaceRef={workspaceRef} />
     </div>
   )
 }

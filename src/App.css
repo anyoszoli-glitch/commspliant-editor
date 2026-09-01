@@ -83,6 +83,167 @@
   --puck-field-label-color-icon: #b8c3cc;
 }
 
+/* Keep Puck's one live sidebar instance and change only its presentation mode. */
+.document-editor[data-tili-left-panel-mode='floating'] [class*='_PuckLayout-inner_'] {
+  --puck-user-sidebar-left-width: 0px !important;
+}
+
+.document-editor[data-tili-right-panel-mode='floating'] [class*='_PuckLayout-inner_'] {
+  --puck-user-sidebar-right-width: 0px !important;
+}
+
+.document-editor[data-tili-left-panel-mode='floating']
+  [class*='_Sidebar--left_']
+  + [class*='_Sidebar-resizeHandle_'],
+.document-editor[data-tili-right-panel-mode='floating']
+  [class*='_Sidebar--right_']
+  + [class*='_Sidebar-resizeHandle_'] {
+  display: none;
+}
+
+.document-editor [data-tili-panel-mode='floating'] {
+  position: fixed;
+  inset: auto;
+  top: var(--tili-floating-panel-y);
+  left: var(--tili-floating-panel-x);
+  width: var(--tili-floating-panel-width);
+  height: var(--tili-floating-panel-height);
+  box-sizing: border-box;
+  border: 1px solid #607383;
+  border-radius: 8px;
+  box-shadow: 0 16px 38px rgba(18, 28, 37, 0.3);
+  z-index: 5000;
+}
+
+.document-editor [data-tili-panel-mode='floating'][data-tili-panel-active='true'] {
+  z-index: 5002;
+}
+
+.document-editor [data-tili-panel-mode='floating'][data-tili-panel-side='left'] {
+  border-inline-end: 1px solid #607383;
+}
+
+.document-editor [data-tili-panel-mode='floating'][data-tili-panel-side='right'] {
+  border-inline-start: 1px solid #607383;
+}
+
+.document-editor__panel-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  order: -1;
+  min-height: 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 2px 4px;
+  border-bottom: 1px solid #435464;
+  background: #263442;
+  color: #eef2f5;
+}
+
+.document-editor__panel-title {
+  display: none;
+  min-width: 0;
+  overflow: hidden;
+  color: #c9d2da;
+  font-size: 11px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-editor__panel-mode-button {
+  min-width: 20px;
+  height: 19px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid #526473;
+  border-radius: 4px;
+  padding: 1px 3px;
+  background: #314252;
+  color: #eef2f5;
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.document-editor__panel-mode-button:hover {
+  border-color: #788b9b;
+  background: #3b4d5d;
+}
+
+.document-editor__panel-mode-button:focus-visible,
+.document-editor__floating-panel-resize:focus-visible {
+  outline: 2px solid #c9a66b;
+  outline-offset: 1px;
+}
+
+.document-editor__panel-mode-button svg,
+.document-editor__floating-panel-resize svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.document-editor__panel-mode-button span {
+  display: none;
+}
+
+.document-editor [data-tili-panel-mode='floating'] > .document-editor__panel-chrome {
+  min-height: 30px;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px 4px 9px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.document-editor [data-tili-panel-mode='floating'] > .document-editor__panel-chrome:active {
+  cursor: grabbing;
+}
+
+.document-editor [data-tili-panel-mode='floating'] .document-editor__panel-title,
+.document-editor [data-tili-panel-mode='floating'] .document-editor__panel-mode-button span {
+  display: inline;
+}
+
+.document-editor__floating-panel-resize {
+  position: fixed;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 3px;
+  padding: 1px;
+  background: rgba(49, 66, 82, 0.92);
+  color: #c9d2da;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.document-editor__floating-panel-resize:hover {
+  background: #3b4d5d;
+  color: #ffffff;
+}
+
+@media (max-width: 637px) {
+  .document-editor [data-tili-panel-mode='docked'] > .document-editor__panel-chrome {
+    display: none;
+  }
+}
+
 /* Keep Text properties compact without changing its controls or document typography. */
 .document-editor
   [class*='_Sidebar--right_']
