@@ -5,7 +5,7 @@ Tili-Toli is a controlled React editor for the CommsPliant shared document contr
 - the standalone demo at <https://anyoszoli-glitch.github.io/commspliant-editor/>;
 - the reusable `@commspliant/tili-toli-editor` package.
 
-The standalone demo supplies its own white identity header and local browser persistence. Those features are not part of the reusable package.
+The standalone demo supplies its own light-blue identity header and local browser persistence. Those features are not part of the reusable package.
 
 ## Install the reusable package
 
@@ -55,6 +55,9 @@ export function EditorScreen({ initialDocument, saveDocument }: EditorScreenProp
 ```
 
 `document` is the complete shared-contract JSON value. `onChange` receives the complete updated value after edits. `onSave` is called by the editor's **Save draft** action. The optional `height` prop defaults to `100vh`.
+
+The packaged Tili-Toli logo is visible and non-clickable by default. A host may opt into a link
+with `logoHref`; only the standalone demo supplies `https://commspliant.com`.
 
 Optional variable authoring and preview values are supplied by the host:
 

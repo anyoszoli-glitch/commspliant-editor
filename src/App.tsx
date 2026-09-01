@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { CommsPliantEditor } from './CommsPliantEditor'
 import { DocumentIdentity } from './components/DocumentEditor/DocumentIdentity'
 import { loadDocument, saveDocument } from './document/documentStorage'
-import tiliToliEditorLogo from './assets/TiliToliEditorLogo.webp'
 import './demo.css'
 
 const variableDefinitions = [
@@ -34,24 +33,12 @@ function App() {
         />
       </div>
       <div className="standalone-editor__workspace">
-        <a
-          className="standalone-editor__corner-logo-link"
-          href="https://commspliant.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Visit CommsPliant"
-        >
-          <img
-            className="standalone-editor__corner-logo"
-            src={tiliToliEditorLogo}
-            alt="Tili Toli Editor"
-          />
-        </a>
         <CommsPliantEditor
           document={document}
           variableDefinitions={variableDefinitions}
           previewValues={previewValues}
           height="calc(100vh - 64px)"
+          logoHref="https://commspliant.com"
           onChange={setDocument}
           onSave={(savedDocument) => {
             setDocument(saveDocument(savedDocument))

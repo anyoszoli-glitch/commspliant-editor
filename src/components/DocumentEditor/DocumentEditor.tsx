@@ -19,6 +19,7 @@ import { BlockPickerItem } from './BlockPickerItem'
 import { LayoutSettings } from './LayoutSettings'
 import { BackgroundSettings } from './BackgroundSettings'
 import { AiAssistantPanel } from './AiAssistantPanel'
+import tiliToliEditorLogo from '../../assets/TiliToliEditorLogo.webp'
 import type {
   AiAssistantContext,
   AiAssistantRequest,
@@ -68,6 +69,7 @@ export type CommsPliantEditorProps = {
   onAiRequest?: (request: AiAssistantRequest) => void
   aiSuggestion?: AiAssistantSuggestion
   onAiSuggestionAction?: (action: AiAssistantSuggestionAction, suggestion: AiAssistantSuggestion) => void
+  logoHref?: string
 }
 
 export function CommsPliantEditor({
@@ -80,6 +82,7 @@ export function CommsPliantEditor({
   onAiRequest,
   aiSuggestion,
   onAiSuggestionAction,
+  logoHref,
 }: CommsPliantEditorProps) {
   const [isPreview, setIsPreview] = useState(false)
   const [previewRevision, setPreviewRevision] = useState(0)
@@ -379,6 +382,29 @@ export function CommsPliantEditor({
 
   return (
     <div className="document-editor">
+      {logoHref ? (
+        <a
+          className="document-editor__corner-logo-slot"
+          href={logoHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Visit CommsPliant"
+        >
+          <img
+            className="document-editor__corner-logo"
+            src={tiliToliEditorLogo}
+            alt="Tili Toli Editor"
+          />
+        </a>
+      ) : (
+        <div className="document-editor__corner-logo-slot">
+          <img
+            className="document-editor__corner-logo"
+            src={tiliToliEditorLogo}
+            alt="Tili Toli Editor"
+          />
+        </div>
+      )}
       <DocumentAppearanceContext.Provider value={documentAppearance}>
         <Puck
           key={`${document.id}-${document.layout.mode}-${previewRevision}`}

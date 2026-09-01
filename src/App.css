@@ -1,4 +1,5 @@
 .document-editor {
+  position: relative;
   --commspliant-selected: #5b45e0;
   --commspliant-selected-line: #8b7cf0;
   --puck-sidebar-left-color-bg: #263442;
@@ -13,6 +14,26 @@
   --puck-drawer-category-color-bg-active: var(--commspliant-selected);
   --puck-drawer-space: 6px;
   --puck-drawer-item-space: 0;
+}
+
+.document-editor__corner-logo-slot {
+  position: absolute;
+  z-index: 60;
+  top: 0;
+  left: 2.9px;
+  width: 40px;
+  height: 39px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.document-editor__corner-logo {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .document-editor #puck-canvas-root {
