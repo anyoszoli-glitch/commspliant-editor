@@ -88,6 +88,77 @@ describe('reorderPages', () => {
     expect(reorder(0, 2, 'page-root')!.activePageId).toBe('page-after-break-two')
   })
 
+  it('moves a complete Image block with its page settings and preserves both through Save/Open', () => {
+    const image = {
+      type: 'ImageBlock',
+      props: {
+        id: 'image-two',
+        image: {
+          src: 'https://images.example.test/customer-image.png',
+          alt: 'Customer-authored alt text',
+          title: 'Customer-authored title',
+          width: 72,
+          alignment: 'right',
+          horizontalOffset: -18,
+        },
+      },
+    } as DocumentData['content'][number]
+    const content = [
+      block('one'),
+      block('break-one', 'PageBreakBlock'),
+      image,
+      block('caption-two'),
+      block('break-two', 'PageBreakBlock'),
+    ] as DocumentData['content']
+    const pages: PageDescriptor[] = [
+      { id: 'page-root', number: 1, blockIds: ['one', 'break-one'] },
+      {
+        id: 'page-after-break-one',
+        number: 2,
+        blockIds: ['image-two', 'caption-two', 'break-two'],
+      },
+      { id: 'page-after-break-two', number: 3, blockIds: [] },
+    ]
+    const layout = {
+      ...defaultPagedLayout,
+      pageSettings: {
+        'page-root': { margins: { ...defaultPagedLayout.margins, top: 11 } },
+        'page-after-break-one': { margins: { ...defaultPagedLayout.margins, top: 22 } },
+        'page-after-break-two': { margins: { ...defaultPagedLayout.margins, top: 33 } },
+      },
+    }
+
+    const result = reorderPages(content, pages, 1, 0, layout, 'page-after-break-one')!
+    expect(ids(result.content)).toEqual([
+      'image-two', 'caption-two', 'break-one', 'one', 'break-two',
+    ])
+    expect(result.content.find((item) => item.props.id === 'image-two')).toEqual(image)
+    expect(new Set(ids(result.content))).toEqual(new Set(ids(content)))
+    expect(result.layout.pageSettings?.['page-root']?.margins.top).toBe(22)
+    expect(result.layout.pageSettings?.['page-after-break-one']?.margins.top).toBe(11)
+    expect(result.layout.pageSettings?.['page-after-break-two']?.margins.top).toBe(33)
+
+    const document = createDocument('image-page-reordered', result.layout)
+    document.data = { content: result.content, root: {} }
+    document.backgroundImage = {
+      src: '/api/v1/assets/page-background',
+      fit: 'cover',
+      position: 'center',
+      opacity: 0.6,
+    }
+    const values = new Map<string, string>()
+    const storage = {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => values.set(key, value),
+    } as unknown as Storage
+
+    saveDocument(document, storage, document.updatedAt)
+    const restored = loadDocument(storage)
+    expect(restored.data.content.find((item) => item.props.id === 'image-two')).toEqual(image)
+    expect(restored.layout).toEqual(result.layout)
+    expect(restored.backgroundImage).toEqual(document.backgroundImage)
+  })
+
   it('does nothing for a no-op or cancelled drag', () => {
     expect(reorder(1, 1)).toBeUndefined()
     expect(reorderPages(threePages().content, [], 0, 0, defaultPagedLayout)).toBeUndefined()

@@ -51,4 +51,23 @@ describe('ImageBlock', () => {
     expect(renderImage('center', -10)).toContain('margin-left:-10%;margin-right:10%')
     expect(renderImage('right', -12)).toContain('margin-right:12%')
   })
+
+  it('escapes host-provided alt text and title instead of rendering HTML', () => {
+    const markup = renderToStaticMarkup(createElement(ImageBlock, {
+      image: {
+        src: 'https://images.example.test/logo.png',
+        alt: '<script>alert("alt")</script>',
+        title: '<img src=x onerror=alert("title")>',
+        width: 50,
+        alignment: 'center',
+      },
+      pickerAvailable: true,
+      t: createTranslator(),
+    }))
+
+    expect(markup).not.toContain('<script>')
+    expect(markup).not.toContain('<img src=x')
+    expect(markup).toContain('&lt;script&gt;alert(&quot;alt&quot;)&lt;/script&gt;')
+    expect(markup).toContain('&lt;img src=x onerror=alert(&quot;title&quot;)&gt;')
+  })
 })

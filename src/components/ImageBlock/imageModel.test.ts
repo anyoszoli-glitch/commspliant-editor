@@ -24,8 +24,19 @@ describe('image block model', () => {
       width: 1,
       alignment: 'center',
     })
-    expect(normalizeImageBlockData({ src: 'data:image/svg+xml,<svg />' }).src).toBeUndefined()
-    expect(normalizeImageBlockData({ src: 'https://images.example.test/logo.svg' }).src).toBeUndefined()
+    for (const unsafeSource of [
+      'vbscript:msgbox(1)',
+      'data:image/png;base64,AAAA',
+      'data:image/svg+xml,<svg />',
+      'data:text/html,<script>alert(1)</script>',
+      'blob:https://images.example.test/image-id',
+      'file:///tmp/image.png',
+      'https://images.example.test/logo.svg',
+      'https://images.example.test/logo.SVG?cache=1',
+      'https://images.example.test/logo.svgz',
+    ]) {
+      expect(normalizeImageBlockData({ src: unsafeSource }).src).toBeUndefined()
+    }
     expect(normalizeImageBlockData({ src: '/assets/sample-image.png' }).src).toBe('/assets/sample-image.png')
   })
 
