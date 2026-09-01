@@ -18,8 +18,23 @@ describe('editor config', () => {
     const config = createEditorConfig(defaultPagedLayout)
 
     expect(config.components.HeadingBlock.fields?.text).toMatchObject({
-      type: 'text',
+      type: 'richtext',
       contentEditable: true,
+      options: {
+        heading: { levels: [1, 2, 3, 4, 5, 6] },
+      },
+    })
+    expect(config.components.HeadingBlock.defaultProps).toEqual({
+      text: {
+        type: 'doc',
+        content: [
+          {
+            type: 'heading',
+            attrs: { level: 1 },
+            content: [{ type: 'text', text: 'New heading' }],
+          },
+        ],
+      },
     })
     expect(config.components.TextBlock.fields?.text).toMatchObject({
       type: 'richtext',

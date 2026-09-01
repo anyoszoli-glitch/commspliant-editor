@@ -11,7 +11,11 @@ import { SpacerBlock } from '../components/SpacerBlock/SpacerBlock'
 import { TableBlock } from '../components/TableBlock/TableBlock'
 import { TableEditorField } from '../components/TableBlock/TableEditorField'
 import { defaultTableData } from '../components/TableBlock/tableModel'
-import { RichTextToolbar } from './RichTextToolbar'
+import {
+  defaultRichTextStyleOptions,
+  RichTextToolbar,
+  type RichTextStyleOption,
+} from './RichTextToolbar'
 import type {
   DocumentBackgroundColour,
   DocumentBackgroundImage,
@@ -27,7 +31,12 @@ export function createConstrainedRichTextField(
   previewEnabled = false,
   previewValues: VariablePreviewValues = {},
   onRequestAi?: (selectedText: string) => void,
+  textStyleOptions: readonly RichTextStyleOption[] = defaultRichTextStyleOptions,
 ) {
+  const headingLevels = textStyleOptions.flatMap(({ value }) =>
+    value === 'p' ? [] : [Number(value.slice(1)) as 1 | 2 | 3 | 4 | 5 | 6],
+  )
+
   return {
   type: 'richtext' as const,
   contentEditable: true,
@@ -35,7 +44,7 @@ export function createConstrainedRichTextField(
     blockquote: false,
     code: false,
     codeBlock: false,
-    heading: { levels: [2, 3] },
+    heading: { levels: headingLevels },
     horizontalRule: false,
     strike: {},
     textAlign: {},
@@ -50,6 +59,7 @@ export function createConstrainedRichTextField(
       <RichTextToolbar
         {...props}
         variableDefinitions={variableDefinitions}
+        textStyleOptions={textStyleOptions}
         readOnly={props.readOnly || previewEnabled}
         onRequestAi={onRequestAi}
       />
@@ -59,6 +69,7 @@ export function createConstrainedRichTextField(
         {...props}
         inline
         variableDefinitions={variableDefinitions}
+        textStyleOptions={textStyleOptions}
         readOnly={props.readOnly || previewEnabled}
         onRequestAi={onRequestAi}
       />
@@ -75,6 +86,26 @@ export const defaultRichTextValue = {
     },
   ],
 }
+
+export const defaultHeadingValue = {
+  type: 'doc' as const,
+  content: [
+    {
+      type: 'heading' as const,
+      attrs: { level: 1 },
+      content: [{ type: 'text' as const, text: 'New heading' }],
+    },
+  ],
+}
+
+const headingTextStyleOptions: readonly RichTextStyleOption[] = [
+  { label: 'Heading 1', value: 'h1' },
+  { label: 'Heading 2', value: 'h2' },
+  { label: 'Heading 3', value: 'h3' },
+  { label: 'Heading 4', value: 'h4' },
+  { label: 'Heading 5', value: 'h5' },
+  { label: 'Heading 6', value: 'h6' },
+]
 
 type DocumentAppearance = {
   backgroundImage?: DocumentBackgroundImage
@@ -125,6 +156,13 @@ export function createEditorConfig(
     previewValues,
     onRequestAi,
   )
+  const headingRichTextField = createConstrainedRichTextField(
+    variableDefinitions,
+    previewEnabled,
+    previewValues,
+    onRequestAi,
+    headingTextStyleOptions,
+  )
   return {
     root: {
       render: ({ children }) => {
@@ -146,11 +184,11 @@ export function createEditorConfig(
     components: {
       HeadingBlock: {
         label: 'Heading',
-        fields: { text: { type: 'text', contentEditable: true } },
-        defaultProps: { text: 'New heading' },
+        fields: { text: { ...headingRichTextField } },
+        defaultProps: { text: defaultHeadingValue },
         render: ({ id, text }) => (
           <LayoutBlock id={id}>
-            <HeadingBlock text={text} />
+            <HeadingBlock text={text as React.ReactNode} />
           </LayoutBlock>
         ),
       },

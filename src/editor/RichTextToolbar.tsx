@@ -13,22 +13,36 @@ type InlineMenuProps = Parameters<NonNullable<RichtextField['renderInlineMenu']>
 
 type RichTextToolbarProps = InlineMenuProps & {
   variableDefinitions?: readonly VariableDefinition[]
+  textStyleOptions?: readonly RichTextStyleOption[]
   inline?: boolean
   onRequestAi?: (selectedText: string) => void
 }
+
+export type RichTextStyle = 'p' | `h${1 | 2 | 3 | 4 | 5 | 6}`
+
+export type RichTextStyleOption = {
+  label: string
+  value: RichTextStyle
+}
+
+export const defaultRichTextStyleOptions: readonly RichTextStyleOption[] = [
+  { label: 'Paragraph', value: 'p' },
+  { label: 'Heading 2', value: 'h2' },
+  { label: 'Heading 3', value: 'h3' },
+]
 
 export function RichTextToolbar({
   editor,
   readOnly,
   variableDefinitions = [],
+  textStyleOptions = defaultRichTextStyleOptions,
   inline = false,
   onRequestAi,
 }: RichTextToolbarProps) {
-  const textStyle = editor?.isActive('heading', { level: 2 })
-    ? 'h2'
-    : editor?.isActive('heading', { level: 3 })
-      ? 'h3'
-      : 'p'
+  const textStyle = textStyleOptions.find(({ value }) => {
+    if (value === 'p') return editor?.isActive('paragraph')
+    return editor?.isActive('heading', { level: Number(value.slice(1)) })
+  })?.value ?? textStyleOptions[0]?.value ?? 'p'
   const fontFamily = String(editor?.getAttributes('fontFamily').family ?? '')
   const textColour = String(editor?.getAttributes('textColour').colour ?? '')
   const highlightColour = String(editor?.getAttributes('textHighlight').colour ?? '')
@@ -43,7 +57,9 @@ export function RichTextToolbar({
     if (event.target.value === 'p') {
       chain.setParagraph().run()
     } else {
-      chain.setHeading({ level: event.target.value === 'h2' ? 2 : 3 }).run()
+      chain.setHeading({
+        level: Number(event.target.value.slice(1)) as 1 | 2 | 3 | 4 | 5 | 6,
+      }).run()
     }
   }
 
@@ -212,9 +228,9 @@ export function RichTextToolbar({
               disabled={readOnly || !editor}
               onChange={changeTextStyle}
             >
-              <option value="p">Paragraph</option>
-              <option value="h2">Heading 2</option>
-              <option value="h3">Heading 3</option>
+              {textStyleOptions.map(({ label, value }) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
             </select>
           </RichTextMenu.Group>
         </div>

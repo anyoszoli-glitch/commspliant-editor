@@ -46,7 +46,7 @@ export type TableData = {
 }
 
 export type EditorComponents = {
-  HeadingBlock: { text: string }
+  HeadingBlock: { text: RichTextValue }
   TextBlock: { text: RichTextValue }
   NoticeBlock: { heading: string; text: RichTextValue }
   PageBreakBlock: {}
@@ -243,6 +243,18 @@ export function sanitizeDocumentRichText(document: LetterDocument): LetterDocume
     data: {
       ...document.data,
       content: document.data.content.map((item) => {
+        if (item.type === 'HeadingBlock' && typeof item.props.text === 'string') {
+          const isHtml = /<\/?[a-z][\s\S]*>/i.test(item.props.text)
+          const text = isHtml
+            ? sanitizeRichTextHtml(item.props.text, [1, 2, 3, 4, 5, 6])
+            : `<h1>${item.props.text
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;')}</h1>`
+          return { ...item, props: { ...item.props, text } }
+        }
         if (item.type === 'TextBlock' && typeof item.props.text === 'string') {
           return { ...item, props: { ...item.props, text: sanitizeRichTextHtml(item.props.text) } }
         }

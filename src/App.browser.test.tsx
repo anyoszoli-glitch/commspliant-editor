@@ -721,7 +721,7 @@ describe('App persistence', () => {
 
     const heading = await puckHeading(originalHeading)
     await heading.hover()
-    await expect.element(heading).toHaveAttribute('contenteditable', 'plaintext-only')
+    expect(heading.element().closest('[contenteditable]')?.getAttribute('contenteditable')).toBe('true')
     await heading.fill(editedHeading)
     await userEvent.tab()
 
@@ -821,7 +821,7 @@ describe('App persistence', () => {
     })
     expect(savedDocument.data.content[0]).toMatchObject({
       type: 'HeadingBlock',
-      props: { id: 'heading-1', text: editedHeading },
+      props: { id: 'heading-1', text: `<h1>${editedHeading}</h1>` },
     })
     expect(savedDocument.data.content[1]).toMatchObject({
       type: 'NoticeBlock',

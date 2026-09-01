@@ -79,11 +79,18 @@ purifier?.addHook('uponSanitizeAttribute', (node, data) => {
   }
 })
 
-export function sanitizeRichTextHtml(html: string): string {
+export function sanitizeRichTextHtml(
+  html: string,
+  headingLevels: readonly (1 | 2 | 3 | 4 | 5 | 6)[] = [2, 3],
+): string {
   if (!purifier) return html
 
   return purifier.sanitize(html, {
-    ALLOWED_TAGS: ['p', 'h2', 'h3', 'strong', 'b', 'em', 'i', 'u', 's', 'del', 'a', 'ul', 'ol', 'li', 'br', 'span'],
+    ALLOWED_TAGS: [
+      'p',
+      ...headingLevels.map((level) => `h${level}`),
+      'strong', 'b', 'em', 'i', 'u', 's', 'del', 'a', 'ul', 'ol', 'li', 'br', 'span',
+    ],
     ALLOWED_ATTR: ['href', 'style', 'data-commspliant-variable'],
     ALLOW_DATA_ATTR: false,
     ALLOW_ARIA_ATTR: false,

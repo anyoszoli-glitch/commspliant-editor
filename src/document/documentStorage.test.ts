@@ -145,7 +145,7 @@ describe('document storage', () => {
     })
   })
 
-  it('migrates a schema 4 document to schema 5 without changing its content or layout', () => {
+  it('migrates a schema 4 document and preserves its plain heading as rich H1 content', () => {
     const schemaFourDocument = {
       id: 'schema-four-letter',
       schemaVersion: 4,
@@ -171,10 +171,17 @@ describe('document storage', () => {
     ).toEqual({
       ...schemaFourDocument,
       schemaVersion: DOCUMENT_SCHEMA_VERSION,
+      data: {
+        ...schemaFourDocument.data,
+        content: [{
+          type: 'HeadingBlock',
+          props: { id: 'heading-1', text: '<h1>Preserved</h1>' },
+        }],
+      },
     })
   })
 
-  it('migrates a schema 3 document without changing its identity, content, or layout', () => {
+  it('migrates a schema 3 document without changing its identity or layout', () => {
     const schemaThreeDocument = {
       id: 'schema-three-letter',
       schemaVersion: 3,
@@ -203,7 +210,13 @@ describe('document storage', () => {
       status: 'draft',
       createdAt,
       updatedAt: createdAt,
-      data: schemaThreeDocument.data,
+      data: {
+        content: [{
+          type: 'HeadingBlock',
+          props: { id: 'heading-1', text: '<h1>Preserved</h1>' },
+        }],
+        root: {},
+      },
       layout: schemaThreeDocument.layout,
     })
   })
@@ -279,6 +292,13 @@ describe('document storage', () => {
     const storage = createStorage()
     const document = createDocument('formatted-letter')
     document.data.content.push(
+      {
+        type: 'HeadingBlock',
+        props: {
+          id: 'heading-1',
+          text: '<h3 style="text-align: center; line-height: 1.5"><strong><span style="font-family: Georgia; color: #2f6b57">Formatted heading</span></strong></h3>',
+        },
+      },
       {
         type: 'TextBlock',
         props: {

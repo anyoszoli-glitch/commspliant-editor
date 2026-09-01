@@ -598,6 +598,60 @@
   text-underline-offset: 2px;
 }
 
+.commspliant-heading-block {
+  margin: 0 0 20px;
+}
+
+.commspliant-heading-block > :first-child,
+.commspliant-heading-block .rich-text > :first-child {
+  margin-top: 0;
+}
+
+.commspliant-heading-block > :last-child,
+.commspliant-heading-block .rich-text > :last-child {
+  margin-bottom: 0;
+}
+
+.commspliant-heading-block h1,
+.commspliant-heading-block .rich-text > p,
+.commspliant-heading-block .rich-text > .ProseMirror > p {
+  font-size: 28px;
+}
+
+.commspliant-heading-block h2 {
+  font-size: 24px;
+}
+
+.commspliant-heading-block h3 {
+  font-size: 21px;
+}
+
+.commspliant-heading-block h4 {
+  font-size: 18px;
+}
+
+.commspliant-heading-block h5 {
+  font-size: 16px;
+}
+
+.commspliant-heading-block h6 {
+  font-size: 14px;
+}
+
+.commspliant-heading-block :is(h1, h2, h3, h4, h5, h6),
+.commspliant-heading-block .rich-text > p,
+.commspliant-heading-block .rich-text > .ProseMirror > p {
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.commspliant-heading-block a {
+  color: #38566c;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .commspliant-variable-token {
   display: inline-block;
   border: 1px solid #526473;
