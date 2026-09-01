@@ -202,9 +202,17 @@ function PagedCanvas({
   }, [children, measure])
 
   useLayoutEffect(() => {
-    onPagesChange?.(pagination.pages)
-    postPageSettingsMessage(contentRef.current, pageSettingsChannel, { action: 'pages', pages: pagination.pages })
-  }, [onPagesChange, pageSettingsChannel, pagination.pages])
+    const blocks = [...(contentRef.current?.querySelectorAll<HTMLElement>('[data-document-block]') ?? [])]
+    const pages = pagination.pages.map((page) => ({
+      ...page,
+      blockIds: blocks
+        .filter((block) => pagination.placements[block.dataset.documentBlock ?? '']?.page === page.number)
+        .map((block) => block.dataset.documentBlock ?? '')
+        .filter(Boolean),
+    }))
+    onPagesChange?.(pages)
+    postPageSettingsMessage(contentRef.current, pageSettingsChannel, { action: 'pages', pages })
+  }, [onPagesChange, pageSettingsChannel, pagination.pages, pagination.placements])
 
   useLayoutEffect(() => {
     if (!onPageSelect) return

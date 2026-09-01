@@ -12,6 +12,7 @@ export type BlockPlacement = {
 export type PageDescriptor = {
   id: string
   number: number
+  blockIds?: string[]
 }
 
 export type PaginationResult = {
