@@ -25,6 +25,41 @@
   --puck-color-focus-ring: #9aabba;
 }
 
+/* Keep the Properties and Assistant surfaces in the same dark family as Blocks. */
+.document-editor [class*='_Sidebar--right_'] {
+  --puck-sidebar-right-color-bg: #263442;
+  --puck-color-surface: #314252;
+  --puck-color-surface-muted: #314252;
+  --puck-color-surface-subtle: #263442;
+  --puck-color-text: #eef2f5;
+  --puck-color-text-secondary: #c9d2da;
+  --puck-color-text-muted: #b8c3cc;
+  --puck-color-text-subtle: #97a6b2;
+  --puck-color-border: #435464;
+  --puck-color-border-muted: #3b4d5d;
+  --puck-color-border-hover: #607383;
+  --puck-color-focus-ring: #9aabba;
+  --puck-color-interactive: #d9d2ff;
+  --puck-color-interactive-hover: #ffffff;
+  --puck-color-interactive-active: #ffffff;
+  --puck-color-interactive-soft: #405467;
+  --puck-color-interactive-soft-hover: #3b4d5d;
+  --puck-color-bg-disabled: #405467;
+  --puck-color-text-disabled: #b8c3cc;
+  --puck-field-color-bg: #314252;
+  --puck-field-color-bg-hover: #3b4d5d;
+  --puck-field-color-text: #eef2f5;
+  --puck-field-color-text-hover: #ffffff;
+  --puck-field-color-border: #526473;
+  --puck-field-color-border-hover: #788b9b;
+  --puck-field-color-bg-active: #405467;
+  --puck-field-color-text-active: #ffffff;
+  --puck-field-color-bg-disabled: #405467;
+  --puck-field-color-text-disabled: #b8c3cc;
+  --puck-field-label-color-text: #c9d2da;
+  --puck-field-label-color-icon: #b8c3cc;
+}
+
 .document-editor [class*='_Sidebar--left_'] [data-puck-drawer] {
   display: grid;
   grid-template-columns: repeat(2, 64px);
@@ -120,7 +155,7 @@
   display: flex;
   flex-shrink: 0;
   overflow: hidden;
-  border: 1px solid #c7c7c7;
+  border: 1px solid #526473;
   border-radius: 6px;
 }
 
@@ -133,10 +168,10 @@
 
 .document-editor__preview-toggle button {
   border: 0;
-  border-right: 1px solid #c7c7c7;
+  border-right: 1px solid #526473;
   padding: 6px 10px;
-  background: #ffffff;
-  color: #18181b;
+  background: #314252;
+  color: #eef2f5;
   cursor: pointer;
 }
 
@@ -145,13 +180,13 @@
 }
 
 .document-editor__preview-toggle button[aria-pressed='true'] {
-  background: #eeeafe;
-  color: #3825a8;
+  background: #405467;
+  color: #ffffff;
   font-weight: 650;
 }
 
 .document-editor__preview-toggle button:focus-visible {
-  outline: 2px solid #5b45e0;
+  outline: 2px solid #9aabba;
   outline-offset: -2px;
 }
 
@@ -159,9 +194,9 @@
 .document-editor__ai-context-switch {
   display: flex;
   overflow: hidden;
-  border: 1px solid #c7c7c7;
+  border: 1px solid #526473;
   border-radius: 6px;
-  background: #ffffff;
+  background: #314252;
 }
 
 .document-editor__sidebar-mode-switch {
@@ -173,10 +208,10 @@
   min-width: 0;
   flex: 1;
   border: 0;
-  border-right: 1px solid #c7c7c7;
+  border-right: 1px solid #526473;
   padding: 6px 8px;
-  background: #ffffff;
-  color: #314252;
+  background: #314252;
+  color: #eef2f5;
   font: inherit;
   font-size: 12px;
   cursor: pointer;
@@ -189,14 +224,14 @@
 
 .document-editor__sidebar-mode-switch button[aria-selected='true'],
 .document-editor__ai-context-switch button[aria-selected='true'] {
-  background: #eeeafe;
-  color: #3825a8;
+  background: #405467;
+  color: #ffffff;
   font-weight: 650;
 }
 
 .document-editor__sidebar-mode-switch button:focus-visible,
 .document-editor__ai-context-switch button:focus-visible {
-  outline: 2px solid #5b45e0;
+  outline: 2px solid #9aabba;
   outline-offset: -2px;
 }
 
@@ -204,7 +239,7 @@
   display: grid;
   gap: 14px;
   padding: 12px;
-  color: #263442;
+  color: #eef2f5;
   font-size: 13px;
 }
 
@@ -215,7 +250,7 @@
 .document-editor__ai-context-description,
 .document-editor__ai-hint {
   margin: 0;
-  color: #687581;
+  color: #b8c3cc;
   font-size: 12px;
   line-height: 1.45;
 }
@@ -227,7 +262,7 @@
 
 .document-editor__ai-section h3 {
   margin: 0;
-  color: #314252;
+  color: #eef2f5;
   font-size: 13px;
   font-weight: 700;
 }
@@ -276,15 +311,15 @@
 
 .document-editor__ai-suggestion-card {
   min-width: 0;
-  border: 1px solid #d4dce2;
+  border: 1px solid #435464;
   border-radius: 4px;
   padding: 8px;
-  background: #f7f9fa;
+  background: #314252;
 }
 
 .document-editor__ai-suggestion-card h4 {
   margin: 0 0 4px;
-  color: #526473;
+  color: #c9d2da;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -294,7 +329,7 @@
 .document-editor__ai-suggestion-card p {
   min-height: 18px;
   margin: 0;
-  color: #687581;
+  color: #b8c3cc;
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
@@ -307,17 +342,17 @@
 
 .document-editor__layout-settings-toggle,
 .document-editor__layout-reset {
-  border: 1px solid #c7c7c7;
+  border: 1px solid #526473;
   border-radius: 6px;
   padding: 6px 10px;
-  background: #ffffff;
-  color: #18181b;
+  background: #314252;
+  color: #eef2f5;
   cursor: pointer;
 }
 
 .document-editor__layout-settings-toggle:focus-visible,
 .document-editor__layout-reset:focus-visible {
-  outline: 2px solid #5b45e0;
+  outline: 2px solid #9aabba;
   outline-offset: 2px;
 }
 
@@ -402,17 +437,17 @@
 .document-editor__layout-segmented-control {
   display: flex;
   overflow: hidden;
-  border: 1px solid #c7c7c7;
+  border: 1px solid #526473;
   border-radius: 6px;
-  background: #ffffff;
+  background: #314252;
 }
 
 .document-editor__layout-segmented-control button {
   border: 0;
-  border-right: 1px solid #c7c7c7;
+  border-right: 1px solid #526473;
   padding: 6px 10px;
-  background: #ffffff;
-  color: #18181b;
+  background: #314252;
+  color: #eef2f5;
   cursor: pointer;
 }
 
@@ -421,13 +456,13 @@
 }
 
 .document-editor__layout-segmented-control button[aria-checked='true'] {
-  background: #eeeafe;
-  color: #3825a8;
+  background: #405467;
+  color: #ffffff;
   font-weight: 650;
 }
 
 .document-editor__layout-segmented-control button:focus-visible {
-  outline: 2px solid #5b45e0;
+  outline: 2px solid #9aabba;
   outline-offset: -2px;
 }
 
@@ -572,7 +607,7 @@
   min-width: 0;
   display: grid;
   gap: 8px;
-  color: #263442;
+  color: #eef2f5;
   font-size: 11px;
 }
 
@@ -589,11 +624,11 @@
   min-width: 0;
   height: 24px;
   box-sizing: border-box;
-  border: 1px solid #aebbc5;
+  border: 1px solid #526473;
   border-radius: 4px;
   padding: 3px 5px;
-  background: #ffffff;
-  color: #18181b;
+  background: #314252;
+  color: #eef2f5;
   font: inherit;
 }
 
@@ -605,11 +640,11 @@
 
 .commspliant-table-field__actions button {
   min-width: 0;
-  border: 1px solid #aebbc5;
+  border: 1px solid #526473;
   border-radius: 4px;
   padding: 4px;
-  background: #f7f9fa;
-  color: #263442;
+  background: #314252;
+  color: #eef2f5;
   font: inherit;
   cursor: pointer;
 }
@@ -630,13 +665,13 @@
   padding: 5px;
   display: grid;
   gap: 4px;
-  border: 1px solid #d4dce2;
+  border: 1px solid #435464;
   border-radius: 4px;
 }
 
 .commspliant-table-field__rows legend {
   padding: 0 3px;
-  color: #526473;
+  color: #c9d2da;
   font-size: 10px;
 }
 
@@ -1196,16 +1231,16 @@
  * this layer applies only to the embeddable editor surface.
  */
 .document-editor [class*='_PuckHeader_'] {
-  --commspliant-toolbar-navy: #0f1d30;
-  --commspliant-control-navy: #132540;
-  --commspliant-control-line: #28405c;
-  --commspliant-control-line-hover: #46627f;
+  --commspliant-toolbar-navy: #263442;
+  --commspliant-control-navy: #314252;
+  --commspliant-control-line: #526473;
+  --commspliant-control-line-hover: #607383;
   --commspliant-control-hover: rgba(255, 255, 255, 0.1);
-  --commspliant-control-open: rgba(255, 255, 255, 0.14);
-  --commspliant-control-text: #eaf1fb;
-  --commspliant-control-text-muted: #b7c6dc;
-  --commspliant-selected: #5b45e0;
-  --commspliant-selected-line: #8b7cf0;
+  --commspliant-control-open: #405467;
+  --commspliant-control-text: #eef2f5;
+  --commspliant-control-text-muted: #b8c3cc;
+  --commspliant-selected: #405467;
+  --commspliant-selected-line: #788b9b;
   background: var(--commspliant-toolbar-navy);
   border-bottom: 1px solid var(--commspliant-control-line);
   color: var(--commspliant-control-text);
