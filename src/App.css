@@ -2323,6 +2323,18 @@
   box-shadow: 0 0 0 2px #5b45e0, 0 2px 6px rgb(0 0 0 / 18%);
 }
 
+.document-editor__page-card[data-drop-before='true'] {
+  box-shadow: 0 -3px 0 #d9d2ff, 0 2px 6px rgb(0 0 0 / 18%);
+}
+
+.document-editor__page-card[data-drop-after='true'] {
+  box-shadow: 0 3px 0 #d9d2ff, 0 2px 6px rgb(0 0 0 / 18%);
+}
+
+.document-editor__page-card[data-dragging='true'] {
+  opacity: 0.6;
+}
+
 .document-editor__page-card:hover {
   border-color: #9aabba;
 }

@@ -23,6 +23,7 @@ import type { PageDescriptor } from '../DocumentCanvas/pagination'
 import { AiAssistantPanel } from './AiAssistantPanel'
 import { PageNavigator } from './PageNavigator'
 import type { ImagePicker } from '../ImageBlock/imageTypes'
+import { reorderPages } from './pageReordering'
 import tiliToliEditorLogo from '../../assets/TiliToliEditorLogo.webp'
 import type {
   AiAssistantContext,
@@ -117,7 +118,10 @@ function Editor({
   }, [])
   const handlePagesChange = useCallback((pages: PageDescriptor[]) => {
     setPagedPages((current) =>
-      current.length === pages.length && current.every((page, index) => page.id === pages[index]?.id)
+      current.length === pages.length && current.every((page, index) =>
+        page.id === pages[index]?.id &&
+        page.blockIds?.join(',') === pages[index]?.blockIds?.join(','),
+      )
         ? current
         : pages,
     )
@@ -139,6 +143,30 @@ function Editor({
         ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     })
   }, [])
+  const handlePageReorder = useCallback((fromIndex: number, toIndex: number) => {
+    const currentDocument = documentRef.current
+    if (currentDocument.layout.mode !== 'paged') return
+
+    const result = reorderPages(
+      currentData.current.content,
+      pagedPages,
+      fromIndex,
+      toIndex,
+      currentDocument.layout,
+      selectedPageId,
+    )
+    if (!result) return
+
+    const nextData = { ...currentData.current, content: result.content }
+    currentData.current = nextData
+    setSelectedPageId(result.activePageId)
+    onChangeRef.current({ ...currentDocument, data: nextData, layout: result.layout })
+    requestAnimationFrame(() => {
+      const frame = globalThis.document.querySelector<HTMLIFrameElement>('.document-editor iframe')
+      frame?.contentDocument?.querySelector<HTMLElement>(`[data-document-page-id="${result.activePageId}"]`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [pagedPages, selectedPageId])
   useEffect(() => {
     const handlePageSettingsMessage = (event: MessageEvent<unknown>) => {
       const message = event.data
@@ -512,6 +540,7 @@ function Editor({
             pages={document.layout.mode === 'paged' ? pagedPages : []}
             selectedPageId={selectedPageId}
             onPageSelect={handlePageSelect}
+            onPageReorder={handlePageReorder}
             t={t}
           />
         ),
