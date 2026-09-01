@@ -166,6 +166,33 @@ function PagedCanvas({
     postPageSettingsMessage(contentRef.current, pageSettingsChannel, { action: 'pages', pages: pagination.pages })
   }, [onPagesChange, pageSettingsChannel, pagination.pages])
 
+  useLayoutEffect(() => {
+    if (!onPageSelect) return
+
+    const pageElements = pagination.pages
+      .map((page) =>
+        contentRef.current?.parentElement?.querySelector<HTMLElement>(
+          `[data-document-page-id="${page.id}"]`,
+        ),
+      )
+      .filter((page): page is HTMLElement => Boolean(page))
+    if (pageElements.length === 0) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visiblePage = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]?.target as
+          | HTMLElement
+          | undefined
+        const pageId = visiblePage?.dataset.documentPageId
+        if (pageId && pageId !== selectedPageId) onPageSelect(pageId)
+      },
+      { threshold: [0.25, 0.5, 0.75] },
+    )
+    pageElements.forEach((page) => observer.observe(page))
+    return () => observer.disconnect()
+  }, [onPageSelect, pagination.pages, selectedPageId])
 
   const totalHeight = `calc(${pagination.pageCount * A4_HEIGHT_MM}mm + ${(pagination.pageCount - 1) * PAGE_GAP_PX}px)`
 

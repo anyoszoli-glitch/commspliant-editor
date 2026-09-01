@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
-import { Puck, type Config, type Overrides, type Viewports } from '@puckeditor/core'
+import { Puck, type Config, type Overrides, type Plugin, type Viewports } from '@puckeditor/core'
 import '@puckeditor/core/puck.css'
 import '../../App.css'
 
@@ -20,6 +20,7 @@ import { LayoutSettings } from './LayoutSettings'
 import { BackgroundSettings } from './BackgroundSettings'
 import type { PageDescriptor } from '../DocumentCanvas/pagination'
 import { AiAssistantPanel } from './AiAssistantPanel'
+import { PageNavigator } from './PageNavigator'
 import tiliToliEditorLogo from '../../assets/TiliToliEditorLogo.webp'
 import type {
   AiAssistantContext,
@@ -457,6 +458,24 @@ export function CommsPliantEditor({
     ],
   )
 
+  const plugins = useMemo<Plugin<Config<EditorComponents>>[]>(
+    () => [
+      {
+        name: 'pages',
+        label: 'Pages',
+        icon: '▤',
+        render: () => (
+          <PageNavigator
+            pages={document.layout.mode === 'paged' ? pagedPages : []}
+            selectedPageId={selectedPageId}
+            onPageSelect={handlePageSelect}
+          />
+        ),
+      },
+    ],
+    [document.layout.mode, handlePageSelect, pagedPages, selectedPageId],
+  )
+
   return (
     <div className="document-editor">
       {logoHref ? (
@@ -490,6 +509,7 @@ export function CommsPliantEditor({
           dictionary={{ 'header-publish': 'Save draft' }}
           height={height}
           viewports={documentViewports}
+          plugins={plugins}
           permissions={isPreview ? { drag: false, duplicate: false, delete: false, edit: false, insert: false } : undefined}
           overrides={puckOverrides}
           onChange={(data) => {

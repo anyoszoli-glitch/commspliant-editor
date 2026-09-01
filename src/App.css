@@ -2021,3 +2021,110 @@
 .document-editor [class*='_PuckHeader_'] [class*='_Button--primary_'] {
   font-size: 10.5px;
 }
+.document-editor__page-navigator {
+  height: 100%;
+  overflow-y: auto;
+  padding: 16px 12px;
+  box-sizing: border-box;
+}
+
+.document-editor__page-navigator-title {
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 4px 12px;
+  text-transform: uppercase;
+}
+
+.document-editor__page-navigator-list {
+  display: grid;
+  gap: 12px;
+}
+
+.document-editor__page-card {
+  align-items: center;
+  aspect-ratio: 210 / 297;
+  background: #ffffff;
+  border: 2px solid transparent;
+  border-radius: 3px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 18%);
+  color: #263442;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+  width: 100%;
+}
+
+.document-editor__page-card[data-active='true'] {
+  border-color: #d9d2ff;
+  box-shadow: 0 0 0 2px #5b45e0, 0 2px 6px rgb(0 0 0 / 18%);
+}
+
+.document-editor__page-card:hover {
+  border-color: #9aabba;
+}
+
+.document-editor__page-card-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.document-editor__page-navigator-empty {
+  color: #d9e1e7;
+  font-size: 12px;
+  margin: 0 4px;
+}
+
+.document-editor__root-dropzone {
+  position: relative;
+}
+
+.document-editor__empty-drop-helper {
+  align-items: center;
+  color: #8daec2;
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  inset: 0;
+  justify-content: center;
+  line-height: 1.3;
+  pointer-events: none;
+  position: absolute;
+  text-align: center;
+  z-index: 2;
+}
+
+.document-editor__root-dropzone:has(> [data-puck-dropzone]:empty) .document-editor__empty-drop-helper {
+  display: flex;
+}
+
+.document-editor__empty-drop-helper-icons {
+  align-items: center;
+  display: flex;
+  gap: 5px;
+  height: 24px;
+}
+
+.document-editor__empty-drop-helper-square {
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  box-sizing: border-box;
+  height: 12px;
+  width: 12px;
+}
+
+.document-editor__empty-drop-helper-arrow {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.document-editor__empty-drop-helper strong {
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.document-editor__empty-drop-helper > span:last-child {
+  font-size: 12px;
+}

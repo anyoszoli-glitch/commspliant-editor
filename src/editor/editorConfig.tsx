@@ -201,7 +201,18 @@ export function createEditorConfig(
             onPagesChange={onPagesChange}
             pageSettingsChannel={pageSettingsChannel}
           >
-            {children}
+            <div className="document-editor__root-dropzone">
+              {children}
+              <div className="document-editor__empty-drop-helper" aria-hidden="true">
+                <span className="document-editor__empty-drop-helper-icons">
+                  <span className="document-editor__empty-drop-helper-square" />
+                  <span className="document-editor__empty-drop-helper-arrow">→</span>
+                  <span className="document-editor__empty-drop-helper-arrow">↓</span>
+                </span>
+                <strong>Start your page</strong>
+                <span>Drag a block from the left and drop it here</span>
+              </div>
+            </div>
           </EditorDocumentCanvas>
         )
       },
