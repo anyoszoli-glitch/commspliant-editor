@@ -4,6 +4,7 @@ import {
   getColumnWidthPresets,
   MAX_COLUMNS_GAP,
   MAX_COLUMNS_PADDING,
+  MAX_COLUMNS_MIN_HEIGHT,
   normalizeColumnsLayout,
   normalizeColumnsWidthPreset,
   type ColumnWidthPreset,
@@ -46,6 +47,10 @@ export function ColumnsWidthPresetField({ value, onChange, readOnly = false, t }
       [key]: Number.isFinite(numericValue) ? numericValue : layout[key],
     })
   }
+  const updateMinimumHeight = (input: string) => {
+    const numericValue = Number(input)
+    onChange({ ...layout, minHeight: Number.isFinite(numericValue) ? numericValue : layout.minHeight })
+  }
 
   return (
     <div className="commspliant-columns-field__option">
@@ -78,6 +83,22 @@ export function ColumnsWidthPresetField({ value, onChange, readOnly = false, t }
         <span>px</span>
         </label>
       </div>
+      <label>
+        <span>{t('height')}</span>
+        <select aria-label={t('height')} value={layout.heightMode} disabled={readOnly} onChange={(event) => onChange({ ...layout, heightMode: event.currentTarget.value as 'auto' | 'custom' })}>
+          <option value="auto">{t('automatic')}</option>
+          <option value="custom">{t('customMinimumHeight')}</option>
+        </select>
+      </label>
+      {layout.heightMode === 'custom' && (
+        <div>
+          <span className="commspliant-columns-field__option-label">{t('minimumHeight')}</span>
+          <label className="commspliant-columns-field__number">
+            <input aria-label={t('minimumHeight')} type="number" min={0} max={MAX_COLUMNS_MIN_HEIGHT} step={1} value={layout.minHeight} disabled={readOnly} onChange={(event) => updateMinimumHeight(event.currentTarget.value)} />
+            <span>px</span>
+          </label>
+        </div>
+      )}
       <div>
         <span className="commspliant-columns-field__option-label">{t('internalPadding')}</span>
         <label className="commspliant-columns-field__number">

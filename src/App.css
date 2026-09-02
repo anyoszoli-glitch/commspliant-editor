@@ -2408,6 +2408,8 @@
   box-sizing: border-box;
   max-width: 100%;
   margin: 10px 0;
+  min-height: var(--columns-min-height, 0);
+  align-items: stretch;
 }
 
 .commspliant-columns-block[data-columns-preset='50-50'] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
@@ -2420,10 +2422,12 @@
 .commspliant-columns-block[data-columns-preset='25-25-25-25'] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
 .commspliant-columns-block__column {
+  display: flex;
+  flex-direction: column;
   position: relative;
   min-width: 0;
   box-sizing: border-box;
-  padding: 8px;
+  padding: var(--columns-padding, 8px);
   border: 1px dashed rgba(91, 69, 224, 0.34);
   border-radius: 4px;
   background: rgba(91, 69, 224, 0.025);

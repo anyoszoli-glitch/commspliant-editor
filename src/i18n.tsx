@@ -39,7 +39,7 @@ const english = {
   headerRow: 'Header row', textAlignment: 'Text alignment', tableTextAlignment: 'Table text alignment', left: 'Left', centre: 'Centre', right: 'Right', addRow: 'Add row', deleteRow: 'Delete row', addColumn: 'Add column', deleteColumn: 'Delete column', row: 'Row {row}', tableCell: 'Row {row}, column {column}', column: 'Column {column}',
   about: 'About', aboutTiliToli: 'About Tili-Toli', closeAbout: 'Close About Tili-Toli', aboutTitle: 'Tili-Toli by CommsPliant', aboutIntro: 'Tili-Toli is the standalone document editor created for CommsPliant.', aboutBodyOne: 'We built it to make document editing simple, flexible and reusable, while keeping the editor itself separate from the wider communication workflow.', aboutBodyTwo: 'In the full CommsPliant platform, Tili-Toli becomes part of a controlled communication process with datasets, live preview, version control, review and approval workflows, document generation, audit evidence and AI-assisted editing.', aboutBodyThree: 'The standalone editor is the editing layer. CommsPliant adds the control, workflow and evidence around it.', exploreCommsPliant: 'Explore CommsPliant', aboutCommsPliant: 'About CommsPliant', builtBy: 'Built by CommsPliant.',
   leftPanelTitle: 'Blocks / Outline', rightPanelTitle: 'Properties / AI Assistant', dock: 'Dock', undock: 'Undock', dockPanel: 'Dock {panel} panel', undockPanel: 'Undock {panel} panel', resizePanel: 'Resize {panel} panel', resizePanelHint: 'Drag to resize. Arrow keys also resize.',
-  columnGap: 'Column gap', internalPadding: 'Internal padding',
+  columnGap: 'Column gap', internalPadding: 'Internal padding', height: 'Height', automatic: 'Automatic', customMinimumHeight: 'Custom minimum height', minimumHeight: 'Minimum height',
   puckUndo: 'Undo', puckRedo: 'Redo', puckToggleLeft: 'Toggle left sidebar', puckToggleRight: 'Toggle right sidebar', puckSelectParent: 'Select parent', puckDuplicate: 'Duplicate', puckDelete: 'Delete', puckNoItems: 'No items', puckCollapse: 'Collapse', puckExpand: 'Expand', puckZoomIn: 'Zoom viewport in', puckZoomOut: 'Zoom viewport out', puckViewport: 'Switch viewport', puckBold: 'Bold', puckItalic: 'Italic', puckUnderline: 'Underline', puckStrikethrough: 'Strikethrough', puckBulletList: 'Bullet list', puckOrderedList: 'Ordered list', puckAlignLeft: 'Align left', puckAlignCenter: 'Align center', puckAlignRight: 'Align right',
 } as const
 
@@ -71,6 +71,10 @@ Object.assign(translations.es, { columnGap: 'Espacio entre columnas', internalPa
 Object.assign(translations.hu, { columnGap: 'Oszlopköz', internalPadding: 'Belső térköz' })
 Object.assign(translations.fr, { columnGap: 'Espacement des colonnes', internalPadding: 'Marge intérieure' })
 Object.assign(translations.de, { columnGap: 'Spaltenabstand', internalPadding: 'Innenabstand' })
+Object.assign(translations.es, { height: 'Altura', automatic: 'Automática', customMinimumHeight: 'Altura mínima personalizada', minimumHeight: 'Altura mínima' })
+Object.assign(translations.hu, { height: 'Magasság', automatic: 'Automatikus', customMinimumHeight: 'Egyéni minimális magasság', minimumHeight: 'Minimális magasság' })
+Object.assign(translations.fr, { height: 'Hauteur', automatic: 'Automatique', customMinimumHeight: 'Hauteur minimale personnalisée', minimumHeight: 'Hauteur minimale' })
+Object.assign(translations.de, { height: 'Höhe', automatic: 'Automatisch', customMinimumHeight: 'Benutzerdefinierte Mindesthöhe', minimumHeight: 'Mindesthöhe' })
 
 Object.assign(translations.es, {
   selectPage: 'Seleccionar la página {page}', pageNumberLabel: 'Número de página {page}', documentContent: 'Contenido del documento', documentPage: 'Página del documento', fluidDocument: 'Documento fluido',

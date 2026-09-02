@@ -69,12 +69,16 @@ export type ColumnsLayout = {
   widthPreset: ColumnWidthPreset
   gap?: number
   padding?: number
+  heightMode?: 'auto' | 'custom'
+  minHeight?: number
 }
 
 export const DEFAULT_COLUMNS_GAP = 12
 export const DEFAULT_COLUMNS_PADDING = 8
 export const MAX_COLUMNS_GAP = 32
 export const MAX_COLUMNS_PADDING = 24
+/** Default A4 usable height: (297mm - 20mm - 20mm) × 96/25.4, rounded down. */
+export const MAX_COLUMNS_MIN_HEIGHT = 971
 
 export type ColumnWidthPreset =
   | '50-50'
@@ -132,6 +136,10 @@ export function normalizeColumnsLayout(value: unknown, count: ColumnCount): Requ
     widthPreset: normalizeColumnsWidthPreset(layout.widthPreset, count),
     gap: normalizeColumnsSpacing(layout.gap, DEFAULT_COLUMNS_GAP, MAX_COLUMNS_GAP),
     padding: normalizeColumnsSpacing(layout.padding, DEFAULT_COLUMNS_PADDING, MAX_COLUMNS_PADDING),
+    heightMode: layout.heightMode === 'custom' ? 'custom' : 'auto',
+    minHeight: layout.heightMode === 'custom'
+      ? normalizeColumnsSpacing(layout.minHeight, 0, MAX_COLUMNS_MIN_HEIGHT)
+      : 0,
   }
 }
 
@@ -156,7 +164,7 @@ export type EditorComponents = {
 
 export const defaultColumnsBlockData: EditorComponents['ColumnsBlock'] = {
   columns: getColumnsForCount(2),
-  layout: { widthPreset: '50-50', gap: DEFAULT_COLUMNS_GAP, padding: DEFAULT_COLUMNS_PADDING },
+  layout: { widthPreset: '50-50', gap: DEFAULT_COLUMNS_GAP, padding: DEFAULT_COLUMNS_PADDING, heightMode: 'auto', minHeight: 0 },
   leftColumn: [],
   rightColumn: [],
   thirdColumn: [],

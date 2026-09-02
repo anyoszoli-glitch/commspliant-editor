@@ -37,8 +37,9 @@ export function ColumnsBlock({
       data-columns-block
       data-columns-count={columns.length}
       data-columns-preset={layout.widthPreset}
+      data-columns-height-mode={layout.heightMode ?? 'auto'}
       aria-label={t('columns')}
-      style={{ '--columns-gap': `${layout.gap ?? DEFAULT_COLUMNS_GAP}px`, '--columns-padding': `${layout.padding ?? DEFAULT_COLUMNS_PADDING}px` } as CSSProperties}
+      style={{ '--columns-gap': `${layout.gap ?? DEFAULT_COLUMNS_GAP}px`, '--columns-padding': `${layout.padding ?? DEFAULT_COLUMNS_PADDING}px`, '--columns-min-height': `${layout.heightMode === 'custom' ? layout.minHeight ?? 0 : 0}px` } as CSSProperties}
     >
       {columns.map((column) => {
         const ColumnSlot = slots[column.slot]
