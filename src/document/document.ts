@@ -1,4 +1,4 @@
-import type { Data } from '@puckeditor/core'
+import type { Content, Data, Slot } from '@puckeditor/core'
 import { normalizeDocumentName } from './documentMetadata'
 import { sanitizeRichTextHtml } from './richTextSanitizer'
 
@@ -57,6 +57,17 @@ export type TableData = {
   alignment: TableAlignment
 }
 
+export type ColumnSlotId = 'leftColumn' | 'rightColumn'
+export type ColumnDefinition = {
+  /** A stable identifier; display order is the order in this array. */
+  id: 'left' | 'right'
+  /** The Puck slot that persists this column's child blocks. */
+  slot: ColumnSlotId
+}
+export type ColumnsLayout = {
+  widthPreset: '50-50'
+}
+
 export type EditorComponents = {
   HeadingBlock: { text: RichTextValue }
   TextBlock: { text: RichTextValue }
@@ -66,6 +77,22 @@ export type EditorComponents = {
   ImageBlock: { image: ImageBlockData }
   DividerBlock: {}
   SpacerBlock: { size: SpacerSize }
+  ColumnsBlock: {
+    columns: ColumnDefinition[]
+    layout: ColumnsLayout
+    leftColumn: Slot<EditorComponents>
+    rightColumn: Slot<EditorComponents>
+  }
+}
+
+export const defaultColumnsBlockData: EditorComponents['ColumnsBlock'] = {
+  columns: [
+    { id: 'left', slot: 'leftColumn' },
+    { id: 'right', slot: 'rightColumn' },
+  ],
+  layout: { widthPreset: '50-50' },
+  leftColumn: [],
+  rightColumn: [],
 }
 export type BackgroundImageFit =
   | 'fill'
@@ -314,10 +341,76 @@ export function sanitizeDocumentRichText(document: LetterDocument): LetterDocume
         if (item.type === 'ImageBlock') {
           return { ...item, props: { ...item.props, image: normalizeImageBlockData(item.props.image) } }
         }
+        if (item.type === 'ColumnsBlock') {
+          return {
+            ...item,
+            props: {
+              ...item.props,
+              ...defaultColumnsBlockData,
+              columns: defaultColumnsBlockData.columns.map((column) => ({ ...column })),
+              layout: { ...defaultColumnsBlockData.layout },
+              leftColumn: sanitizeColumnsSlot(item.props.leftColumn),
+              rightColumn: sanitizeColumnsSlot(item.props.rightColumn),
+            },
+          }
+        }
         return item
       }),
     },
   }
+}
+
+const supportedColumnsChildTypes = new Set<keyof EditorComponents>([
+  'HeadingBlock',
+  'TextBlock',
+  'TableBlock',
+  'ImageBlock',
+  'DividerBlock',
+  'SpacerBlock',
+])
+
+function sanitizeColumnsSlot(value: unknown): Content<EditorComponents> {
+  if (!Array.isArray(value)) return []
+
+  const sanitizedChildren: Content<EditorComponents> = []
+  for (const child of value) {
+    if (!child || typeof child !== 'object') continue
+
+    const item = child as DocumentData['content'][number]
+    if (!supportedColumnsChildTypes.has(item.type as keyof EditorComponents)) continue
+
+    if (item.type === 'ImageBlock') {
+      sanitizedChildren.push({
+        ...item,
+        props: { ...item.props, image: normalizeImageBlockData(item.props.image) },
+      })
+      continue
+    }
+    if (item.type === 'HeadingBlock' && typeof item.props.text === 'string') {
+      const isHtml = /<\/?[a-z][\s\S]*>/i.test(item.props.text)
+      const text = isHtml
+        ? sanitizeRichTextHtml(item.props.text, [1, 2, 3, 4, 5, 6])
+        : `<h1>${item.props.text
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;')}</h1>`
+      sanitizedChildren.push({ ...item, props: { ...item.props, text } })
+      continue
+    }
+    if (item.type === 'TextBlock' && typeof item.props.text === 'string') {
+      sanitizedChildren.push({
+        ...item,
+        props: { ...item.props, text: sanitizeRichTextHtml(item.props.text) },
+      })
+      continue
+    }
+
+    sanitizedChildren.push(item)
+  }
+
+  return sanitizedChildren
 }
 
 export function isSafeImageSource(value: unknown): value is string {

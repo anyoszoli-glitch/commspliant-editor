@@ -83,6 +83,7 @@ describe('editor config', () => {
     expect(config.components.ImageBlock.label).toBe('Image')
     expect(config.components.DividerBlock.label).toBe('Divider')
     expect(config.components.SpacerBlock.label).toBe('Spacer')
+    expect(config.components.ColumnsBlock.label).toBe('Columns')
   })
 
   it('registers an Important notice with the constrained rich-text body editor', () => {
@@ -135,8 +136,31 @@ describe('editor config', () => {
     expect(config.components.ImageBlock.defaultProps).toEqual({
       image: { alt: '', title: '', width: 100, alignment: 'center', horizontalOffset: 0 },
     })
+    expect(config.components.ColumnsBlock.defaultProps).toEqual({
+      columns: [
+        { id: 'left', slot: 'leftColumn' },
+        { id: 'right', slot: 'rightColumn' },
+      ],
+      layout: { widthPreset: '50-50' },
+      leftColumn: [],
+      rightColumn: [],
+    })
+    expect(config.components.ColumnsBlock.fields).toMatchObject({
+      leftColumn: {
+        type: 'slot',
+        allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
+        disallow: ['ColumnsBlock'],
+      },
+      rightColumn: {
+        type: 'slot',
+        allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
+        disallow: ['ColumnsBlock'],
+      },
+    })
     expect(JSON.parse(JSON.stringify(config.components.TableBlock.defaultProps)))
       .toEqual(config.components.TableBlock.defaultProps)
+    expect(JSON.parse(JSON.stringify(config.components.ColumnsBlock.defaultProps)))
+      .toEqual(config.components.ColumnsBlock.defaultProps)
   })
 
   it('renders page indicators only outside Preview output', () => {

@@ -9,6 +9,7 @@ import { PageBreakBlock } from '../components/PageBreakBlock/PageBreakBlock'
 import { NoticeBlock } from '../components/NoticeBlock/NoticeBlock'
 import { DividerBlock } from '../components/DividerBlock/DividerBlock'
 import { SpacerBlock } from '../components/SpacerBlock/SpacerBlock'
+import { ColumnsBlock } from '../components/ColumnsBlock/ColumnsBlock'
 import { TableBlock } from '../components/TableBlock/TableBlock'
 import { TableEditorField } from '../components/TableBlock/TableEditorField'
 import { defaultTableData } from '../components/TableBlock/tableModel'
@@ -26,6 +27,7 @@ import type {
   DocumentLayout,
   EditorComponents,
 } from '../document/document'
+import { defaultColumnsBlockData } from '../document/document'
 import { VariableNode } from './VariableNode'
 import { typographyExtensions } from './TypographyExtensions'
 import type { VariableDefinition, VariablePreviewValues } from './variables'
@@ -364,6 +366,53 @@ export function createEditorConfig(
         render: ({ id, size }) => (
           <LayoutBlock id={id}>
             <SpacerBlock size={size} showIndicator={!previewEnabled} />
+          </LayoutBlock>
+        ),
+      },
+      ColumnsBlock: {
+        label: t('columns'),
+        fields: {
+          columns: {
+            type: 'array',
+            visible: false,
+            arrayFields: {
+              id: { type: 'text' },
+              slot: { type: 'text' },
+            },
+          },
+          layout: {
+            type: 'object',
+            visible: false,
+            objectFields: {
+              widthPreset: { type: 'text' },
+            },
+          },
+          leftColumn: {
+            type: 'slot',
+            allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
+            disallow: ['ColumnsBlock'],
+          },
+          rightColumn: {
+            type: 'slot',
+            allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
+            disallow: ['ColumnsBlock'],
+          },
+        },
+        defaultProps: {
+          columns: defaultColumnsBlockData.columns.map((column) => ({ ...column })),
+          layout: { ...defaultColumnsBlockData.layout },
+          leftColumn: [],
+          rightColumn: [],
+        },
+        render: ({ id, columns, layout, leftColumn, rightColumn }) => (
+          <LayoutBlock id={id}>
+            <ColumnsBlock
+              columns={columns}
+              layout={layout}
+              leftColumn={leftColumn}
+              rightColumn={rightColumn}
+              showEmptyGuidance={!previewEnabled}
+            />
           </LayoutBlock>
         ),
       },

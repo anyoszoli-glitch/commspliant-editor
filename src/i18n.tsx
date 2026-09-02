@@ -16,7 +16,7 @@ const english = {
   layout: 'Layout:', pagedA4: 'Paged / A4', fluid: 'Fluid', pageSetup: 'Page setup', backgroundSettings: 'Background settings',
   pages: 'Pages', blocks: 'Blocks', outline: 'Outline', noPagesYet: 'No pages yet', page: 'Page {page}', goToPage: 'Go to page {page}', selectPage: 'Select page {page}', pageNumberLabel: 'Page number {page}', documentContent: 'Document content', documentPage: 'Document page', fluidDocument: 'Fluid document',
   visitCommsPliant: 'Visit CommsPliant', editorLogo: 'Tili Toli Editor', saveDraft: 'Save draft',
-  heading: 'Heading', text: 'Text', importantNotice: 'Important notice', pageBreak: 'Page break', table: 'Table', divider: 'Divider', spacer: 'Spacer',
+  heading: 'Heading', text: 'Text', importantNotice: 'Important notice', pageBreak: 'Page break', table: 'Table', divider: 'Divider', spacer: 'Spacer', columns: 'Columns', leftColumn: 'Left column', rightColumn: 'Right column', columnsEmptyGuidance: 'Drag a block here',
   image: 'Image', chooseImage: 'Choose image', replaceImage: 'Replace image', removeImage: 'Remove image', altText: 'Alt text', title: 'Title', width: 'Width', alignment: 'Alignment', horizontalOffset: 'Horizontal offset', imagePickerUnavailable: 'Image selection is available when your host connects an image picker.', imageLoadError: 'This image could not be loaded.',
   small: 'Small', medium: 'Medium', large: 'Large', startPage: 'Start your page', dragBlock: 'Drag a block from the left and drop it here',
   documentDefaultMargins: 'Document default margins', pageMargins: 'Page margins', showMargins: 'Show margins', selectedPage: 'Selected page',
@@ -102,6 +102,19 @@ Object.assign(translations.fr, {
 })
 Object.assign(translations.de, {
   image: 'Bild', chooseImage: 'Bild auswählen', replaceImage: 'Bild ersetzen', removeImage: 'Bild entfernen', altText: 'Alternativtext', title: 'Titel', width: 'Breite', alignment: 'Ausrichtung', horizontalOffset: 'Horizontaler Versatz', imagePickerUnavailable: 'Die Bildauswahl ist verfügbar, wenn der Host eine Bildauswahl verbindet.', imageLoadError: 'Dieses Bild konnte nicht geladen werden.',
+})
+
+Object.assign(translations.es, {
+  columns: 'Columnas', leftColumn: 'Columna izquierda', rightColumn: 'Columna derecha', columnsEmptyGuidance: 'Arrastre un bloque aquí',
+})
+Object.assign(translations.hu, {
+  columns: 'Oszlopok', leftColumn: 'Bal oszlop', rightColumn: 'Jobb oszlop', columnsEmptyGuidance: 'Húzzon ide egy blokkot',
+})
+Object.assign(translations.fr, {
+  columns: 'Colonnes', leftColumn: 'Colonne de gauche', rightColumn: 'Colonne de droite', columnsEmptyGuidance: 'Faites glisser un bloc ici',
+})
+Object.assign(translations.de, {
+  columns: 'Spalten', leftColumn: 'Linke Spalte', rightColumn: 'Rechte Spalte', columnsEmptyGuidance: 'Ziehen Sie einen Block hierher',
 })
 
 export function normalizeLocale(locale: string | undefined): SupportedLocale {

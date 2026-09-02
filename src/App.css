@@ -2401,3 +2401,56 @@
 .document-editor__empty-drop-helper > span:last-child {
   font-size: 12px;
 }
+
+.commspliant-columns-block {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: 10px 0;
+}
+
+.commspliant-columns-block__column {
+  position: relative;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px dashed rgba(91, 69, 224, 0.34);
+  border-radius: 4px;
+  background: rgba(91, 69, 224, 0.025);
+}
+
+.commspliant-columns-block__column-label {
+  display: block;
+  margin: 0 0 6px;
+  color: #66788a;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.commspliant-columns-block__slot,
+.commspliant-columns-block__slot [data-puck-dropzone] {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.commspliant-columns-block__empty-guidance {
+  display: none;
+  position: absolute;
+  inset: 34px 8px 8px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  color: #788b9b;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: none;
+}
+
+.commspliant-columns-block__column:has([data-puck-dropzone]:empty)
+  .commspliant-columns-block__empty-guidance {
+  display: flex;
+}

@@ -343,6 +343,59 @@ describe('document storage', () => {
     expect(loadDocument(storage)).toEqual(savedDocument)
   })
 
+  it('round-trips ordered independent Columns block slots and sanitizes their image data', () => {
+    const storage = createStorage()
+    const document = createDocument('columns-letter')
+    document.data.content.push({
+      type: 'ColumnsBlock',
+      props: {
+        id: 'columns-1',
+        columns: [
+          { id: 'left', slot: 'leftColumn' },
+          { id: 'right', slot: 'rightColumn' },
+        ],
+        layout: { widthPreset: '50-50' },
+        leftColumn: [
+          { type: 'HeadingBlock', props: { id: 'left-heading', text: { type: 'doc', content: [] } } },
+          { type: 'DividerBlock', props: { id: 'left-divider' } },
+        ],
+        rightColumn: [
+          {
+            type: 'ImageBlock',
+            props: {
+              id: 'right-image',
+              image: { src: 'javascript:alert(1)', alt: 'Unsafe image' },
+            },
+          },
+          { type: 'SpacerBlock', props: { id: 'right-spacer', size: 'small' } },
+        ],
+      },
+    })
+
+    saveDocument(document, storage)
+    const restored = loadDocument(storage)
+    const columns = restored.data.content[0]
+
+    expect(columns).toMatchObject({
+      type: 'ColumnsBlock',
+      props: {
+        columns: [
+          { id: 'left', slot: 'leftColumn' },
+          { id: 'right', slot: 'rightColumn' },
+        ],
+        layout: { widthPreset: '50-50' },
+        leftColumn: [
+          { type: 'HeadingBlock', props: { id: 'left-heading' } },
+          { type: 'DividerBlock', props: { id: 'left-divider' } },
+        ],
+        rightColumn: [
+          { type: 'ImageBlock', props: { id: 'right-image', image: { src: undefined } } },
+          { type: 'SpacerBlock', props: { id: 'right-spacer' } },
+        ],
+      },
+    })
+  })
+
   it('round-trips typography and the table, divider, and spacer block data', () => {
     const storage = createStorage()
     const document = createDocument('formatted-letter')
