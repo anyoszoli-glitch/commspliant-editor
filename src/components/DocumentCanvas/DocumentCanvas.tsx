@@ -155,13 +155,15 @@ function PagedCanvas({
     const content = contentRef.current
     if (!content) return
 
-    const blocks = [...content.querySelectorAll<HTMLElement>('[data-document-block]')].map(
-      (block) => ({
-        id: block.dataset.documentBlock ?? '',
-        height: block.getBoundingClientRect().height,
-        breakAfter: block.dataset.pageBreak === 'after',
-      }),
-    )
+    const blocks = [...content.querySelectorAll<HTMLElement>('[data-document-block]')]
+      .filter((block) => !block.closest('[data-columns-block]'))
+      .map(
+        (block) => ({
+          id: block.dataset.documentBlock ?? '',
+          height: block.getBoundingClientRect().height,
+          breakAfter: block.dataset.pageBreak === 'after',
+        }),
+      )
     const nextPagination = paginateBlocks(blocks, {
       pageHeight: A4_HEIGHT_MM * MM_TO_PX,
       marginTop: layout.margins.top * MM_TO_PX,

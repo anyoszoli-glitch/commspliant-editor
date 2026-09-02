@@ -1,4 +1,4 @@
-import type { Data } from '@puckeditor/core'
+import type { Content, Data, Slot } from '@puckeditor/core'
 import { normalizeDocumentName } from './documentMetadata'
 import { sanitizeRichTextHtml } from './richTextSanitizer'
 
@@ -57,6 +57,133 @@ export type TableData = {
   alignment: TableAlignment
 }
 
+export type ColumnCount = 2 | 3 | 4
+export type ColumnSlotId = 'leftColumn' | 'rightColumn' | 'thirdColumn' | 'fourthColumn'
+export type ColumnId = 'left' | 'right' | 'third' | 'fourth'
+export type ColumnVerticalAlign = 'top' | 'center' | 'bottom'
+export type ColumnDefinition = {
+  /** A stable identifier; display order is the order in this array. */
+  id: ColumnId
+  /** The Puck slot that persists this column's child blocks. */
+  slot: ColumnSlotId
+}
+export type ColumnsLayout = {
+  widthPreset: ColumnWidthPreset
+  gap?: number
+  padding?: number
+  heightMode?: 'auto' | 'custom'
+  minHeight?: number
+  verticalAlign?: ColumnVerticalAlign
+}
+
+export type ColumnBackgroundColour = `#${string}`
+export type ColumnBackgrounds = Partial<Record<ColumnId, ColumnBackgroundColour>>
+
+export const DEFAULT_COLUMNS_GAP = 12
+export const DEFAULT_COLUMNS_PADDING = 8
+export const MAX_COLUMNS_GAP = 32
+export const MAX_COLUMNS_PADDING = 24
+/**
+ * Default A4 usable height is (297mm - 20mm - 20mm) × 96/25.4, rounded down.
+ * The Columns block keeps its existing 10px vertical margins, which are part of
+ * the paginated block measurement, so reserve those 20px at the maximum.
+ */
+export const MAX_COLUMNS_MIN_HEIGHT = 951
+
+export type ColumnWidthPreset =
+  | '50-50'
+  | '25-75'
+  | '75-25'
+  | '33-67'
+  | '67-33'
+  | '33-33-33'
+  | '25-50-25'
+  | '25-25-25-25'
+
+const columnDefinitions: readonly ColumnDefinition[] = [
+  { id: 'left', slot: 'leftColumn' },
+  { id: 'right', slot: 'rightColumn' },
+  { id: 'third', slot: 'thirdColumn' },
+  { id: 'fourth', slot: 'fourthColumn' },
+]
+
+const columnIds: readonly ColumnId[] = ['left', 'right', 'third', 'fourth']
+
+export function normalizeColumnBackgroundColour(value: unknown): ColumnBackgroundColour | undefined {
+  if (typeof value !== 'string') return undefined
+
+  const shortMatch = /^#([0-9a-fA-F]{3})$/.exec(value)
+  if (shortMatch) {
+    const [red, green, blue] = shortMatch[1]
+    return `#${red}${red}${green}${green}${blue}${blue}`.toLowerCase() as ColumnBackgroundColour
+  }
+
+  return /^#[0-9a-fA-F]{6}$/.test(value)
+    ? value.toLowerCase() as ColumnBackgroundColour
+    : undefined
+}
+
+export function normalizeColumnBackgrounds(value: unknown): ColumnBackgrounds {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+
+  const backgrounds = value as Partial<Record<ColumnId, unknown>>
+  return columnIds.reduce<ColumnBackgrounds>((normalized, id) => {
+    const colour = normalizeColumnBackgroundColour(backgrounds[id])
+    if (colour) normalized[id] = colour
+    return normalized
+  }, {})
+}
+
+export function getColumnCount(value: unknown): ColumnCount {
+  return Array.isArray(value) && (value.length === 3 || value.length === 4)
+    ? value.length
+    : 2
+}
+
+export function getColumnsForCount(count: ColumnCount): ColumnDefinition[] {
+  return columnDefinitions.slice(0, count).map((column) => ({ ...column }))
+}
+
+export function getColumnsWidthPreset(count: ColumnCount): ColumnsLayout['widthPreset'] {
+  if (count === 3) return '33-33-33'
+  if (count === 4) return '25-25-25-25'
+  return '50-50'
+}
+
+export function getColumnWidthPresets(count: ColumnCount): readonly ColumnWidthPreset[] {
+  if (count === 3) return ['33-33-33', '25-50-25']
+  if (count === 4) return ['25-25-25-25']
+  return ['50-50', '25-75', '75-25', '33-67', '67-33']
+}
+
+export function normalizeColumnsWidthPreset(value: unknown, count: ColumnCount): ColumnWidthPreset {
+  return getColumnWidthPresets(count).includes(value as ColumnWidthPreset)
+    ? value as ColumnWidthPreset
+    : getColumnsWidthPreset(count)
+}
+
+export function normalizeColumnsSpacing(value: unknown, defaultValue: number, maximum: number): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return defaultValue
+  return Math.min(maximum, Math.max(0, Math.round(value)))
+}
+
+export function normalizeColumnsLayout(value: unknown, count: ColumnCount): Required<ColumnsLayout> {
+  const layout = value && typeof value === 'object' ? value as Partial<ColumnsLayout> : {}
+  return {
+    widthPreset: normalizeColumnsWidthPreset(layout.widthPreset, count),
+    gap: normalizeColumnsSpacing(layout.gap, DEFAULT_COLUMNS_GAP, MAX_COLUMNS_GAP),
+    padding: normalizeColumnsSpacing(layout.padding, DEFAULT_COLUMNS_PADDING, MAX_COLUMNS_PADDING),
+    heightMode: layout.heightMode === 'custom' ? 'custom' : 'auto',
+    minHeight: layout.heightMode === 'custom'
+      ? normalizeColumnsSpacing(layout.minHeight, 0, MAX_COLUMNS_MIN_HEIGHT)
+      : 0,
+    verticalAlign:
+      layout.verticalAlign === 'center' || layout.verticalAlign === 'bottom'
+        ? layout.verticalAlign
+        : 'top',
+  }
+}
+
 export type EditorComponents = {
   HeadingBlock: { text: RichTextValue }
   TextBlock: { text: RichTextValue }
@@ -66,6 +193,25 @@ export type EditorComponents = {
   ImageBlock: { image: ImageBlockData }
   DividerBlock: {}
   SpacerBlock: { size: SpacerSize }
+  ColumnsBlock: {
+    columns: ColumnDefinition[]
+    layout: ColumnsLayout
+    columnBackgrounds?: ColumnBackgrounds
+    leftColumn: Slot<EditorComponents>
+    rightColumn: Slot<EditorComponents>
+    thirdColumn: Slot<EditorComponents>
+    fourthColumn: Slot<EditorComponents>
+  }
+}
+
+export const defaultColumnsBlockData: EditorComponents['ColumnsBlock'] = {
+  columns: getColumnsForCount(2),
+  layout: { widthPreset: '50-50', gap: DEFAULT_COLUMNS_GAP, padding: DEFAULT_COLUMNS_PADDING, heightMode: 'auto', minHeight: 0, verticalAlign: 'top' },
+  columnBackgrounds: {},
+  leftColumn: [],
+  rightColumn: [],
+  thirdColumn: [],
+  fourthColumn: [],
 }
 export type BackgroundImageFit =
   | 'fill'
@@ -314,10 +460,80 @@ export function sanitizeDocumentRichText(document: LetterDocument): LetterDocume
         if (item.type === 'ImageBlock') {
           return { ...item, props: { ...item.props, image: normalizeImageBlockData(item.props.image) } }
         }
+        if (item.type === 'ColumnsBlock') {
+          const count = getColumnCount(item.props.columns)
+          return {
+            ...item,
+            props: {
+              ...item.props,
+              ...defaultColumnsBlockData,
+              columns: getColumnsForCount(count),
+              layout: normalizeColumnsLayout(item.props.layout, count),
+              columnBackgrounds: normalizeColumnBackgrounds(item.props.columnBackgrounds),
+              leftColumn: sanitizeColumnsSlot(item.props.leftColumn),
+              rightColumn: sanitizeColumnsSlot(item.props.rightColumn),
+              thirdColumn: sanitizeColumnsSlot(item.props.thirdColumn),
+              fourthColumn: sanitizeColumnsSlot(item.props.fourthColumn),
+            },
+          }
+        }
         return item
       }),
     },
   }
+}
+
+const supportedColumnsChildTypes = new Set<keyof EditorComponents>([
+  'HeadingBlock',
+  'TextBlock',
+  'TableBlock',
+  'ImageBlock',
+  'DividerBlock',
+  'SpacerBlock',
+])
+
+function sanitizeColumnsSlot(value: unknown): Content<EditorComponents> {
+  if (!Array.isArray(value)) return []
+
+  const sanitizedChildren: Content<EditorComponents> = []
+  for (const child of value) {
+    if (!child || typeof child !== 'object') continue
+
+    const item = child as DocumentData['content'][number]
+    if (!supportedColumnsChildTypes.has(item.type as keyof EditorComponents)) continue
+
+    if (item.type === 'ImageBlock') {
+      sanitizedChildren.push({
+        ...item,
+        props: { ...item.props, image: normalizeImageBlockData(item.props.image) },
+      })
+      continue
+    }
+    if (item.type === 'HeadingBlock' && typeof item.props.text === 'string') {
+      const isHtml = /<\/?[a-z][\s\S]*>/i.test(item.props.text)
+      const text = isHtml
+        ? sanitizeRichTextHtml(item.props.text, [1, 2, 3, 4, 5, 6])
+        : `<h1>${item.props.text
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;')}</h1>`
+      sanitizedChildren.push({ ...item, props: { ...item.props, text } })
+      continue
+    }
+    if (item.type === 'TextBlock' && typeof item.props.text === 'string') {
+      sanitizedChildren.push({
+        ...item,
+        props: { ...item.props, text: sanitizeRichTextHtml(item.props.text) },
+      })
+      continue
+    }
+
+    sanitizedChildren.push(item)
+  }
+
+  return sanitizedChildren
 }
 
 export function isSafeImageSource(value: unknown): value is string {

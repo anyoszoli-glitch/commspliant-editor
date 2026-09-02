@@ -27,6 +27,14 @@ describe('i18n', () => {
     expect(french('backgroundPositionTopLeft')).toBe('En haut à gauche')
   })
 
+  it('localizes the Columns vertical-alignment control in every supported language', () => {
+    expect(createTranslator('en')('verticalAlignment')).toBe('Vertical alignment')
+    expect(createTranslator('es')('verticalAlignCentre')).toBe('Centro')
+    expect(createTranslator('hu')('verticalAlignBottom')).toBe('Alul')
+    expect(createTranslator('fr')('verticalAlignTop')).toBe('Haut')
+    expect(createTranslator('de')('verticalAlignment')).toBe('Vertikale Ausrichtung')
+  })
+
   it('normalizes document language metadata', () => {
     const documentElement = { lang: '' }
 

@@ -3,6 +3,7 @@ import {
   DOCUMENT_SCHEMA_VERSION,
   changeDocumentLayout,
   createDocument,
+  normalizeColumnBackgroundColour,
 } from './document'
 import {
   DOCUMENT_NAME_STORAGE_KEY,
@@ -341,6 +342,225 @@ describe('document storage', () => {
     const savedDocument = saveDocument(document, storage)
 
     expect(loadDocument(storage)).toEqual(savedDocument)
+  })
+
+  it('round-trips ordered independent Columns block slots and sanitizes their image data', () => {
+    const storage = createStorage()
+    const document = createDocument('columns-letter')
+    document.data.content.push({
+      type: 'ColumnsBlock',
+      props: {
+        id: 'columns-1',
+        columns: [
+          { id: 'left', slot: 'leftColumn' },
+          { id: 'right', slot: 'rightColumn' },
+        ],
+        layout: { widthPreset: '50-50' },
+        leftColumn: [
+          { type: 'HeadingBlock', props: { id: 'left-heading', text: { type: 'doc', content: [] } } },
+          { type: 'DividerBlock', props: { id: 'left-divider' } },
+        ],
+        rightColumn: [
+          {
+            type: 'ImageBlock',
+            props: {
+              id: 'right-image',
+              image: { src: 'javascript:alert(1)', alt: 'Unsafe image' },
+            },
+          },
+          { type: 'SpacerBlock', props: { id: 'right-spacer', size: 'small' } },
+        ],
+        thirdColumn: [],
+        fourthColumn: [],
+      },
+    })
+
+    saveDocument(document, storage)
+    const restored = loadDocument(storage)
+    const columns = restored.data.content[0]
+
+    expect(columns).toMatchObject({
+      type: 'ColumnsBlock',
+      props: {
+        columns: [
+          { id: 'left', slot: 'leftColumn' },
+          { id: 'right', slot: 'rightColumn' },
+        ],
+        layout: { widthPreset: '50-50' },
+        leftColumn: [
+          { type: 'HeadingBlock', props: { id: 'left-heading' } },
+          { type: 'DividerBlock', props: { id: 'left-divider' } },
+        ],
+        rightColumn: [
+          { type: 'ImageBlock', props: { id: 'right-image', image: { src: undefined } } },
+          { type: 'SpacerBlock', props: { id: 'right-spacer' } },
+        ],
+      },
+    })
+  })
+
+  it('preserves inactive third and fourth column content while two columns are active', () => {
+    const storage = createStorage()
+    const document = createDocument('hidden-columns-letter')
+    document.data.content.push({
+      type: 'ColumnsBlock',
+      props: {
+        id: 'columns-2',
+        columns: [
+          { id: 'left', slot: 'leftColumn' },
+          { id: 'right', slot: 'rightColumn' },
+        ],
+        layout: { widthPreset: '50-50' },
+        leftColumn: [],
+        rightColumn: [],
+        thirdColumn: [{ type: 'SpacerBlock', props: { id: 'third-spacer', size: 'small' } }],
+        fourthColumn: [{ type: 'DividerBlock', props: { id: 'fourth-divider' } }],
+      },
+    })
+
+    saveDocument(document, storage)
+
+    expect(loadDocument(storage).data.content[0]).toMatchObject({
+      type: 'ColumnsBlock',
+      props: {
+        columns: [
+          { id: 'left', slot: 'leftColumn' },
+          { id: 'right', slot: 'rightColumn' },
+        ],
+        thirdColumn: [{ type: 'SpacerBlock', props: { id: 'third-spacer' } }],
+        fourthColumn: [{ type: 'DividerBlock', props: { id: 'fourth-divider' } }],
+      },
+    })
+  })
+
+  it('preserves stable per-column backgrounds and normalizes unsafe saved values', () => {
+    const storage = createStorage()
+    const document = createDocument('column-backgrounds-letter')
+    document.data.content.push({
+      type: 'ColumnsBlock',
+      props: {
+        id: 'columns-backgrounds',
+        columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }],
+        layout: { widthPreset: '50-50' },
+        columnBackgrounds: {
+          left: '#ABC',
+          right: '#123456',
+          third: '#def',
+          fourth: 'url(javascript:alert(1))' as never,
+        },
+        leftColumn: [], rightColumn: [], thirdColumn: [], fourthColumn: [],
+      },
+    })
+
+    saveDocument(document, storage)
+
+    expect(loadDocument(storage).data.content[0]).toMatchObject({
+      props: {
+        columns: [{ id: 'left' }, { id: 'right' }],
+        columnBackgrounds: { left: '#aabbcc', right: '#123456', third: '#ddeeff' },
+      },
+    })
+  })
+
+  it('accepts only canonical solid column background colours', () => {
+    expect(normalizeColumnBackgroundColour('#abc')).toBe('#aabbcc')
+    expect(normalizeColumnBackgroundColour('#A1B2C3')).toBe('#a1b2c3')
+
+    for (const unsafeValue of [
+      'expression(alert(1))',
+      'url(javascript:alert(1))',
+      'javascript:alert(1)',
+      '#abcd',
+      '#1234567',
+      '#12zz34',
+      '#123456\ncolor:red',
+      'transparent',
+      Infinity,
+      null,
+    ]) {
+      expect(normalizeColumnBackgroundColour(unsafeValue)).toBeUndefined()
+    }
+  })
+
+  it('preserves valid width presets and normalizes invalid saved presets by column count', () => {
+    const storage = createStorage()
+    const document = createDocument('width-presets-letter')
+    document.data.content.push(
+      {
+        type: 'ColumnsBlock',
+        props: {
+          id: 'valid-width-preset',
+          columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }],
+          layout: { widthPreset: '25-75' }, leftColumn: [], rightColumn: [], thirdColumn: [], fourthColumn: [],
+        },
+      },
+      {
+        type: 'ColumnsBlock',
+        props: {
+          id: 'invalid-width-preset',
+          columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }, { id: 'third', slot: 'thirdColumn' }],
+          layout: { widthPreset: '75-25' as never }, leftColumn: [], rightColumn: [], thirdColumn: [], fourthColumn: [],
+        },
+      },
+    )
+
+    saveDocument(document, storage)
+
+    const restoredColumns = loadDocument(storage).data.content.filter(
+      (item) => item.type === 'ColumnsBlock',
+    )
+    expect(restoredColumns.map((item) => item.props.layout.widthPreset)).toEqual([
+      '25-75', '33-33-33',
+    ])
+  })
+
+  it('normalizes Columns gap and padding without changing the slot content', () => {
+    const storage = createStorage()
+    const document = createDocument('columns-spacing-letter')
+    document.data.content.push({
+      type: 'ColumnsBlock',
+      props: {
+        id: 'columns-spacing', columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }],
+        layout: { widthPreset: '25-75', gap: -4, padding: 99 },
+        leftColumn: [{ type: 'TextBlock', props: { id: 'left-text', text: { type: 'doc', content: [] } } }],
+        rightColumn: [], thirdColumn: [], fourthColumn: [],
+      },
+    })
+    saveDocument(document, storage)
+    const columns = loadDocument(storage).data.content[0]
+    expect(columns).toMatchObject({
+      props: { layout: { widthPreset: '25-75', gap: 0, padding: 24 }, leftColumn: [{ props: { id: 'left-text' } }] },
+    })
+  })
+
+  it('preserves valid Columns vertical alignment and normalizes invalid values to top', () => {
+    const storage = createStorage()
+    const document = createDocument('columns-alignment-letter')
+    document.data.content.push(
+      {
+        type: 'ColumnsBlock',
+        props: {
+          id: 'bottom-alignment', columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }],
+          layout: { widthPreset: '50-50', verticalAlign: 'bottom' },
+          leftColumn: [{ type: 'SpacerBlock', props: { id: 'bottom-spacer', size: 'small' } }],
+          rightColumn: [], thirdColumn: [], fourthColumn: [],
+        },
+      },
+      {
+        type: 'ColumnsBlock',
+        props: {
+          id: 'invalid-alignment', columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }],
+          layout: { widthPreset: '50-50', verticalAlign: 'middle' as never },
+          leftColumn: [], rightColumn: [], thirdColumn: [], fourthColumn: [],
+        },
+      },
+    )
+
+    saveDocument(document, storage)
+
+    const columns = loadDocument(storage).data.content.filter((item) => item.type === 'ColumnsBlock')
+    expect(columns.map((item) => item.props.layout.verticalAlign)).toEqual(['bottom', 'top'])
+    expect(columns[0]?.props.leftColumn).toMatchObject([{ props: { id: 'bottom-spacer' } }])
   })
 
   it('round-trips typography and the table, divider, and spacer block data', () => {

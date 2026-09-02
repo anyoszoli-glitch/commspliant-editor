@@ -9,6 +9,10 @@ import { PageBreakBlock } from '../components/PageBreakBlock/PageBreakBlock'
 import { NoticeBlock } from '../components/NoticeBlock/NoticeBlock'
 import { DividerBlock } from '../components/DividerBlock/DividerBlock'
 import { SpacerBlock } from '../components/SpacerBlock/SpacerBlock'
+import { ColumnsBlock, ColumnsBlockAuthoring } from '../components/ColumnsBlock/ColumnsBlock'
+import { ColumnsEditorField } from '../components/ColumnsBlock/ColumnsEditorField'
+import { ColumnsBackgroundColourField } from '../components/ColumnsBlock/ColumnsBackgroundColourField'
+import { ColumnsWidthPresetField } from '../components/ColumnsBlock/ColumnsWidthPresetField'
 import { TableBlock } from '../components/TableBlock/TableBlock'
 import { TableEditorField } from '../components/TableBlock/TableEditorField'
 import { defaultTableData } from '../components/TableBlock/tableModel'
@@ -25,6 +29,13 @@ import type {
   DocumentBackgroundImage,
   DocumentLayout,
   EditorComponents,
+} from '../document/document'
+import {
+  defaultColumnsBlockData,
+  getColumnCount,
+  getColumnsForCount,
+  normalizeColumnBackgrounds,
+  normalizeColumnsLayout,
 } from '../document/document'
 import { VariableNode } from './VariableNode'
 import { typographyExtensions } from './TypographyExtensions'
@@ -366,6 +377,94 @@ export function createEditorConfig(
             <SpacerBlock size={size} showIndicator={!previewEnabled} />
           </LayoutBlock>
         ),
+      },
+      ColumnsBlock: {
+        label: t('columns'),
+        fields: {
+          columns: {
+            type: 'custom',
+            render: ({ value, onChange, readOnly }) => (
+              <ColumnsEditorField
+                value={value}
+                onChange={onChange}
+                readOnly={readOnly}
+                t={t}
+              />
+            ),
+          },
+          layout: {
+            type: 'custom',
+            render: ({ value, onChange, readOnly }) => (
+              <ColumnsWidthPresetField value={value} onChange={onChange} readOnly={readOnly} t={t} />
+            ),
+          },
+          columnBackgrounds: {
+            type: 'custom',
+            render: ({ value, onChange, readOnly }) => (
+              <ColumnsBackgroundColourField value={value} onChange={onChange} readOnly={readOnly} t={t} />
+            ),
+          },
+          leftColumn: {
+            type: 'slot',
+            allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
+            disallow: ['ColumnsBlock'],
+          },
+          rightColumn: {
+            type: 'slot',
+            allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
+            disallow: ['ColumnsBlock'],
+          },
+          thirdColumn: {
+            type: 'slot',
+            allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
+            disallow: ['ColumnsBlock'],
+          },
+          fourthColumn: {
+            type: 'slot',
+            allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
+            disallow: ['ColumnsBlock'],
+          },
+        },
+        defaultProps: {
+          columns: defaultColumnsBlockData.columns.map((column) => ({ ...column })),
+          layout: { ...defaultColumnsBlockData.layout },
+          columnBackgrounds: { ...defaultColumnsBlockData.columnBackgrounds },
+          leftColumn: [],
+          rightColumn: [],
+          thirdColumn: [],
+          fourthColumn: [],
+        },
+        resolveData: (data) => {
+          const count = getColumnCount(data.props.columns)
+          return {
+            props: {
+              columns: getColumnsForCount(count),
+              layout: normalizeColumnsLayout(data.props.layout, count),
+              columnBackgrounds: normalizeColumnBackgrounds(data.props.columnBackgrounds),
+            },
+          }
+        },
+        render: ({ id, columns, layout, columnBackgrounds, leftColumn, rightColumn, thirdColumn, fourthColumn }) => {
+          const columnsProps = {
+            columns,
+            layout,
+            columnBackgrounds,
+            leftColumn,
+            rightColumn,
+            thirdColumn,
+            fourthColumn,
+          }
+
+          return (
+            <LayoutBlock id={id}>
+              {previewEnabled ? (
+                <ColumnsBlock {...columnsProps} />
+              ) : (
+                <ColumnsBlockAuthoring {...columnsProps} id={id} showEmptyGuidance />
+              )}
+            </LayoutBlock>
+          )
+        },
       },
     },
   }

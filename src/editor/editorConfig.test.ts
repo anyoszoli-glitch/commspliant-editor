@@ -83,6 +83,7 @@ describe('editor config', () => {
     expect(config.components.ImageBlock.label).toBe('Image')
     expect(config.components.DividerBlock.label).toBe('Divider')
     expect(config.components.SpacerBlock.label).toBe('Spacer')
+    expect(config.components.ColumnsBlock.label).toBe('Columns')
   })
 
   it('registers an Important notice with the constrained rich-text body editor', () => {
@@ -135,8 +136,99 @@ describe('editor config', () => {
     expect(config.components.ImageBlock.defaultProps).toEqual({
       image: { alt: '', title: '', width: 100, alignment: 'center', horizontalOffset: 0 },
     })
+    expect(config.components.ColumnsBlock.defaultProps).toEqual({
+      columns: [
+        { id: 'left', slot: 'leftColumn' },
+        { id: 'right', slot: 'rightColumn' },
+      ],
+      layout: { widthPreset: '50-50', gap: 12, padding: 8, heightMode: 'auto', minHeight: 0, verticalAlign: 'top' },
+      columnBackgrounds: {},
+      leftColumn: [],
+      rightColumn: [],
+      thirdColumn: [],
+      fourthColumn: [],
+    })
+    expect(config.components.ColumnsBlock.fields).toMatchObject({
+      columns: { type: 'custom' },
+      layout: { type: 'custom' },
+      columnBackgrounds: { type: 'custom' },
+      leftColumn: {
+        type: 'slot',
+        allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
+        disallow: ['ColumnsBlock'],
+      },
+      rightColumn: {
+        type: 'slot',
+        allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
+        disallow: ['ColumnsBlock'],
+      },
+      thirdColumn: {
+        type: 'slot',
+        allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
+        disallow: ['ColumnsBlock'],
+      },
+      fourthColumn: {
+        type: 'slot',
+        allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
+        disallow: ['ColumnsBlock'],
+      },
+    })
     expect(JSON.parse(JSON.stringify(config.components.TableBlock.defaultProps)))
       .toEqual(config.components.TableBlock.defaultProps)
+    expect(JSON.parse(JSON.stringify(config.components.ColumnsBlock.defaultProps)))
+      .toEqual(config.components.ColumnsBlock.defaultProps)
+  })
+
+  it('normalizes active column descriptors and equal-width presets without touching slot content', () => {
+    const config = createEditorConfig(defaultPagedLayout)
+    const resolveData = config.components.ColumnsBlock.resolveData
+    if (!resolveData) throw new Error('Expected Columns resolver')
+
+    const resolved = resolveData({
+      props: {
+        id: 'columns-1',
+        columns: [
+          { id: 'left', slot: 'leftColumn' },
+          { id: 'right', slot: 'rightColumn' },
+          { id: 'third', slot: 'thirdColumn' },
+        ],
+        layout: { widthPreset: '25-50-25', gap: 12, padding: 8, heightMode: 'auto', minHeight: 0 },
+        columnBackgrounds: { left: '#abc', third: '#123456', fourth: 'url(evil)' },
+        leftColumn: [],
+        rightColumn: [],
+        thirdColumn: [],
+        fourthColumn: [],
+      },
+    } as never, {} as never)
+
+    expect(resolved).toEqual({
+      props: {
+        columns: [
+          { id: 'left', slot: 'leftColumn' },
+          { id: 'right', slot: 'rightColumn' },
+          { id: 'third', slot: 'thirdColumn' },
+        ],
+        layout: { widthPreset: '25-50-25', gap: 12, padding: 8, heightMode: 'auto', minHeight: 0, verticalAlign: 'top' },
+        columnBackgrounds: { left: '#aabbcc', third: '#123456' },
+      },
+    })
+  })
+
+  it('normalizes missing and invalid vertical alignment to top', () => {
+    const config = createEditorConfig(defaultPagedLayout)
+    const resolveData = config.components.ColumnsBlock.resolveData
+    if (!resolveData) throw new Error('Expected Columns resolver')
+
+    const resolved = resolveData({
+      props: {
+        id: 'columns-alignment',
+        columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }],
+        layout: { widthPreset: '50-50', verticalAlign: 'middle' as never },
+        leftColumn: [], rightColumn: [], thirdColumn: [], fourthColumn: [],
+      },
+    } as never, {} as never)
+
+    expect(resolved).toMatchObject({ props: { layout: { verticalAlign: 'top' } } })
   })
 
   it('renders page indicators only outside Preview output', () => {
