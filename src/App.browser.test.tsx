@@ -621,6 +621,61 @@ describe('App persistence', () => {
     expect(document.querySelector('#layout-settings-panel')).toBeNull()
   })
 
+  it('closes either settings panel with its close button and preserves panel interactions', async () => {
+    const changes: LetterDocument[] = []
+    const editorDocument = createDocument('embedded-floating-panel-close')
+    editorDocument.backgroundImage = {
+      src: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="10" height="10"/%3E',
+      opacity: 0.2,
+    }
+
+    container = document.createElement('div')
+    document.body.append(container)
+    root = createRoot(container)
+    root.render(
+      <EmbeddedEditorHarness
+        initialDocument={editorDocument}
+        changes={changes}
+        saves={[]}
+      />,
+    )
+
+    await puckContent()
+
+    const pageSetupButton = page.getByRole('button', { name: 'Page setup' })
+    const backgroundSettingsButton = page.getByRole('button', { name: 'Background settings' })
+
+    await userEvent.click(pageSetupButton)
+    await userEvent.fill(page.getByRole('spinbutton', { name: 'Top margin' }), '24')
+    await userEvent.tab()
+    await expect.poll(() => changes.at(-1)?.layout).toMatchObject({
+      mode: 'paged',
+      margins: { top: 24 },
+    })
+    await userEvent.click(page.getByRole('button', { name: 'Close Page setup' }))
+    await expect.element(page.getByRole('button', { name: 'Close Page setup' })).not.toBeInTheDocument()
+    expect(document.querySelector('#layout-settings-panel')).toBeNull()
+
+    await userEvent.click(backgroundSettingsButton)
+    await userEvent.click(page.getByRole('button', { name: 'Light blue' }))
+    await expect.poll(() => changes.at(-1)?.backgroundColour).toBe('#eaf0f4')
+    await userEvent.click(page.getByRole('button', { name: 'Close Background settings' }))
+    await expect.element(page.getByRole('button', { name: 'Close Background settings' })).not.toBeInTheDocument()
+    expect(document.querySelector('#background-settings-panel')).toBeNull()
+
+    await userEvent.click(pageSetupButton)
+    await userEvent.click(backgroundSettingsButton)
+    expect(document.querySelector('#layout-settings-panel')).toBeNull()
+    await expect.element(page.getByRole('button', { name: 'Close Background settings' })).toBeVisible()
+
+    await userEvent.click(pageSetupButton)
+    expect(document.querySelector('#background-settings-panel')).toBeNull()
+    await expect.element(page.getByRole('button', { name: 'Close Page setup' })).toBeVisible()
+
+    await userEvent.click(page.getByRole('button', { name: 'Save draft' }))
+    expect(document.querySelector('#layout-settings-panel')).toBeNull()
+  })
+
   it('sanitizes rich-text HTML while preserving variable spans and literal braces', () => {
     expect(sanitizeRichTextHtml('<p onclick="alert(1)">Hello<script>alert(1)</script></p>')).toBe(
       '<p>Hello</p>',

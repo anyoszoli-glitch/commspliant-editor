@@ -13,7 +13,7 @@ const english = {
   language: 'Language',
   sidebarMode: 'Sidebar mode', properties: 'Properties', aiAssistant: 'AI Assistant',
   variablePresentation: 'Variable presentation', author: 'Author', preview: 'Preview',
-  layout: 'Layout:', pagedA4: 'Paged / A4', fluid: 'Fluid', pageSetup: 'Page setup', backgroundSettings: 'Background settings',
+  layout: 'Layout:', pagedA4: 'Paged / A4', fluid: 'Fluid', pageSetup: 'Page setup', backgroundSettings: 'Background settings', closePageSetup: 'Close Page setup', closeBackgroundSettings: 'Close Background settings',
   pages: 'Pages', blocks: 'Blocks', outline: 'Outline', noPagesYet: 'No pages yet', page: 'Page {page}', goToPage: 'Go to page {page}', selectPage: 'Select page {page}', pageNumberLabel: 'Page number {page}', documentContent: 'Document content', documentPage: 'Document page', fluidDocument: 'Fluid document',
   visitCommsPliant: 'Visit CommsPliant', editorLogo: 'Tili Toli Editor', saveDraft: 'Save draft',
   heading: 'Heading', text: 'Text', importantNotice: 'Important notice', pageBreak: 'Page break', table: 'Table', divider: 'Divider', spacer: 'Spacer',
@@ -64,6 +64,19 @@ Object.assign(translations.fr, {
 })
 Object.assign(translations.de, {
   visitCommsPliant: 'CommsPliant besuchen', selectedText: 'Ausgewählter Text: „{text}“', selectTextForAi: 'Wählen Sie Text im Dokument aus, um einen Auswahlkontext vorzubereiten.', currentBlock: 'Aktueller Block {index}{zone}', selectBlockForAi: 'Wählen Sie einen Block im Dokument aus, um einen Blockkontext vorzubereiten.', aiDocumentContext: 'Das vollständige Dokument steht dem KI-Dienst des Hosts zur Verfügung.', aiHostHint: 'KI-Aktionen werden aktiviert, wenn der Host einen Handler verbindet.', aboutTitle: 'Tili-Toli von CommsPliant', aboutIntro: 'Tili-Toli ist der eigenständige Dokumenteditor für CommsPliant.', aboutBodyOne: 'Wir haben ihn entwickelt, damit die Dokumentbearbeitung einfach, flexibel und wiederverwendbar ist und der Editor zugleich vom umfassenderen Kommunikationsprozess getrennt bleibt.', aboutBodyTwo: 'In der vollständigen CommsPliant-Plattform wird Tili-Toli Teil eines kontrollierten Kommunikationsprozesses mit Datensätzen, Live-Vorschau, Versionskontrolle, Prüfungs- und Freigabeworkflows, Dokumenterstellung, Auditnachweisen und KI-gestützter Bearbeitung.', aboutBodyThree: 'Der eigenständige Editor ist die Bearbeitungsebene. CommsPliant ergänzt sie um Kontrolle, Workflow und Nachweise.', builtBy: 'Erstellt von CommsPliant.',
+})
+
+Object.assign(translations.es, {
+  closePageSetup: 'Cerrar configuración de página', closeBackgroundSettings: 'Cerrar configuración de fondo',
+})
+Object.assign(translations.hu, {
+  closePageSetup: 'Oldalbeállítás bezárása', closeBackgroundSettings: 'Háttérbeállítások bezárása',
+})
+Object.assign(translations.fr, {
+  closePageSetup: 'Fermer la mise en page', closeBackgroundSettings: 'Fermer les paramètres d’arrière-plan',
+})
+Object.assign(translations.de, {
+  closePageSetup: 'Seiteneinstellungen schließen', closeBackgroundSettings: 'Hintergrundeinstellungen schließen',
 })
 
 Object.assign(translations.es, {

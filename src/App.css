@@ -625,6 +625,38 @@
   box-shadow: 0 6px 18px rgba(38, 52, 66, 0.16);
 }
 
+.document-editor__layout-settings-close,
+.document-editor__background-settings-close {
+  box-sizing: border-box;
+  position: absolute;
+  z-index: 1;
+  top: 7px;
+  right: 7px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: #526473;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.document-editor__layout-settings-close:hover,
+.document-editor__background-settings-close:hover {
+  border-color: #5b45e0;
+  background: #eeeafe;
+  color: #3825a8;
+}
+
+.document-editor__layout-settings-close:focus-visible,
+.document-editor__background-settings-close:focus-visible {
+  outline: 2px solid #5b45e0;
+  outline-offset: 2px;
+}
+
 .document-editor__layout-settings-fields {
   display: grid;
   gap: 9px;
