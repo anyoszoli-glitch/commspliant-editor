@@ -224,6 +224,18 @@ export function LayoutSettings({
             overflowY: 'auto',
           }}
         >
+          <button
+            type="button"
+            className="document-editor__layout-settings-close"
+            aria-label={t('closePageSetup')}
+            onClick={() => {
+              setIsOpen(false)
+              setErrors({})
+              buttonRef.current?.focus()
+            }}
+          >
+            ×
+          </button>
           {layout.mode === 'paged' ? (
             <div className="document-editor__layout-settings-fields">
               <span className="document-editor__layout-section-label">{t('documentDefaultMargins')}</span>

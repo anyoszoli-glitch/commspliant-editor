@@ -13,7 +13,7 @@ const english = {
   language: 'Language',
   sidebarMode: 'Sidebar mode', properties: 'Properties', aiAssistant: 'AI Assistant',
   variablePresentation: 'Variable presentation', author: 'Author', preview: 'Preview',
-  layout: 'Layout:', pagedA4: 'Paged / A4', fluid: 'Fluid', pageSetup: 'Page setup', backgroundSettings: 'Background settings',
+  layout: 'Layout:', pagedA4: 'Paged / A4', fluid: 'Fluid', pageSetup: 'Page setup', backgroundSettings: 'Background settings', closePageSetup: 'Close Page setup', closeBackgroundSettings: 'Close Background settings',
   pages: 'Pages', blocks: 'Blocks', outline: 'Outline', noPagesYet: 'No pages yet', page: 'Page {page}', goToPage: 'Go to page {page}', selectPage: 'Select page {page}', pageNumberLabel: 'Page number {page}', documentContent: 'Document content', documentPage: 'Document page', fluidDocument: 'Fluid document',
   visitCommsPliant: 'Visit CommsPliant', editorLogo: 'Tili Toli Editor', saveDraft: 'Save draft',
   heading: 'Heading', text: 'Text', importantNotice: 'Important notice', pageBreak: 'Page break', table: 'Table', divider: 'Divider', spacer: 'Spacer', columns: 'Columns', columnCount: 'Column count', columnWidths: 'Column widths', width50_50: '50 / 50', width25_75: '25 / 75', width75_25: '75 / 25', width33_67: '33 / 67', width67_33: '67 / 33', width33_33_33: '33 / 33 / 33', width25_50_25: '25 / 50 / 25', width25_25_25_25: '25 / 25 / 25 / 25', twoColumns: '2 columns', threeColumns: '3 columns', fourColumns: '4 columns', leftColumn: 'Left column', rightColumn: 'Right column', thirdColumn: 'Third column', fourthColumn: 'Fourth column', columnBackgrounds: 'Column backgrounds', columnOneBackground: 'Column 1 background', columnTwoBackground: 'Column 2 background', columnThreeBackground: 'Column 3 background', columnFourBackground: 'Column 4 background', transparent: 'Transparent', addText: 'Add text', addTextToColumn: 'Add text to {column}', columnsEmptyGuidance: 'or drag another block here', hiddenColumnsWarning: 'Content in hidden columns will be kept and restored if you increase the column count again.', hideAndPreserve: 'Hide and preserve', cancel: 'Cancel',
@@ -83,6 +83,19 @@ Object.assign(translations.es, { height: 'Altura', automatic: 'Automática', cus
 Object.assign(translations.hu, { height: 'Magasság', automatic: 'Automatikus', customMinimumHeight: 'Egyéni minimális magasság', minimumHeight: 'Minimális magasság', verticalAlignment: 'Függőleges igazítás', verticalAlignTop: 'Felül', verticalAlignCentre: 'Középen', verticalAlignBottom: 'Alul' })
 Object.assign(translations.fr, { height: 'Hauteur', automatic: 'Automatique', customMinimumHeight: 'Hauteur minimale personnalisée', minimumHeight: 'Hauteur minimale', verticalAlignment: 'Alignement vertical', verticalAlignTop: 'Haut', verticalAlignCentre: 'Centre', verticalAlignBottom: 'Bas' })
 Object.assign(translations.de, { height: 'Höhe', automatic: 'Automatisch', customMinimumHeight: 'Benutzerdefinierte Mindesthöhe', minimumHeight: 'Mindesthöhe', verticalAlignment: 'Vertikale Ausrichtung', verticalAlignTop: 'Oben', verticalAlignCentre: 'Mitte', verticalAlignBottom: 'Unten' })
+
+Object.assign(translations.es, {
+  closePageSetup: 'Cerrar configuración de página', closeBackgroundSettings: 'Cerrar configuración de fondo',
+})
+Object.assign(translations.hu, {
+  closePageSetup: 'Oldalbeállítás bezárása', closeBackgroundSettings: 'Háttérbeállítások bezárása',
+})
+Object.assign(translations.fr, {
+  closePageSetup: 'Fermer la mise en page', closeBackgroundSettings: 'Fermer les paramètres d’arrière-plan',
+})
+Object.assign(translations.de, {
+  closePageSetup: 'Seiteneinstellungen schließen', closeBackgroundSettings: 'Hintergrundeinstellungen schließen',
+})
 
 Object.assign(translations.es, {
   selectPage: 'Seleccionar la página {page}', pageNumberLabel: 'Número de página {page}', documentContent: 'Contenido del documento', documentPage: 'Página del documento', fluidDocument: 'Documento fluido',

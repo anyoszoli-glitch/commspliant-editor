@@ -161,6 +161,17 @@ export function BackgroundSettings({
             overflowY: 'auto',
           }}
         >
+          <button
+            type="button"
+            className="document-editor__background-settings-close"
+            aria-label={t('closeBackgroundSettings')}
+            onClick={() => {
+              onOpenChange(false)
+              buttonRef.current?.focus()
+            }}
+          >
+            ×
+          </button>
           <div className="document-editor__background-field">
             <span>{t('backgroundColour')}</span>
 

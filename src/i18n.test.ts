@@ -16,6 +16,19 @@ describe('i18n', () => {
     expect(createTranslator('es')('editorLogo')).toBe('Tili Toli Editor')
   })
 
+  it('translates the floating-panel close labels in every supported locale', () => {
+    expect(createTranslator('en')('closePageSetup')).toBe('Close Page setup')
+    expect(createTranslator('en')('closeBackgroundSettings')).toBe('Close Background settings')
+    expect(createTranslator('es')('closePageSetup')).toBe('Cerrar configuración de página')
+    expect(createTranslator('es')('closeBackgroundSettings')).toBe('Cerrar configuración de fondo')
+    expect(createTranslator('hu')('closePageSetup')).toBe('Oldalbeállítás bezárása')
+    expect(createTranslator('hu')('closeBackgroundSettings')).toBe('Háttérbeállítások bezárása')
+    expect(createTranslator('fr')('closePageSetup')).toBe('Fermer la mise en page')
+    expect(createTranslator('fr')('closeBackgroundSettings')).toBe('Fermer les paramètres d’arrière-plan')
+    expect(createTranslator('de')('closePageSetup')).toBe('Seiteneinstellungen schließen')
+    expect(createTranslator('de')('closeBackgroundSettings')).toBe('Hintergrundeinstellungen schließen')
+  })
+
   it('localizes restored panel chrome and editor-owned dynamic labels', () => {
     const spanish = createTranslator('es')
     const french = createTranslator('fr')
