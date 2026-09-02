@@ -33,7 +33,7 @@ import {
   defaultColumnsBlockData,
   getColumnCount,
   getColumnsForCount,
-  normalizeColumnsWidthPreset,
+  normalizeColumnsLayout,
 } from '../document/document'
 import { VariableNode } from './VariableNode'
 import { typographyExtensions } from './TypographyExtensions'
@@ -430,7 +430,7 @@ export function createEditorConfig(
           return {
             props: {
               columns: getColumnsForCount(count),
-              layout: { widthPreset: normalizeColumnsWidthPreset(data.props.layout?.widthPreset, count) },
+              layout: normalizeColumnsLayout(data.props.layout, count),
             },
           }
         },

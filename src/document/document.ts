@@ -67,7 +67,14 @@ export type ColumnDefinition = {
 }
 export type ColumnsLayout = {
   widthPreset: ColumnWidthPreset
+  gap?: number
+  padding?: number
 }
+
+export const DEFAULT_COLUMNS_GAP = 12
+export const DEFAULT_COLUMNS_PADDING = 8
+export const MAX_COLUMNS_GAP = 32
+export const MAX_COLUMNS_PADDING = 24
 
 export type ColumnWidthPreset =
   | '50-50'
@@ -114,6 +121,20 @@ export function normalizeColumnsWidthPreset(value: unknown, count: ColumnCount):
     : getColumnsWidthPreset(count)
 }
 
+export function normalizeColumnsSpacing(value: unknown, defaultValue: number, maximum: number): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return defaultValue
+  return Math.min(maximum, Math.max(0, Math.round(value)))
+}
+
+export function normalizeColumnsLayout(value: unknown, count: ColumnCount): Required<ColumnsLayout> {
+  const layout = value && typeof value === 'object' ? value as Partial<ColumnsLayout> : {}
+  return {
+    widthPreset: normalizeColumnsWidthPreset(layout.widthPreset, count),
+    gap: normalizeColumnsSpacing(layout.gap, DEFAULT_COLUMNS_GAP, MAX_COLUMNS_GAP),
+    padding: normalizeColumnsSpacing(layout.padding, DEFAULT_COLUMNS_PADDING, MAX_COLUMNS_PADDING),
+  }
+}
+
 export type EditorComponents = {
   HeadingBlock: { text: RichTextValue }
   TextBlock: { text: RichTextValue }
@@ -135,7 +156,7 @@ export type EditorComponents = {
 
 export const defaultColumnsBlockData: EditorComponents['ColumnsBlock'] = {
   columns: getColumnsForCount(2),
-  layout: { widthPreset: '50-50' },
+  layout: { widthPreset: '50-50', gap: DEFAULT_COLUMNS_GAP, padding: DEFAULT_COLUMNS_PADDING },
   leftColumn: [],
   rightColumn: [],
   thirdColumn: [],
@@ -396,7 +417,7 @@ export function sanitizeDocumentRichText(document: LetterDocument): LetterDocume
               ...item.props,
               ...defaultColumnsBlockData,
               columns: getColumnsForCount(count),
-              layout: { widthPreset: normalizeColumnsWidthPreset(item.props.layout?.widthPreset, count) },
+              layout: normalizeColumnsLayout(item.props.layout, count),
               leftColumn: sanitizeColumnsSlot(item.props.leftColumn),
               rightColumn: sanitizeColumnsSlot(item.props.rightColumn),
               thirdColumn: sanitizeColumnsSlot(item.props.thirdColumn),

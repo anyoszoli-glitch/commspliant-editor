@@ -141,7 +141,7 @@ describe('editor config', () => {
         { id: 'left', slot: 'leftColumn' },
         { id: 'right', slot: 'rightColumn' },
       ],
-      layout: { widthPreset: '50-50' },
+      layout: { widthPreset: '50-50', gap: 12, padding: 8 },
       leftColumn: [],
       rightColumn: [],
       thirdColumn: [],
@@ -190,7 +190,7 @@ describe('editor config', () => {
           { id: 'right', slot: 'rightColumn' },
           { id: 'third', slot: 'thirdColumn' },
         ],
-        layout: { widthPreset: '25-50-25' },
+        layout: { widthPreset: '25-50-25', gap: 12, padding: 8 },
         leftColumn: [],
         rightColumn: [],
         thirdColumn: [],
@@ -205,7 +205,7 @@ describe('editor config', () => {
           { id: 'right', slot: 'rightColumn' },
           { id: 'third', slot: 'thirdColumn' },
         ],
-        layout: { widthPreset: '25-50-25' },
+        layout: { widthPreset: '25-50-25', gap: 12, padding: 8 },
       },
     })
   })

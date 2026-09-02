@@ -2,6 +2,9 @@ import { createUsePuck, type Config } from '@puckeditor/core'
 import {
   getColumnCount,
   getColumnWidthPresets,
+  MAX_COLUMNS_GAP,
+  MAX_COLUMNS_PADDING,
+  normalizeColumnsLayout,
   normalizeColumnsWidthPreset,
   type ColumnWidthPreset,
   type ColumnsLayout,
@@ -34,21 +37,63 @@ export function ColumnsWidthPresetField({ value, onChange, readOnly = false, t }
     state.selectedItem?.type === 'ColumnsBlock' ? getColumnCount(state.selectedItem.props.columns) : 2,
   )
   const presets = getColumnWidthPresets(count)
-  const widthPreset = normalizeColumnsWidthPreset(value?.widthPreset, count)
+  const layout = normalizeColumnsLayout(value, count)
+  const widthPreset = normalizeColumnsWidthPreset(layout.widthPreset, count)
+  const updateSpacing = (key: 'gap' | 'padding', input: string) => {
+    const numericValue = Number(input)
+    onChange({
+      ...layout,
+      [key]: Number.isFinite(numericValue) ? numericValue : layout[key],
+    })
+  }
 
   return (
-    <label className="commspliant-columns-field__option">
-      <span>{t('columnWidths')}</span>
-      <select
-        aria-label={t('columnWidths')}
-        value={widthPreset}
-        disabled={readOnly}
-        onChange={(event) => onChange({ widthPreset: event.currentTarget.value as ColumnWidthPreset })}
-      >
-        {presets.map((preset) => (
-          <option key={preset} value={preset}>{t(presetLabels[preset])}</option>
-        ))}
-      </select>
-    </label>
+    <div className="commspliant-columns-field__option">
+      <label>
+        <span>{t('columnWidths')}</span>
+        <select
+          aria-label={t('columnWidths')}
+          value={widthPreset}
+          disabled={readOnly}
+          onChange={(event) => onChange({ ...layout, widthPreset: event.currentTarget.value as ColumnWidthPreset })}
+        >
+          {presets.map((preset) => (
+            <option key={preset} value={preset}>{t(presetLabels[preset])}</option>
+          ))}
+        </select>
+      </label>
+      <div>
+        <span className="commspliant-columns-field__option-label">{t('columnGap')}</span>
+        <label className="commspliant-columns-field__number">
+        <input
+          aria-label={t('columnGap')}
+          type="number"
+          min={0}
+          max={MAX_COLUMNS_GAP}
+          step={1}
+          value={layout.gap}
+          disabled={readOnly}
+          onChange={(event) => updateSpacing('gap', event.currentTarget.value)}
+        />
+        <span>px</span>
+        </label>
+      </div>
+      <div>
+        <span className="commspliant-columns-field__option-label">{t('internalPadding')}</span>
+        <label className="commspliant-columns-field__number">
+        <input
+          aria-label={t('internalPadding')}
+          type="number"
+          min={0}
+          max={MAX_COLUMNS_PADDING}
+          step={1}
+          value={layout.padding}
+          disabled={readOnly}
+          onChange={(event) => updateSpacing('padding', event.currentTarget.value)}
+        />
+        <span>px</span>
+        </label>
+      </div>
+    </div>
   )
 }

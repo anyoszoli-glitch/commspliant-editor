@@ -464,6 +464,25 @@ describe('document storage', () => {
     ])
   })
 
+  it('normalizes Columns gap and padding without changing the slot content', () => {
+    const storage = createStorage()
+    const document = createDocument('columns-spacing-letter')
+    document.data.content.push({
+      type: 'ColumnsBlock',
+      props: {
+        id: 'columns-spacing', columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }],
+        layout: { widthPreset: '25-75', gap: -4, padding: 99 },
+        leftColumn: [{ type: 'TextBlock', props: { id: 'left-text', text: { type: 'doc', content: [] } } }],
+        rightColumn: [], thirdColumn: [], fourthColumn: [],
+      },
+    })
+    saveDocument(document, storage)
+    const columns = loadDocument(storage).data.content[0]
+    expect(columns).toMatchObject({
+      props: { layout: { widthPreset: '25-75', gap: 0, padding: 24 }, leftColumn: [{ props: { id: 'left-text' } }] },
+    })
+  })
+
   it('round-trips typography and the table, divider, and spacer block data', () => {
     const storage = createStorage()
     const document = createDocument('formatted-letter')

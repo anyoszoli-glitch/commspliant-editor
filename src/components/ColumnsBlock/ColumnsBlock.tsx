@@ -1,5 +1,7 @@
+import type { CSSProperties } from 'react'
 import type { SlotComponent } from '@puckeditor/core'
 import type { ColumnDefinition, ColumnsLayout } from '../../document/document'
+import { DEFAULT_COLUMNS_GAP, DEFAULT_COLUMNS_PADDING } from '../../document/document'
 import { useTranslation } from '../../i18n'
 
 type ColumnsBlockProps = {
@@ -36,6 +38,7 @@ export function ColumnsBlock({
       data-columns-count={columns.length}
       data-columns-preset={layout.widthPreset}
       aria-label={t('columns')}
+      style={{ '--columns-gap': `${layout.gap ?? DEFAULT_COLUMNS_GAP}px`, '--columns-padding': `${layout.padding ?? DEFAULT_COLUMNS_PADDING}px` } as CSSProperties}
     >
       {columns.map((column) => {
         const ColumnSlot = slots[column.slot]
