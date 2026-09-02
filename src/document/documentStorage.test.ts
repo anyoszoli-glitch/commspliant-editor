@@ -432,6 +432,38 @@ describe('document storage', () => {
     })
   })
 
+  it('preserves valid width presets and normalizes invalid saved presets by column count', () => {
+    const storage = createStorage()
+    const document = createDocument('width-presets-letter')
+    document.data.content.push(
+      {
+        type: 'ColumnsBlock',
+        props: {
+          id: 'valid-width-preset',
+          columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }],
+          layout: { widthPreset: '25-75' }, leftColumn: [], rightColumn: [], thirdColumn: [], fourthColumn: [],
+        },
+      },
+      {
+        type: 'ColumnsBlock',
+        props: {
+          id: 'invalid-width-preset',
+          columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }, { id: 'third', slot: 'thirdColumn' }],
+          layout: { widthPreset: '75-25' as never }, leftColumn: [], rightColumn: [], thirdColumn: [], fourthColumn: [],
+        },
+      },
+    )
+
+    saveDocument(document, storage)
+
+    const restoredColumns = loadDocument(storage).data.content.filter(
+      (item) => item.type === 'ColumnsBlock',
+    )
+    expect(restoredColumns.map((item) => item.props.layout.widthPreset)).toEqual([
+      '25-75', '33-33-33',
+    ])
+  })
+
   it('round-trips typography and the table, divider, and spacer block data', () => {
     const storage = createStorage()
     const document = createDocument('formatted-letter')

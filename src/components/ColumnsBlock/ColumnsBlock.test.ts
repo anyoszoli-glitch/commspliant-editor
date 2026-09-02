@@ -66,4 +66,20 @@ describe('ColumnsBlock', () => {
     expect(markup).toContain('data-puck-dropzone="third"')
     expect(markup).toContain('data-puck-dropzone="fourth"')
   })
+
+  it('publishes the selected two-column width preset for the grid styling', () => {
+    const markup = renderToStaticMarkup(
+      createElement(I18nProvider, {
+        locale: 'en',
+        children: createElement(ColumnsBlock, {
+          columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }],
+          layout: { widthPreset: '25-75' },
+          leftColumn: () => createElement('div'), rightColumn: () => createElement('div'),
+          thirdColumn: () => createElement('div'), fourthColumn: () => createElement('div'),
+        }),
+      }),
+    )
+
+    expect(markup).toContain('data-columns-preset="25-75"')
+  })
 })

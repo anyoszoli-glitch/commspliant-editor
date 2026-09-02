@@ -149,6 +149,7 @@ describe('editor config', () => {
     })
     expect(config.components.ColumnsBlock.fields).toMatchObject({
       columns: { type: 'custom' },
+      layout: { type: 'custom' },
       leftColumn: {
         type: 'slot',
         allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
@@ -189,7 +190,7 @@ describe('editor config', () => {
           { id: 'right', slot: 'rightColumn' },
           { id: 'third', slot: 'thirdColumn' },
         ],
-        layout: { widthPreset: '50-50' },
+        layout: { widthPreset: '25-50-25' },
         leftColumn: [],
         rightColumn: [],
         thirdColumn: [],
@@ -204,7 +205,7 @@ describe('editor config', () => {
           { id: 'right', slot: 'rightColumn' },
           { id: 'third', slot: 'thirdColumn' },
         ],
-        layout: { widthPreset: '33-33-33' },
+        layout: { widthPreset: '25-50-25' },
       },
     })
   })

@@ -66,8 +66,18 @@ export type ColumnDefinition = {
   slot: ColumnSlotId
 }
 export type ColumnsLayout = {
-  widthPreset: '50-50' | '33-33-33' | '25-25-25-25'
+  widthPreset: ColumnWidthPreset
 }
+
+export type ColumnWidthPreset =
+  | '50-50'
+  | '25-75'
+  | '75-25'
+  | '33-67'
+  | '67-33'
+  | '33-33-33'
+  | '25-50-25'
+  | '25-25-25-25'
 
 const columnDefinitions: readonly ColumnDefinition[] = [
   { id: 'left', slot: 'leftColumn' },
@@ -90,6 +100,18 @@ export function getColumnsWidthPreset(count: ColumnCount): ColumnsLayout['widthP
   if (count === 3) return '33-33-33'
   if (count === 4) return '25-25-25-25'
   return '50-50'
+}
+
+export function getColumnWidthPresets(count: ColumnCount): readonly ColumnWidthPreset[] {
+  if (count === 3) return ['33-33-33', '25-50-25']
+  if (count === 4) return ['25-25-25-25']
+  return ['50-50', '25-75', '75-25', '33-67', '67-33']
+}
+
+export function normalizeColumnsWidthPreset(value: unknown, count: ColumnCount): ColumnWidthPreset {
+  return getColumnWidthPresets(count).includes(value as ColumnWidthPreset)
+    ? value as ColumnWidthPreset
+    : getColumnsWidthPreset(count)
 }
 
 export type EditorComponents = {
@@ -374,7 +396,7 @@ export function sanitizeDocumentRichText(document: LetterDocument): LetterDocume
               ...item.props,
               ...defaultColumnsBlockData,
               columns: getColumnsForCount(count),
-              layout: { widthPreset: getColumnsWidthPreset(count) },
+              layout: { widthPreset: normalizeColumnsWidthPreset(item.props.layout?.widthPreset, count) },
               leftColumn: sanitizeColumnsSlot(item.props.leftColumn),
               rightColumn: sanitizeColumnsSlot(item.props.rightColumn),
               thirdColumn: sanitizeColumnsSlot(item.props.thirdColumn),

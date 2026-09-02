@@ -11,6 +11,7 @@ import { DividerBlock } from '../components/DividerBlock/DividerBlock'
 import { SpacerBlock } from '../components/SpacerBlock/SpacerBlock'
 import { ColumnsBlock } from '../components/ColumnsBlock/ColumnsBlock'
 import { ColumnsEditorField } from '../components/ColumnsBlock/ColumnsEditorField'
+import { ColumnsWidthPresetField } from '../components/ColumnsBlock/ColumnsWidthPresetField'
 import { TableBlock } from '../components/TableBlock/TableBlock'
 import { TableEditorField } from '../components/TableBlock/TableEditorField'
 import { defaultTableData } from '../components/TableBlock/tableModel'
@@ -32,7 +33,7 @@ import {
   defaultColumnsBlockData,
   getColumnCount,
   getColumnsForCount,
-  getColumnsWidthPreset,
+  normalizeColumnsWidthPreset,
 } from '../document/document'
 import { VariableNode } from './VariableNode'
 import { typographyExtensions } from './TypographyExtensions'
@@ -390,11 +391,10 @@ export function createEditorConfig(
             ),
           },
           layout: {
-            type: 'object',
-            visible: false,
-            objectFields: {
-              widthPreset: { type: 'text' },
-            },
+            type: 'custom',
+            render: ({ value, onChange, readOnly }) => (
+              <ColumnsWidthPresetField value={value} onChange={onChange} readOnly={readOnly} t={t} />
+            ),
           },
           leftColumn: {
             type: 'slot',
@@ -430,7 +430,7 @@ export function createEditorConfig(
           return {
             props: {
               columns: getColumnsForCount(count),
-              layout: { widthPreset: getColumnsWidthPreset(count) },
+              layout: { widthPreset: normalizeColumnsWidthPreset(data.props.layout?.widthPreset, count) },
             },
           }
         },
