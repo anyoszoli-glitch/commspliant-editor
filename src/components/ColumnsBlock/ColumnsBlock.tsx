@@ -1,6 +1,6 @@
-import { useEffect, useState, type CSSProperties } from 'react'
-import type { SlotComponent } from '@puckeditor/core'
-import type { ColumnDefinition, ColumnsLayout } from '../../document/document'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { createUsePuck, registerOverlayPortal, type Config, type SlotComponent } from '@puckeditor/core'
+import type { ColumnDefinition, ColumnSlotId, ColumnsLayout, EditorComponents } from '../../document/document'
 import { DEFAULT_COLUMNS_GAP, DEFAULT_COLUMNS_PADDING } from '../../document/document'
 import { useTranslation } from '../../i18n'
 
@@ -12,7 +12,10 @@ type ColumnsBlockProps = {
   thirdColumn: SlotComponent
   fourthColumn: SlotComponent
   showEmptyGuidance?: boolean
+  onAddText?: (slot: ColumnSlotId) => void
 }
+
+const useColumnsPuck = createUsePuck<Config<EditorComponents>>()
 
 // 170mm is the default usable A4 width after the editor's 20mm side margins.
 // Keep its existing 24px viewport gutter visible before changing the editing view.
@@ -49,6 +52,39 @@ function useNarrowColumnsEditingView(enabled: boolean) {
   return enabled && isNarrow
 }
 
+function EmptyColumnGuidance({
+  slot,
+  label,
+  onAddText,
+}: {
+  slot: ColumnSlotId
+  label: string
+  onAddText: (slot: ColumnSlotId) => void
+}) {
+  const t = useTranslation()
+  const addTextButtonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => registerOverlayPortal(addTextButtonRef.current, { disableDrag: true }), [])
+
+  return (
+    <div className="commspliant-columns-block__empty-guidance">
+      <button
+        ref={addTextButtonRef}
+        className="commspliant-columns-block__add-text"
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation()
+          onAddText(slot)
+        }}
+        aria-label={t('addTextToColumn', { column: label })}
+      >
+        {t('addText')}
+      </button>
+      <span>{t('columnsEmptyGuidance')}</span>
+    </div>
+  )
+}
+
 export function ColumnsBlock({
   columns,
   layout,
@@ -57,6 +93,7 @@ export function ColumnsBlock({
   thirdColumn: ThirdColumn,
   fourthColumn: FourthColumn,
   showEmptyGuidance = false,
+  onAddText,
 }: ColumnsBlockProps) {
   const t = useTranslation()
   const isNarrowEditingView = useNarrowColumnsEditingView(showEmptyGuidance)
@@ -109,14 +146,36 @@ export function ColumnsBlock({
                 minEmptyHeight={columns.length === 4 ? 72 : 96}
               />
             </div>
-            {showEmptyGuidance && (
-              <span className="commspliant-columns-block__empty-guidance" aria-hidden="true">
-                {t('columnsEmptyGuidance')}
-              </span>
+            {showEmptyGuidance && onAddText && (
+              <EmptyColumnGuidance slot={column.slot} label={label} onAddText={onAddText} />
             )}
           </section>
         )
       })}
     </section>
+  )
+}
+
+type ColumnsBlockAuthoringProps = Omit<ColumnsBlockProps, 'onAddText'> & {
+  id: string
+}
+
+/** Connects empty-column guidance to Puck's public insert action in author mode only. */
+export function ColumnsBlockAuthoring({ id, ...props }: ColumnsBlockAuthoringProps) {
+  const dispatch = useColumnsPuck((state) => state.dispatch)
+
+  return (
+    <ColumnsBlock
+      {...props}
+      onAddText={(slot) => {
+        dispatch({
+          type: 'insert',
+          componentType: 'TextBlock',
+          destinationIndex: 0,
+          destinationZone: `${id}:${slot}`,
+          recordHistory: true,
+        })
+      }}
+    />
   )
 }

@@ -22,6 +22,7 @@ describe('ColumnsBlock', () => {
             thirdColumn: (props) => createElement('div', { className: props?.className, 'data-puck-dropzone': 'third' }),
             fourthColumn: (props) => createElement('div', { className: props?.className, 'data-puck-dropzone': 'fourth' }),
             showEmptyGuidance: true,
+            onAddText: () => undefined,
           }),
         },
       ),
@@ -33,7 +34,9 @@ describe('ColumnsBlock', () => {
     expect(markup).toContain('data-columns-column="right"')
     expect(markup).toContain('data-puck-dropzone="left"')
     expect(markup).toContain('data-puck-dropzone="right"')
-    expect(markup).toContain('Drag a block here')
+    expect(markup).toContain('Add text')
+    expect(markup).toContain('Add text to Left column')
+    expect(markup).toContain('or drag another block here')
   })
 
   it('renders four independently identified equal-width column drop areas', () => {
@@ -101,5 +104,6 @@ describe('ColumnsBlock', () => {
     expect(markup).toContain('data-columns-vertical-align="center"')
     expect(markup).toContain('commspliant-columns-block__content')
     expect(markup).not.toContain('commspliant-columns-block__column-label')
+    expect(markup).not.toContain('commspliant-columns-block__add-text')
   })
 })

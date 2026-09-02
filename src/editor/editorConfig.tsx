@@ -9,7 +9,7 @@ import { PageBreakBlock } from '../components/PageBreakBlock/PageBreakBlock'
 import { NoticeBlock } from '../components/NoticeBlock/NoticeBlock'
 import { DividerBlock } from '../components/DividerBlock/DividerBlock'
 import { SpacerBlock } from '../components/SpacerBlock/SpacerBlock'
-import { ColumnsBlock } from '../components/ColumnsBlock/ColumnsBlock'
+import { ColumnsBlock, ColumnsBlockAuthoring } from '../components/ColumnsBlock/ColumnsBlock'
 import { ColumnsEditorField } from '../components/ColumnsBlock/ColumnsEditorField'
 import { ColumnsWidthPresetField } from '../components/ColumnsBlock/ColumnsWidthPresetField'
 import { TableBlock } from '../components/TableBlock/TableBlock'
@@ -434,19 +434,26 @@ export function createEditorConfig(
             },
           }
         },
-        render: ({ id, columns, layout, leftColumn, rightColumn, thirdColumn, fourthColumn }) => (
-          <LayoutBlock id={id}>
-            <ColumnsBlock
-              columns={columns}
-              layout={layout}
-              leftColumn={leftColumn}
-              rightColumn={rightColumn}
-              thirdColumn={thirdColumn}
-              fourthColumn={fourthColumn}
-              showEmptyGuidance={!previewEnabled}
-            />
-          </LayoutBlock>
-        ),
+        render: ({ id, columns, layout, leftColumn, rightColumn, thirdColumn, fourthColumn }) => {
+          const columnsProps = {
+            columns,
+            layout,
+            leftColumn,
+            rightColumn,
+            thirdColumn,
+            fourthColumn,
+          }
+
+          return (
+            <LayoutBlock id={id}>
+              {previewEnabled ? (
+                <ColumnsBlock {...columnsProps} />
+              ) : (
+                <ColumnsBlockAuthoring {...columnsProps} id={id} showEmptyGuidance />
+              )}
+            </LayoutBlock>
+          )
+        },
       },
     },
   }

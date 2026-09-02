@@ -16,7 +16,7 @@ const english = {
   layout: 'Layout:', pagedA4: 'Paged / A4', fluid: 'Fluid', pageSetup: 'Page setup', backgroundSettings: 'Background settings',
   pages: 'Pages', blocks: 'Blocks', outline: 'Outline', noPagesYet: 'No pages yet', page: 'Page {page}', goToPage: 'Go to page {page}', selectPage: 'Select page {page}', pageNumberLabel: 'Page number {page}', documentContent: 'Document content', documentPage: 'Document page', fluidDocument: 'Fluid document',
   visitCommsPliant: 'Visit CommsPliant', editorLogo: 'Tili Toli Editor', saveDraft: 'Save draft',
-  heading: 'Heading', text: 'Text', importantNotice: 'Important notice', pageBreak: 'Page break', table: 'Table', divider: 'Divider', spacer: 'Spacer', columns: 'Columns', columnCount: 'Column count', columnWidths: 'Column widths', width50_50: '50 / 50', width25_75: '25 / 75', width75_25: '75 / 25', width33_67: '33 / 67', width67_33: '67 / 33', width33_33_33: '33 / 33 / 33', width25_50_25: '25 / 50 / 25', width25_25_25_25: '25 / 25 / 25 / 25', twoColumns: '2 columns', threeColumns: '3 columns', fourColumns: '4 columns', leftColumn: 'Left column', rightColumn: 'Right column', thirdColumn: 'Third column', fourthColumn: 'Fourth column', columnsEmptyGuidance: 'Drag a block here', hiddenColumnsWarning: 'Content in hidden columns will be kept and restored if you increase the column count again.', hideAndPreserve: 'Hide and preserve', cancel: 'Cancel',
+  heading: 'Heading', text: 'Text', importantNotice: 'Important notice', pageBreak: 'Page break', table: 'Table', divider: 'Divider', spacer: 'Spacer', columns: 'Columns', columnCount: 'Column count', columnWidths: 'Column widths', width50_50: '50 / 50', width25_75: '25 / 75', width75_25: '75 / 25', width33_67: '33 / 67', width67_33: '67 / 33', width33_33_33: '33 / 33 / 33', width25_50_25: '25 / 50 / 25', width25_25_25_25: '25 / 25 / 25 / 25', twoColumns: '2 columns', threeColumns: '3 columns', fourColumns: '4 columns', leftColumn: 'Left column', rightColumn: 'Right column', thirdColumn: 'Third column', fourthColumn: 'Fourth column', addText: 'Add text', addTextToColumn: 'Add text to {column}', columnsEmptyGuidance: 'or drag another block here', hiddenColumnsWarning: 'Content in hidden columns will be kept and restored if you increase the column count again.', hideAndPreserve: 'Hide and preserve', cancel: 'Cancel',
   image: 'Image', chooseImage: 'Choose image', replaceImage: 'Replace image', removeImage: 'Remove image', altText: 'Alt text', title: 'Title', width: 'Width', alignment: 'Alignment', horizontalOffset: 'Horizontal offset', imagePickerUnavailable: 'Image selection is available when your host connects an image picker.', imageLoadError: 'This image could not be loaded.',
   small: 'Small', medium: 'Medium', large: 'Large', startPage: 'Start your page', dragBlock: 'Drag a block from the left and drop it here',
   documentDefaultMargins: 'Document default margins', pageMargins: 'Page margins', showMargins: 'Show margins', selectedPage: 'Selected page',
@@ -71,6 +71,10 @@ Object.assign(translations.es, { columnGap: 'Espacio entre columnas', internalPa
 Object.assign(translations.hu, { columnGap: 'Oszlopköz', internalPadding: 'Belső térköz' })
 Object.assign(translations.fr, { columnGap: 'Espacement des colonnes', internalPadding: 'Marge intérieure' })
 Object.assign(translations.de, { columnGap: 'Spaltenabstand', internalPadding: 'Innenabstand' })
+Object.assign(translations.es, { addText: 'Añadir texto', addTextToColumn: 'Añadir texto a {column}' })
+Object.assign(translations.hu, { addText: 'Szöveg hozzáadása', addTextToColumn: 'Szöveg hozzáadása: {column}' })
+Object.assign(translations.fr, { addText: 'Ajouter du texte', addTextToColumn: 'Ajouter du texte à {column}' })
+Object.assign(translations.de, { addText: 'Text hinzufügen', addTextToColumn: 'Text zu {column} hinzufügen' })
 Object.assign(translations.es, { height: 'Altura', automatic: 'Automática', customMinimumHeight: 'Altura mínima personalizada', minimumHeight: 'Altura mínima', verticalAlignment: 'Alineación vertical', verticalAlignTop: 'Superior', verticalAlignCentre: 'Centro', verticalAlignBottom: 'Inferior' })
 Object.assign(translations.hu, { height: 'Magasság', automatic: 'Automatikus', customMinimumHeight: 'Egyéni minimális magasság', minimumHeight: 'Minimális magasság', verticalAlignment: 'Függőleges igazítás', verticalAlignTop: 'Felül', verticalAlignCentre: 'Középen', verticalAlignBottom: 'Alul' })
 Object.assign(translations.fr, { height: 'Hauteur', automatic: 'Automatique', customMinimumHeight: 'Hauteur minimale personnalisée', minimumHeight: 'Hauteur minimale', verticalAlignment: 'Alignement vertical', verticalAlignTop: 'Haut', verticalAlignCentre: 'Centre', verticalAlignBottom: 'Bas' })
@@ -115,16 +119,16 @@ Object.assign(translations.de, {
 })
 
 Object.assign(translations.es, {
-  columns: 'Columnas', leftColumn: 'Columna izquierda', rightColumn: 'Columna derecha', columnsEmptyGuidance: 'Arrastre un bloque aquí',
+  columns: 'Columnas', leftColumn: 'Columna izquierda', rightColumn: 'Columna derecha', columnsEmptyGuidance: 'o arrastre otro bloque aquí',
 })
 Object.assign(translations.hu, {
-  columns: 'Oszlopok', leftColumn: 'Bal oszlop', rightColumn: 'Jobb oszlop', columnsEmptyGuidance: 'Húzzon ide egy blokkot',
+  columns: 'Oszlopok', leftColumn: 'Bal oszlop', rightColumn: 'Jobb oszlop', columnsEmptyGuidance: 'vagy húzzon ide egy másik blokkot',
 })
 Object.assign(translations.fr, {
-  columns: 'Colonnes', leftColumn: 'Colonne de gauche', rightColumn: 'Colonne de droite', columnsEmptyGuidance: 'Faites glisser un bloc ici',
+  columns: 'Colonnes', leftColumn: 'Colonne de gauche', rightColumn: 'Colonne de droite', columnsEmptyGuidance: 'ou faites glisser un autre bloc ici',
 })
 Object.assign(translations.de, {
-  columns: 'Spalten', leftColumn: 'Linke Spalte', rightColumn: 'Rechte Spalte', columnsEmptyGuidance: 'Ziehen Sie einen Block hierher',
+  columns: 'Spalten', leftColumn: 'Linke Spalte', rightColumn: 'Rechte Spalte', columnsEmptyGuidance: 'oder ziehen Sie einen anderen Block hierher',
 })
 
 Object.assign(translations.es, {
