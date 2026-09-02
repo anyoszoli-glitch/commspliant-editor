@@ -7,6 +7,7 @@ import {
   MAX_COLUMNS_MIN_HEIGHT,
   normalizeColumnsLayout,
   normalizeColumnsWidthPreset,
+  type ColumnVerticalAlign,
   type ColumnWidthPreset,
   type ColumnsLayout,
   type EditorComponents,
@@ -99,6 +100,19 @@ export function ColumnsWidthPresetField({ value, onChange, readOnly = false, t }
           </label>
         </div>
       )}
+      <label>
+        <span>{t('verticalAlignment')}</span>
+        <select
+          aria-label={t('verticalAlignment')}
+          value={layout.verticalAlign}
+          disabled={readOnly}
+          onChange={(event) => onChange({ ...layout, verticalAlign: event.currentTarget.value as ColumnVerticalAlign })}
+        >
+          <option value="top">{t('verticalAlignTop')}</option>
+          <option value="center">{t('verticalAlignCentre')}</option>
+          <option value="bottom">{t('verticalAlignBottom')}</option>
+        </select>
+      </label>
       <div>
         <span className="commspliant-columns-field__option-label">{t('internalPadding')}</span>
         <label className="commspliant-columns-field__number">

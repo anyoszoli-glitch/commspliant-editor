@@ -483,6 +483,36 @@ describe('document storage', () => {
     })
   })
 
+  it('preserves valid Columns vertical alignment and normalizes invalid values to top', () => {
+    const storage = createStorage()
+    const document = createDocument('columns-alignment-letter')
+    document.data.content.push(
+      {
+        type: 'ColumnsBlock',
+        props: {
+          id: 'bottom-alignment', columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }],
+          layout: { widthPreset: '50-50', verticalAlign: 'bottom' },
+          leftColumn: [{ type: 'SpacerBlock', props: { id: 'bottom-spacer', size: 'small' } }],
+          rightColumn: [], thirdColumn: [], fourthColumn: [],
+        },
+      },
+      {
+        type: 'ColumnsBlock',
+        props: {
+          id: 'invalid-alignment', columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }],
+          layout: { widthPreset: '50-50', verticalAlign: 'middle' as never },
+          leftColumn: [], rightColumn: [], thirdColumn: [], fourthColumn: [],
+        },
+      },
+    )
+
+    saveDocument(document, storage)
+
+    const columns = loadDocument(storage).data.content.filter((item) => item.type === 'ColumnsBlock')
+    expect(columns.map((item) => item.props.layout.verticalAlign)).toEqual(['bottom', 'top'])
+    expect(columns[0]?.props.leftColumn).toMatchObject([{ props: { id: 'bottom-spacer' } }])
+  })
+
   it('round-trips typography and the table, divider, and spacer block data', () => {
     const storage = createStorage()
     const document = createDocument('formatted-letter')

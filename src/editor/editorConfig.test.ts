@@ -141,7 +141,7 @@ describe('editor config', () => {
         { id: 'left', slot: 'leftColumn' },
         { id: 'right', slot: 'rightColumn' },
       ],
-      layout: { widthPreset: '50-50', gap: 12, padding: 8, heightMode: 'auto', minHeight: 0 },
+      layout: { widthPreset: '50-50', gap: 12, padding: 8, heightMode: 'auto', minHeight: 0, verticalAlign: 'top' },
       leftColumn: [],
       rightColumn: [],
       thirdColumn: [],
@@ -205,9 +205,26 @@ describe('editor config', () => {
           { id: 'right', slot: 'rightColumn' },
           { id: 'third', slot: 'thirdColumn' },
         ],
-        layout: { widthPreset: '25-50-25', gap: 12, padding: 8, heightMode: 'auto', minHeight: 0 },
+        layout: { widthPreset: '25-50-25', gap: 12, padding: 8, heightMode: 'auto', minHeight: 0, verticalAlign: 'top' },
       },
     })
+  })
+
+  it('normalizes missing and invalid vertical alignment to top', () => {
+    const config = createEditorConfig(defaultPagedLayout)
+    const resolveData = config.components.ColumnsBlock.resolveData
+    if (!resolveData) throw new Error('Expected Columns resolver')
+
+    const resolved = resolveData({
+      props: {
+        id: 'columns-alignment',
+        columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }],
+        layout: { widthPreset: '50-50', verticalAlign: 'middle' as never },
+        leftColumn: [], rightColumn: [], thirdColumn: [], fourthColumn: [],
+      },
+    } as never, {} as never)
+
+    expect(resolved).toMatchObject({ props: { layout: { verticalAlign: 'top' } } })
   })
 
   it('renders page indicators only outside Preview output', () => {

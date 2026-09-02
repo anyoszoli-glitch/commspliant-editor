@@ -82,4 +82,23 @@ describe('ColumnsBlock', () => {
 
     expect(markup).toContain('data-columns-preset="25-75"')
   })
+
+  it('publishes the selected vertical alignment without putting editor guidance into output mode', () => {
+    const markup = renderToStaticMarkup(
+      createElement(I18nProvider, {
+        locale: 'en',
+        children: createElement(ColumnsBlock, {
+          columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }],
+          layout: { widthPreset: '50-50', verticalAlign: 'center' },
+          leftColumn: () => createElement('div', null, 'Left content'),
+          rightColumn: () => createElement('div', null, 'Right content'),
+          thirdColumn: () => createElement('div'), fourthColumn: () => createElement('div'),
+        }),
+      }),
+    )
+
+    expect(markup).toContain('data-columns-vertical-align="center"')
+    expect(markup).toContain('commspliant-columns-block__content')
+    expect(markup).not.toContain('commspliant-columns-block__column-label')
+  })
 })

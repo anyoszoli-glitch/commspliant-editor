@@ -59,6 +59,7 @@ export type TableData = {
 
 export type ColumnCount = 2 | 3 | 4
 export type ColumnSlotId = 'leftColumn' | 'rightColumn' | 'thirdColumn' | 'fourthColumn'
+export type ColumnVerticalAlign = 'top' | 'center' | 'bottom'
 export type ColumnDefinition = {
   /** A stable identifier; display order is the order in this array. */
   id: 'left' | 'right' | 'third' | 'fourth'
@@ -71,6 +72,7 @@ export type ColumnsLayout = {
   padding?: number
   heightMode?: 'auto' | 'custom'
   minHeight?: number
+  verticalAlign?: ColumnVerticalAlign
 }
 
 export const DEFAULT_COLUMNS_GAP = 12
@@ -144,6 +146,10 @@ export function normalizeColumnsLayout(value: unknown, count: ColumnCount): Requ
     minHeight: layout.heightMode === 'custom'
       ? normalizeColumnsSpacing(layout.minHeight, 0, MAX_COLUMNS_MIN_HEIGHT)
       : 0,
+    verticalAlign:
+      layout.verticalAlign === 'center' || layout.verticalAlign === 'bottom'
+        ? layout.verticalAlign
+        : 'top',
   }
 }
 
@@ -168,7 +174,7 @@ export type EditorComponents = {
 
 export const defaultColumnsBlockData: EditorComponents['ColumnsBlock'] = {
   columns: getColumnsForCount(2),
-  layout: { widthPreset: '50-50', gap: DEFAULT_COLUMNS_GAP, padding: DEFAULT_COLUMNS_PADDING, heightMode: 'auto', minHeight: 0 },
+  layout: { widthPreset: '50-50', gap: DEFAULT_COLUMNS_GAP, padding: DEFAULT_COLUMNS_PADDING, heightMode: 'auto', minHeight: 0, verticalAlign: 'top' },
   leftColumn: [],
   rightColumn: [],
   thirdColumn: [],

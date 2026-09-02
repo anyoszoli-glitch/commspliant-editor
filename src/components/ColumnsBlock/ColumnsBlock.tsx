@@ -38,6 +38,7 @@ export function ColumnsBlock({
       data-columns-count={columns.length}
       data-columns-preset={layout.widthPreset}
       data-columns-height-mode={layout.heightMode ?? 'auto'}
+      data-columns-vertical-align={layout.verticalAlign ?? 'top'}
       aria-label={t('columns')}
       style={{ '--columns-gap': `${layout.gap ?? DEFAULT_COLUMNS_GAP}px`, '--columns-padding': `${layout.padding ?? DEFAULT_COLUMNS_PADDING}px`, '--columns-min-height': `${layout.heightMode === 'custom' ? layout.minHeight ?? 0 : 0}px` } as CSSProperties}
     >
@@ -59,14 +60,18 @@ export function ColumnsBlock({
             aria-label={label}
             key={column.id}
           >
-            <span className="commspliant-columns-block__column-label" aria-hidden="true">
-              {label}
-            </span>
-            <ColumnSlot
-              className="commspliant-columns-block__slot"
-              collisionAxis="y"
-              minEmptyHeight={columns.length === 4 ? 72 : 96}
-            />
+            {showEmptyGuidance && (
+              <span className="commspliant-columns-block__column-label" aria-hidden="true">
+                {label}
+              </span>
+            )}
+            <div className="commspliant-columns-block__content">
+              <ColumnSlot
+                className="commspliant-columns-block__slot"
+                collisionAxis="y"
+                minEmptyHeight={columns.length === 4 ? 72 : 96}
+              />
+            </div>
             {showEmptyGuidance && (
               <span className="commspliant-columns-block__empty-guidance" aria-hidden="true">
                 {t('columnsEmptyGuidance')}
