@@ -19,6 +19,8 @@ describe('ColumnsBlock', () => {
             layout: { widthPreset: '50-50' },
             leftColumn: (props) => createElement('div', { className: props?.className, 'data-puck-dropzone': 'left' }),
             rightColumn: (props) => createElement('div', { className: props?.className, 'data-puck-dropzone': 'right' }),
+            thirdColumn: (props) => createElement('div', { className: props?.className, 'data-puck-dropzone': 'third' }),
+            fourthColumn: (props) => createElement('div', { className: props?.className, 'data-puck-dropzone': 'fourth' }),
             showEmptyGuidance: true,
           }),
         },
@@ -32,5 +34,36 @@ describe('ColumnsBlock', () => {
     expect(markup).toContain('data-puck-dropzone="left"')
     expect(markup).toContain('data-puck-dropzone="right"')
     expect(markup).toContain('Drag a block here')
+  })
+
+  it('renders four independently identified equal-width column drop areas', () => {
+    const markup = renderToStaticMarkup(
+      createElement(
+        I18nProvider,
+        {
+          locale: 'en',
+          children: createElement(ColumnsBlock, {
+            columns: [
+              { id: 'left', slot: 'leftColumn' },
+              { id: 'right', slot: 'rightColumn' },
+              { id: 'third', slot: 'thirdColumn' },
+              { id: 'fourth', slot: 'fourthColumn' },
+            ],
+            layout: { widthPreset: '25-25-25-25' },
+            leftColumn: (props) => createElement('div', { className: props?.className, 'data-puck-dropzone': 'left' }),
+            rightColumn: (props) => createElement('div', { className: props?.className, 'data-puck-dropzone': 'right' }),
+            thirdColumn: (props) => createElement('div', { className: props?.className, 'data-puck-dropzone': 'third' }),
+            fourthColumn: (props) => createElement('div', { className: props?.className, 'data-puck-dropzone': 'fourth' }),
+          }),
+        },
+      ),
+    )
+
+    expect(markup).toContain('data-columns-count="4"')
+    expect(markup).toContain('data-columns-preset="25-25-25-25"')
+    expect(markup).toContain('data-columns-column="third"')
+    expect(markup).toContain('data-columns-column="fourth"')
+    expect(markup).toContain('data-puck-dropzone="third"')
+    expect(markup).toContain('data-puck-dropzone="fourth"')
   })
 })

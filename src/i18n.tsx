@@ -16,7 +16,7 @@ const english = {
   layout: 'Layout:', pagedA4: 'Paged / A4', fluid: 'Fluid', pageSetup: 'Page setup', backgroundSettings: 'Background settings',
   pages: 'Pages', blocks: 'Blocks', outline: 'Outline', noPagesYet: 'No pages yet', page: 'Page {page}', goToPage: 'Go to page {page}', selectPage: 'Select page {page}', pageNumberLabel: 'Page number {page}', documentContent: 'Document content', documentPage: 'Document page', fluidDocument: 'Fluid document',
   visitCommsPliant: 'Visit CommsPliant', editorLogo: 'Tili Toli Editor', saveDraft: 'Save draft',
-  heading: 'Heading', text: 'Text', importantNotice: 'Important notice', pageBreak: 'Page break', table: 'Table', divider: 'Divider', spacer: 'Spacer', columns: 'Columns', leftColumn: 'Left column', rightColumn: 'Right column', columnsEmptyGuidance: 'Drag a block here',
+  heading: 'Heading', text: 'Text', importantNotice: 'Important notice', pageBreak: 'Page break', table: 'Table', divider: 'Divider', spacer: 'Spacer', columns: 'Columns', columnCount: 'Column count', twoColumns: '2 columns', threeColumns: '3 columns', fourColumns: '4 columns', leftColumn: 'Left column', rightColumn: 'Right column', thirdColumn: 'Third column', fourthColumn: 'Fourth column', columnsEmptyGuidance: 'Drag a block here', hiddenColumnsWarning: 'Content in hidden columns will be kept and restored if you increase the column count again.', hideAndPreserve: 'Hide and preserve', cancel: 'Cancel',
   image: 'Image', chooseImage: 'Choose image', replaceImage: 'Replace image', removeImage: 'Remove image', altText: 'Alt text', title: 'Title', width: 'Width', alignment: 'Alignment', horizontalOffset: 'Horizontal offset', imagePickerUnavailable: 'Image selection is available when your host connects an image picker.', imageLoadError: 'This image could not be loaded.',
   small: 'Small', medium: 'Medium', large: 'Large', startPage: 'Start your page', dragBlock: 'Drag a block from the left and drop it here',
   documentDefaultMargins: 'Document default margins', pageMargins: 'Page margins', showMargins: 'Show margins', selectedPage: 'Selected page',
@@ -115,6 +115,19 @@ Object.assign(translations.fr, {
 })
 Object.assign(translations.de, {
   columns: 'Spalten', leftColumn: 'Linke Spalte', rightColumn: 'Rechte Spalte', columnsEmptyGuidance: 'Ziehen Sie einen Block hierher',
+})
+
+Object.assign(translations.es, {
+  columnCount: 'Número de columnas', twoColumns: '2 columnas', threeColumns: '3 columnas', fourColumns: '4 columnas', thirdColumn: 'Tercera columna', fourthColumn: 'Cuarta columna', hiddenColumnsWarning: 'El contenido de las columnas ocultas se conservará y se restaurará si vuelve a aumentar el número de columnas.', hideAndPreserve: 'Ocultar y conservar', cancel: 'Cancelar',
+})
+Object.assign(translations.hu, {
+  columnCount: 'Oszlopok száma', twoColumns: '2 oszlop', threeColumns: '3 oszlop', fourColumns: '4 oszlop', thirdColumn: 'Harmadik oszlop', fourthColumn: 'Negyedik oszlop', hiddenColumnsWarning: 'A rejtett oszlopok tartalma megmarad, és visszaáll, ha újra növeli az oszlopszámot.', hideAndPreserve: 'Elrejtés és megőrzés', cancel: 'Mégse',
+})
+Object.assign(translations.fr, {
+  columnCount: 'Nombre de colonnes', twoColumns: '2 colonnes', threeColumns: '3 colonnes', fourColumns: '4 colonnes', thirdColumn: 'Troisième colonne', fourthColumn: 'Quatrième colonne', hiddenColumnsWarning: 'Le contenu des colonnes masquées sera conservé et restauré si vous augmentez à nouveau le nombre de colonnes.', hideAndPreserve: 'Masquer et conserver', cancel: 'Annuler',
+})
+Object.assign(translations.de, {
+  columnCount: 'Spaltenanzahl', twoColumns: '2 Spalten', threeColumns: '3 Spalten', fourColumns: '4 Spalten', thirdColumn: 'Dritte Spalte', fourthColumn: 'Vierte Spalte', hiddenColumnsWarning: 'Inhalte ausgeblendeter Spalten bleiben erhalten und werden wiederhergestellt, wenn Sie die Spaltenanzahl erneut erhöhen.', hideAndPreserve: 'Ausblenden und behalten', cancel: 'Abbrechen',
 })
 
 export function normalizeLocale(locale: string | undefined): SupportedLocale {

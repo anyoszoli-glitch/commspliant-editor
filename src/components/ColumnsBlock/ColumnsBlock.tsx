@@ -7,6 +7,8 @@ type ColumnsBlockProps = {
   layout: ColumnsLayout
   leftColumn: SlotComponent
   rightColumn: SlotComponent
+  thirdColumn: SlotComponent
+  fourthColumn: SlotComponent
   showEmptyGuidance?: boolean
 }
 
@@ -15,21 +17,36 @@ export function ColumnsBlock({
   layout,
   leftColumn: LeftColumn,
   rightColumn: RightColumn,
+  thirdColumn: ThirdColumn,
+  fourthColumn: FourthColumn,
   showEmptyGuidance = false,
 }: ColumnsBlockProps) {
   const t = useTranslation()
-  const slots = { leftColumn: LeftColumn, rightColumn: RightColumn }
+  const slots = {
+    leftColumn: LeftColumn,
+    rightColumn: RightColumn,
+    thirdColumn: ThirdColumn,
+    fourthColumn: FourthColumn,
+  }
 
   return (
     <section
       className="commspliant-columns-block"
       data-columns-block
+      data-columns-count={columns.length}
       data-columns-preset={layout.widthPreset}
       aria-label={t('columns')}
     >
       {columns.map((column) => {
         const ColumnSlot = slots[column.slot]
-        const label = column.id === 'left' ? t('leftColumn') : t('rightColumn')
+        const label =
+          column.id === 'left'
+            ? t('leftColumn')
+            : column.id === 'right'
+              ? t('rightColumn')
+              : column.id === 'third'
+                ? t('thirdColumn')
+                : t('fourthColumn')
 
         return (
           <section
@@ -44,7 +61,7 @@ export function ColumnsBlock({
             <ColumnSlot
               className="commspliant-columns-block__slot"
               collisionAxis="y"
-              minEmptyHeight={96}
+              minEmptyHeight={columns.length === 4 ? 72 : 96}
             />
             {showEmptyGuidance && (
               <span className="commspliant-columns-block__empty-guidance" aria-hidden="true">

@@ -369,6 +369,8 @@ describe('document storage', () => {
           },
           { type: 'SpacerBlock', props: { id: 'right-spacer', size: 'small' } },
         ],
+        thirdColumn: [],
+        fourthColumn: [],
       },
     })
 
@@ -392,6 +394,40 @@ describe('document storage', () => {
           { type: 'ImageBlock', props: { id: 'right-image', image: { src: undefined } } },
           { type: 'SpacerBlock', props: { id: 'right-spacer' } },
         ],
+      },
+    })
+  })
+
+  it('preserves inactive third and fourth column content while two columns are active', () => {
+    const storage = createStorage()
+    const document = createDocument('hidden-columns-letter')
+    document.data.content.push({
+      type: 'ColumnsBlock',
+      props: {
+        id: 'columns-2',
+        columns: [
+          { id: 'left', slot: 'leftColumn' },
+          { id: 'right', slot: 'rightColumn' },
+        ],
+        layout: { widthPreset: '50-50' },
+        leftColumn: [],
+        rightColumn: [],
+        thirdColumn: [{ type: 'SpacerBlock', props: { id: 'third-spacer', size: 'small' } }],
+        fourthColumn: [{ type: 'DividerBlock', props: { id: 'fourth-divider' } }],
+      },
+    })
+
+    saveDocument(document, storage)
+
+    expect(loadDocument(storage).data.content[0]).toMatchObject({
+      type: 'ColumnsBlock',
+      props: {
+        columns: [
+          { id: 'left', slot: 'leftColumn' },
+          { id: 'right', slot: 'rightColumn' },
+        ],
+        thirdColumn: [{ type: 'SpacerBlock', props: { id: 'third-spacer' } }],
+        fourthColumn: [{ type: 'DividerBlock', props: { id: 'fourth-divider' } }],
       },
     })
   })

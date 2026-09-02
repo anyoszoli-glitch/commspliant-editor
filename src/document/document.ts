@@ -57,15 +57,39 @@ export type TableData = {
   alignment: TableAlignment
 }
 
-export type ColumnSlotId = 'leftColumn' | 'rightColumn'
+export type ColumnCount = 2 | 3 | 4
+export type ColumnSlotId = 'leftColumn' | 'rightColumn' | 'thirdColumn' | 'fourthColumn'
 export type ColumnDefinition = {
   /** A stable identifier; display order is the order in this array. */
-  id: 'left' | 'right'
+  id: 'left' | 'right' | 'third' | 'fourth'
   /** The Puck slot that persists this column's child blocks. */
   slot: ColumnSlotId
 }
 export type ColumnsLayout = {
-  widthPreset: '50-50'
+  widthPreset: '50-50' | '33-33-33' | '25-25-25-25'
+}
+
+const columnDefinitions: readonly ColumnDefinition[] = [
+  { id: 'left', slot: 'leftColumn' },
+  { id: 'right', slot: 'rightColumn' },
+  { id: 'third', slot: 'thirdColumn' },
+  { id: 'fourth', slot: 'fourthColumn' },
+]
+
+export function getColumnCount(value: unknown): ColumnCount {
+  return Array.isArray(value) && (value.length === 3 || value.length === 4)
+    ? value.length
+    : 2
+}
+
+export function getColumnsForCount(count: ColumnCount): ColumnDefinition[] {
+  return columnDefinitions.slice(0, count).map((column) => ({ ...column }))
+}
+
+export function getColumnsWidthPreset(count: ColumnCount): ColumnsLayout['widthPreset'] {
+  if (count === 3) return '33-33-33'
+  if (count === 4) return '25-25-25-25'
+  return '50-50'
 }
 
 export type EditorComponents = {
@@ -82,17 +106,18 @@ export type EditorComponents = {
     layout: ColumnsLayout
     leftColumn: Slot<EditorComponents>
     rightColumn: Slot<EditorComponents>
+    thirdColumn: Slot<EditorComponents>
+    fourthColumn: Slot<EditorComponents>
   }
 }
 
 export const defaultColumnsBlockData: EditorComponents['ColumnsBlock'] = {
-  columns: [
-    { id: 'left', slot: 'leftColumn' },
-    { id: 'right', slot: 'rightColumn' },
-  ],
+  columns: getColumnsForCount(2),
   layout: { widthPreset: '50-50' },
   leftColumn: [],
   rightColumn: [],
+  thirdColumn: [],
+  fourthColumn: [],
 }
 export type BackgroundImageFit =
   | 'fill'
@@ -342,15 +367,18 @@ export function sanitizeDocumentRichText(document: LetterDocument): LetterDocume
           return { ...item, props: { ...item.props, image: normalizeImageBlockData(item.props.image) } }
         }
         if (item.type === 'ColumnsBlock') {
+          const count = getColumnCount(item.props.columns)
           return {
             ...item,
             props: {
               ...item.props,
               ...defaultColumnsBlockData,
-              columns: defaultColumnsBlockData.columns.map((column) => ({ ...column })),
-              layout: { ...defaultColumnsBlockData.layout },
+              columns: getColumnsForCount(count),
+              layout: { widthPreset: getColumnsWidthPreset(count) },
               leftColumn: sanitizeColumnsSlot(item.props.leftColumn),
               rightColumn: sanitizeColumnsSlot(item.props.rightColumn),
+              thirdColumn: sanitizeColumnsSlot(item.props.thirdColumn),
+              fourthColumn: sanitizeColumnsSlot(item.props.fourthColumn),
             },
           }
         }

@@ -10,6 +10,7 @@ import { NoticeBlock } from '../components/NoticeBlock/NoticeBlock'
 import { DividerBlock } from '../components/DividerBlock/DividerBlock'
 import { SpacerBlock } from '../components/SpacerBlock/SpacerBlock'
 import { ColumnsBlock } from '../components/ColumnsBlock/ColumnsBlock'
+import { ColumnsEditorField } from '../components/ColumnsBlock/ColumnsEditorField'
 import { TableBlock } from '../components/TableBlock/TableBlock'
 import { TableEditorField } from '../components/TableBlock/TableEditorField'
 import { defaultTableData } from '../components/TableBlock/tableModel'
@@ -27,7 +28,12 @@ import type {
   DocumentLayout,
   EditorComponents,
 } from '../document/document'
-import { defaultColumnsBlockData } from '../document/document'
+import {
+  defaultColumnsBlockData,
+  getColumnCount,
+  getColumnsForCount,
+  getColumnsWidthPreset,
+} from '../document/document'
 import { VariableNode } from './VariableNode'
 import { typographyExtensions } from './TypographyExtensions'
 import type { VariableDefinition, VariablePreviewValues } from './variables'
@@ -373,12 +379,15 @@ export function createEditorConfig(
         label: t('columns'),
         fields: {
           columns: {
-            type: 'array',
-            visible: false,
-            arrayFields: {
-              id: { type: 'text' },
-              slot: { type: 'text' },
-            },
+            type: 'custom',
+            render: ({ value, onChange, readOnly }) => (
+              <ColumnsEditorField
+                value={value}
+                onChange={onChange}
+                readOnly={readOnly}
+                t={t}
+              />
+            ),
           },
           layout: {
             type: 'object',
@@ -397,20 +406,43 @@ export function createEditorConfig(
             allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
             disallow: ['ColumnsBlock'],
           },
+          thirdColumn: {
+            type: 'slot',
+            allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
+            disallow: ['ColumnsBlock'],
+          },
+          fourthColumn: {
+            type: 'slot',
+            allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
+            disallow: ['ColumnsBlock'],
+          },
         },
         defaultProps: {
           columns: defaultColumnsBlockData.columns.map((column) => ({ ...column })),
           layout: { ...defaultColumnsBlockData.layout },
           leftColumn: [],
           rightColumn: [],
+          thirdColumn: [],
+          fourthColumn: [],
         },
-        render: ({ id, columns, layout, leftColumn, rightColumn }) => (
+        resolveData: (data) => {
+          const count = getColumnCount(data.props.columns)
+          return {
+            props: {
+              columns: getColumnsForCount(count),
+              layout: { widthPreset: getColumnsWidthPreset(count) },
+            },
+          }
+        },
+        render: ({ id, columns, layout, leftColumn, rightColumn, thirdColumn, fourthColumn }) => (
           <LayoutBlock id={id}>
             <ColumnsBlock
               columns={columns}
               layout={layout}
               leftColumn={leftColumn}
               rightColumn={rightColumn}
+              thirdColumn={thirdColumn}
+              fourthColumn={fourthColumn}
               showEmptyGuidance={!previewEnabled}
             />
           </LayoutBlock>
