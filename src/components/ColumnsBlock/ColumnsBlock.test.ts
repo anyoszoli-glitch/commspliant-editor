@@ -17,6 +17,7 @@ describe('ColumnsBlock', () => {
               { id: 'right', slot: 'rightColumn' },
             ],
             layout: { widthPreset: '50-50' },
+            columnBackgrounds: { left: '#aabbcc' },
             leftColumn: (props) => createElement('div', { className: props?.className, 'data-puck-dropzone': 'left' }),
             rightColumn: (props) => createElement('div', { className: props?.className, 'data-puck-dropzone': 'right' }),
             thirdColumn: (props) => createElement('div', { className: props?.className, 'data-puck-dropzone': 'third' }),
@@ -31,7 +32,10 @@ describe('ColumnsBlock', () => {
     expect(markup).toContain('data-columns-block="true"')
     expect(markup).toContain('data-columns-preset="50-50"')
     expect(markup).toContain('data-columns-column="left"')
+    expect(markup).toContain('data-columns-background="#aabbcc"')
+    expect(markup).toContain('background-color:#aabbcc')
     expect(markup).toContain('data-columns-column="right"')
+    expect(markup).toContain('data-columns-background="transparent"')
     expect(markup).toContain('data-puck-dropzone="left"')
     expect(markup).toContain('data-puck-dropzone="right"')
     expect(markup).toContain('Add text')

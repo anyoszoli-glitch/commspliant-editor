@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createUsePuck, registerOverlayPortal, type Config, type SlotComponent } from '@puckeditor/core'
-import type { ColumnDefinition, ColumnSlotId, ColumnsLayout, EditorComponents } from '../../document/document'
-import { DEFAULT_COLUMNS_GAP, DEFAULT_COLUMNS_PADDING } from '../../document/document'
+import type { ColumnBackgrounds, ColumnDefinition, ColumnSlotId, ColumnsLayout, EditorComponents } from '../../document/document'
+import { DEFAULT_COLUMNS_GAP, DEFAULT_COLUMNS_PADDING, normalizeColumnBackgrounds } from '../../document/document'
 import { useTranslation } from '../../i18n'
 
 type ColumnsBlockProps = {
   columns: readonly ColumnDefinition[]
   layout: ColumnsLayout
+  columnBackgrounds?: ColumnBackgrounds
   leftColumn: SlotComponent
   rightColumn: SlotComponent
   thirdColumn: SlotComponent
@@ -88,6 +89,7 @@ function EmptyColumnGuidance({
 export function ColumnsBlock({
   columns,
   layout,
+  columnBackgrounds,
   leftColumn: LeftColumn,
   rightColumn: RightColumn,
   thirdColumn: ThirdColumn,
@@ -97,6 +99,7 @@ export function ColumnsBlock({
 }: ColumnsBlockProps) {
   const t = useTranslation()
   const isNarrowEditingView = useNarrowColumnsEditingView(showEmptyGuidance)
+  const backgrounds = normalizeColumnBackgrounds(columnBackgrounds)
   const slots = {
     leftColumn: LeftColumn,
     rightColumn: RightColumn,
@@ -131,8 +134,10 @@ export function ColumnsBlock({
           <section
             className="commspliant-columns-block__column"
             data-columns-column={column.id}
+            data-columns-background={backgrounds[column.id] ?? 'transparent'}
             aria-label={label}
             key={column.id}
+            style={backgrounds[column.id] ? { backgroundColor: backgrounds[column.id] } : undefined}
           >
             {showEmptyGuidance && (
               <span className="commspliant-columns-block__column-label" aria-hidden="true">

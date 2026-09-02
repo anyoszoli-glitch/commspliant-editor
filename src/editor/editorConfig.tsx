@@ -11,6 +11,7 @@ import { DividerBlock } from '../components/DividerBlock/DividerBlock'
 import { SpacerBlock } from '../components/SpacerBlock/SpacerBlock'
 import { ColumnsBlock, ColumnsBlockAuthoring } from '../components/ColumnsBlock/ColumnsBlock'
 import { ColumnsEditorField } from '../components/ColumnsBlock/ColumnsEditorField'
+import { ColumnsBackgroundColourField } from '../components/ColumnsBlock/ColumnsBackgroundColourField'
 import { ColumnsWidthPresetField } from '../components/ColumnsBlock/ColumnsWidthPresetField'
 import { TableBlock } from '../components/TableBlock/TableBlock'
 import { TableEditorField } from '../components/TableBlock/TableEditorField'
@@ -33,6 +34,7 @@ import {
   defaultColumnsBlockData,
   getColumnCount,
   getColumnsForCount,
+  normalizeColumnBackgrounds,
   normalizeColumnsLayout,
 } from '../document/document'
 import { VariableNode } from './VariableNode'
@@ -396,6 +398,12 @@ export function createEditorConfig(
               <ColumnsWidthPresetField value={value} onChange={onChange} readOnly={readOnly} t={t} />
             ),
           },
+          columnBackgrounds: {
+            type: 'custom',
+            render: ({ value, onChange, readOnly }) => (
+              <ColumnsBackgroundColourField value={value} onChange={onChange} readOnly={readOnly} t={t} />
+            ),
+          },
           leftColumn: {
             type: 'slot',
             allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
@@ -420,6 +428,7 @@ export function createEditorConfig(
         defaultProps: {
           columns: defaultColumnsBlockData.columns.map((column) => ({ ...column })),
           layout: { ...defaultColumnsBlockData.layout },
+          columnBackgrounds: { ...defaultColumnsBlockData.columnBackgrounds },
           leftColumn: [],
           rightColumn: [],
           thirdColumn: [],
@@ -431,13 +440,15 @@ export function createEditorConfig(
             props: {
               columns: getColumnsForCount(count),
               layout: normalizeColumnsLayout(data.props.layout, count),
+              columnBackgrounds: normalizeColumnBackgrounds(data.props.columnBackgrounds),
             },
           }
         },
-        render: ({ id, columns, layout, leftColumn, rightColumn, thirdColumn, fourthColumn }) => {
+        render: ({ id, columns, layout, columnBackgrounds, leftColumn, rightColumn, thirdColumn, fourthColumn }) => {
           const columnsProps = {
             columns,
             layout,
+            columnBackgrounds,
             leftColumn,
             rightColumn,
             thirdColumn,

@@ -142,6 +142,7 @@ describe('editor config', () => {
         { id: 'right', slot: 'rightColumn' },
       ],
       layout: { widthPreset: '50-50', gap: 12, padding: 8, heightMode: 'auto', minHeight: 0, verticalAlign: 'top' },
+      columnBackgrounds: {},
       leftColumn: [],
       rightColumn: [],
       thirdColumn: [],
@@ -150,6 +151,7 @@ describe('editor config', () => {
     expect(config.components.ColumnsBlock.fields).toMatchObject({
       columns: { type: 'custom' },
       layout: { type: 'custom' },
+      columnBackgrounds: { type: 'custom' },
       leftColumn: {
         type: 'slot',
         allow: ['HeadingBlock', 'TextBlock', 'TableBlock', 'ImageBlock', 'DividerBlock', 'SpacerBlock'],
@@ -191,6 +193,7 @@ describe('editor config', () => {
           { id: 'third', slot: 'thirdColumn' },
         ],
         layout: { widthPreset: '25-50-25', gap: 12, padding: 8, heightMode: 'auto', minHeight: 0 },
+        columnBackgrounds: { left: '#abc', third: '#123456', fourth: 'url(evil)' },
         leftColumn: [],
         rightColumn: [],
         thirdColumn: [],
@@ -206,6 +209,7 @@ describe('editor config', () => {
           { id: 'third', slot: 'thirdColumn' },
         ],
         layout: { widthPreset: '25-50-25', gap: 12, padding: 8, heightMode: 'auto', minHeight: 0, verticalAlign: 'top' },
+        columnBackgrounds: { left: '#aabbcc', third: '#123456' },
       },
     })
   })

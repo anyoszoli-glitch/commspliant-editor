@@ -59,10 +59,11 @@ export type TableData = {
 
 export type ColumnCount = 2 | 3 | 4
 export type ColumnSlotId = 'leftColumn' | 'rightColumn' | 'thirdColumn' | 'fourthColumn'
+export type ColumnId = 'left' | 'right' | 'third' | 'fourth'
 export type ColumnVerticalAlign = 'top' | 'center' | 'bottom'
 export type ColumnDefinition = {
   /** A stable identifier; display order is the order in this array. */
-  id: 'left' | 'right' | 'third' | 'fourth'
+  id: ColumnId
   /** The Puck slot that persists this column's child blocks. */
   slot: ColumnSlotId
 }
@@ -74,6 +75,9 @@ export type ColumnsLayout = {
   minHeight?: number
   verticalAlign?: ColumnVerticalAlign
 }
+
+export type ColumnBackgroundColour = `#${string}`
+export type ColumnBackgrounds = Partial<Record<ColumnId, ColumnBackgroundColour>>
 
 export const DEFAULT_COLUMNS_GAP = 12
 export const DEFAULT_COLUMNS_PADDING = 8
@@ -102,6 +106,33 @@ const columnDefinitions: readonly ColumnDefinition[] = [
   { id: 'third', slot: 'thirdColumn' },
   { id: 'fourth', slot: 'fourthColumn' },
 ]
+
+const columnIds: readonly ColumnId[] = ['left', 'right', 'third', 'fourth']
+
+export function normalizeColumnBackgroundColour(value: unknown): ColumnBackgroundColour | undefined {
+  if (typeof value !== 'string') return undefined
+
+  const shortMatch = /^#([0-9a-fA-F]{3})$/.exec(value)
+  if (shortMatch) {
+    const [red, green, blue] = shortMatch[1]
+    return `#${red}${red}${green}${green}${blue}${blue}`.toLowerCase() as ColumnBackgroundColour
+  }
+
+  return /^#[0-9a-fA-F]{6}$/.test(value)
+    ? value.toLowerCase() as ColumnBackgroundColour
+    : undefined
+}
+
+export function normalizeColumnBackgrounds(value: unknown): ColumnBackgrounds {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+
+  const backgrounds = value as Partial<Record<ColumnId, unknown>>
+  return columnIds.reduce<ColumnBackgrounds>((normalized, id) => {
+    const colour = normalizeColumnBackgroundColour(backgrounds[id])
+    if (colour) normalized[id] = colour
+    return normalized
+  }, {})
+}
 
 export function getColumnCount(value: unknown): ColumnCount {
   return Array.isArray(value) && (value.length === 3 || value.length === 4)
@@ -165,6 +196,7 @@ export type EditorComponents = {
   ColumnsBlock: {
     columns: ColumnDefinition[]
     layout: ColumnsLayout
+    columnBackgrounds?: ColumnBackgrounds
     leftColumn: Slot<EditorComponents>
     rightColumn: Slot<EditorComponents>
     thirdColumn: Slot<EditorComponents>
@@ -175,6 +207,7 @@ export type EditorComponents = {
 export const defaultColumnsBlockData: EditorComponents['ColumnsBlock'] = {
   columns: getColumnsForCount(2),
   layout: { widthPreset: '50-50', gap: DEFAULT_COLUMNS_GAP, padding: DEFAULT_COLUMNS_PADDING, heightMode: 'auto', minHeight: 0, verticalAlign: 'top' },
+  columnBackgrounds: {},
   leftColumn: [],
   rightColumn: [],
   thirdColumn: [],
@@ -436,6 +469,7 @@ export function sanitizeDocumentRichText(document: LetterDocument): LetterDocume
               ...defaultColumnsBlockData,
               columns: getColumnsForCount(count),
               layout: normalizeColumnsLayout(item.props.layout, count),
+              columnBackgrounds: normalizeColumnBackgrounds(item.props.columnBackgrounds),
               leftColumn: sanitizeColumnsSlot(item.props.leftColumn),
               rightColumn: sanitizeColumnsSlot(item.props.rightColumn),
               thirdColumn: sanitizeColumnsSlot(item.props.thirdColumn),

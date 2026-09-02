@@ -3,6 +3,7 @@ import {
   DOCUMENT_SCHEMA_VERSION,
   changeDocumentLayout,
   createDocument,
+  normalizeColumnBackgroundColour,
 } from './document'
 import {
   DOCUMENT_NAME_STORAGE_KEY,
@@ -430,6 +431,55 @@ describe('document storage', () => {
         fourthColumn: [{ type: 'DividerBlock', props: { id: 'fourth-divider' } }],
       },
     })
+  })
+
+  it('preserves stable per-column backgrounds and normalizes unsafe saved values', () => {
+    const storage = createStorage()
+    const document = createDocument('column-backgrounds-letter')
+    document.data.content.push({
+      type: 'ColumnsBlock',
+      props: {
+        id: 'columns-backgrounds',
+        columns: [{ id: 'left', slot: 'leftColumn' }, { id: 'right', slot: 'rightColumn' }],
+        layout: { widthPreset: '50-50' },
+        columnBackgrounds: {
+          left: '#ABC',
+          right: '#123456',
+          third: '#def',
+          fourth: 'url(javascript:alert(1))' as never,
+        },
+        leftColumn: [], rightColumn: [], thirdColumn: [], fourthColumn: [],
+      },
+    })
+
+    saveDocument(document, storage)
+
+    expect(loadDocument(storage).data.content[0]).toMatchObject({
+      props: {
+        columns: [{ id: 'left' }, { id: 'right' }],
+        columnBackgrounds: { left: '#aabbcc', right: '#123456', third: '#ddeeff' },
+      },
+    })
+  })
+
+  it('accepts only canonical solid column background colours', () => {
+    expect(normalizeColumnBackgroundColour('#abc')).toBe('#aabbcc')
+    expect(normalizeColumnBackgroundColour('#A1B2C3')).toBe('#a1b2c3')
+
+    for (const unsafeValue of [
+      'expression(alert(1))',
+      'url(javascript:alert(1))',
+      'javascript:alert(1)',
+      '#abcd',
+      '#1234567',
+      '#12zz34',
+      '#123456\ncolor:red',
+      'transparent',
+      Infinity,
+      null,
+    ]) {
+      expect(normalizeColumnBackgroundColour(unsafeValue)).toBeUndefined()
+    }
   })
 
   it('preserves valid width presets and normalizes invalid saved presets by column count', () => {
