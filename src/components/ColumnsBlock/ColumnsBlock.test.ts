@@ -81,6 +81,7 @@ describe('ColumnsBlock', () => {
     )
 
     expect(markup).toContain('data-columns-preset="25-75"')
+    expect(markup).not.toContain('data-columns-stacked')
   })
 
   it('publishes the selected vertical alignment without putting editor guidance into output mode', () => {

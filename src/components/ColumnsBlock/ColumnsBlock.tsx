@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import type { SlotComponent } from '@puckeditor/core'
 import type { ColumnDefinition, ColumnsLayout } from '../../document/document'
 import { DEFAULT_COLUMNS_GAP, DEFAULT_COLUMNS_PADDING } from '../../document/document'
@@ -14,6 +14,41 @@ type ColumnsBlockProps = {
   showEmptyGuidance?: boolean
 }
 
+// 170mm is the default usable A4 width after the editor's 20mm side margins.
+// Keep its existing 24px viewport gutter visible before changing the editing view.
+const RESPONSIVE_COLUMNS_MIN_EDITING_WIDTH = Math.round((170 / 25.4) * 96) + 24
+
+function useNarrowColumnsEditingView(enabled: boolean) {
+  const [isNarrow, setIsNarrow] = useState(false)
+
+  useEffect(() => {
+    if (!enabled) {
+      setIsNarrow(false)
+      return
+    }
+
+    const frameElement = window.frameElement
+    const measure = () => {
+      const width = frameElement?.getBoundingClientRect().width ?? window.innerWidth
+      setIsNarrow(width < RESPONSIVE_COLUMNS_MIN_EDITING_WIDTH)
+    }
+    const observer = typeof ResizeObserver === 'undefined' || !frameElement
+      ? undefined
+      : new ResizeObserver(measure)
+
+    if (observer && frameElement) observer.observe(frameElement)
+    window.addEventListener('resize', measure)
+    measure()
+
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [enabled])
+
+  return enabled && isNarrow
+}
+
 export function ColumnsBlock({
   columns,
   layout,
@@ -24,6 +59,7 @@ export function ColumnsBlock({
   showEmptyGuidance = false,
 }: ColumnsBlockProps) {
   const t = useTranslation()
+  const isNarrowEditingView = useNarrowColumnsEditingView(showEmptyGuidance)
   const slots = {
     leftColumn: LeftColumn,
     rightColumn: RightColumn,
@@ -39,6 +75,7 @@ export function ColumnsBlock({
       data-columns-preset={layout.widthPreset}
       data-columns-height-mode={layout.heightMode ?? 'auto'}
       data-columns-vertical-align={layout.verticalAlign ?? 'top'}
+      data-columns-stacked={isNarrowEditingView ? 'true' : undefined}
       aria-label={t('columns')}
       style={{ '--columns-gap': `${layout.gap ?? DEFAULT_COLUMNS_GAP}px`, '--columns-padding': `${layout.padding ?? DEFAULT_COLUMNS_PADDING}px`, '--columns-min-height': `${layout.heightMode === 'custom' ? layout.minHeight ?? 0 : 0}px` } as CSSProperties}
     >

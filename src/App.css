@@ -2404,7 +2404,7 @@
 
 .commspliant-columns-block {
   display: grid;
-  gap: 12px;
+  gap: var(--columns-gap, 12px);
   box-sizing: border-box;
   max-width: 100%;
   margin: 10px 0;
@@ -2420,6 +2420,21 @@
 .commspliant-columns-block[data-columns-preset='33-33-33'] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .commspliant-columns-block[data-columns-preset='25-50-25'] { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr); }
 .commspliant-columns-block[data-columns-preset='25-25-25-25'] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+/* The transient attribute is set only by the authoring iframe at a genuinely narrow displayed width. */
+.commspliant-columns-block[data-columns-stacked='true'] { grid-template-columns: minmax(0, 1fr); }
+
+/* Page-fidelity output must always use the saved preset, even when authoring was narrow. */
+@media print {
+  .commspliant-columns-block[data-columns-stacked='true'][data-columns-preset='50-50'] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }
+  .commspliant-columns-block[data-columns-stacked='true'][data-columns-preset='25-75'] { grid-template-columns: minmax(0, 1fr) minmax(0, 3fr) !important; }
+  .commspliant-columns-block[data-columns-stacked='true'][data-columns-preset='75-25'] { grid-template-columns: minmax(0, 3fr) minmax(0, 1fr) !important; }
+  .commspliant-columns-block[data-columns-stacked='true'][data-columns-preset='33-67'] { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) !important; }
+  .commspliant-columns-block[data-columns-stacked='true'][data-columns-preset='67-33'] { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) !important; }
+  .commspliant-columns-block[data-columns-stacked='true'][data-columns-preset='33-33-33'] { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .commspliant-columns-block[data-columns-stacked='true'][data-columns-preset='25-50-25'] { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr) !important; }
+  .commspliant-columns-block[data-columns-stacked='true'][data-columns-preset='25-25-25-25'] { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+}
 
 .commspliant-columns-block__column {
   display: flex;
