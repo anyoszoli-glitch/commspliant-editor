@@ -77,8 +77,12 @@ export const DEFAULT_COLUMNS_GAP = 12
 export const DEFAULT_COLUMNS_PADDING = 8
 export const MAX_COLUMNS_GAP = 32
 export const MAX_COLUMNS_PADDING = 24
-/** Default A4 usable height: (297mm - 20mm - 20mm) × 96/25.4, rounded down. */
-export const MAX_COLUMNS_MIN_HEIGHT = 971
+/**
+ * Default A4 usable height is (297mm - 20mm - 20mm) × 96/25.4, rounded down.
+ * The Columns block keeps its existing 10px vertical margins, which are part of
+ * the paginated block measurement, so reserve those 20px at the maximum.
+ */
+export const MAX_COLUMNS_MIN_HEIGHT = 951
 
 export type ColumnWidthPreset =
   | '50-50'
