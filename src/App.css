@@ -644,6 +644,10 @@
   cursor: pointer;
 }
 
+.document-editor__layout-settings-panel {
+  padding-top: 40px;
+}
+
 .document-editor__layout-settings-close:hover,
 .document-editor__background-settings-close:hover {
   border-color: #5b45e0;
@@ -1251,7 +1255,7 @@
   right: 0;
   z-index: 20;
   width: 240px;
-  padding: 12px;
+  padding: 40px 12px 12px;
   display: grid;
   gap: 14px;
   border: 1px solid #c7d0d7;

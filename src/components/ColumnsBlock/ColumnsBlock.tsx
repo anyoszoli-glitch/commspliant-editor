@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react'
 import { createUsePuck, registerOverlayPortal, type Config, type SlotComponent } from '@puckeditor/core'
 import type { ColumnBackgrounds, ColumnDefinition, ColumnSlotId, ColumnsLayout, EditorComponents } from '../../document/document'
 import { DEFAULT_COLUMNS_GAP, DEFAULT_COLUMNS_PADDING, normalizeColumnBackgrounds } from '../../document/document'
@@ -22,7 +22,7 @@ const useColumnsPuck = createUsePuck<Config<EditorComponents>>()
 // Keep its existing 24px viewport gutter visible before changing the editing view.
 const RESPONSIVE_COLUMNS_MIN_EDITING_WIDTH = Math.round((170 / 25.4) * 96) + 24
 
-function useNarrowColumnsEditingView(enabled: boolean) {
+function useNarrowColumnsEditingView(enabled: boolean, blockRef: RefObject<HTMLElement | null>) {
   const [isNarrow, setIsNarrow] = useState(false)
 
   useEffect(() => {
@@ -31,24 +31,38 @@ function useNarrowColumnsEditingView(enabled: boolean) {
       return
     }
 
-    const frameElement = window.frameElement
+    const frameWindow = blockRef.current?.ownerDocument.defaultView
+    const frameElement = frameWindow?.frameElement
+    const hostWindow = frameElement?.ownerDocument.defaultView
     const measure = () => {
-      const width = frameElement?.getBoundingClientRect().width ?? window.innerWidth
+      const width = frameElement?.getBoundingClientRect().width ?? frameWindow?.innerWidth ?? window.innerWidth
       setIsNarrow(width < RESPONSIVE_COLUMNS_MIN_EDITING_WIDTH)
+    }
+    let hostMeasureFrame: number | undefined
+    const measureHost = () => {
+      if (hostWindow && hostMeasureFrame !== undefined) {
+        hostWindow.cancelAnimationFrame(hostMeasureFrame)
+      }
+      hostMeasureFrame = hostWindow?.requestAnimationFrame(measure)
     }
     const observer = typeof ResizeObserver === 'undefined' || !frameElement
       ? undefined
       : new ResizeObserver(measure)
 
     if (observer && frameElement) observer.observe(frameElement)
-    window.addEventListener('resize', measure)
+    frameWindow?.addEventListener('resize', measure)
+    hostWindow?.addEventListener('resize', measureHost)
     measure()
 
     return () => {
       observer?.disconnect()
-      window.removeEventListener('resize', measure)
+      frameWindow?.removeEventListener('resize', measure)
+      hostWindow?.removeEventListener('resize', measureHost)
+      if (hostWindow && hostMeasureFrame !== undefined) {
+        hostWindow.cancelAnimationFrame(hostMeasureFrame)
+      }
     }
-  }, [enabled])
+  }, [enabled, blockRef])
 
   return enabled && isNarrow
 }
@@ -98,7 +112,8 @@ export function ColumnsBlock({
   onAddText,
 }: ColumnsBlockProps) {
   const t = useTranslation()
-  const isNarrowEditingView = useNarrowColumnsEditingView(showEmptyGuidance)
+  const blockRef = useRef<HTMLElement>(null)
+  const isNarrowEditingView = useNarrowColumnsEditingView(showEmptyGuidance, blockRef)
   const backgrounds = normalizeColumnBackgrounds(columnBackgrounds)
   const slots = {
     leftColumn: LeftColumn,
@@ -109,6 +124,7 @@ export function ColumnsBlock({
 
   return (
     <section
+      ref={blockRef}
       className="commspliant-columns-block"
       data-columns-block
       data-columns-count={columns.length}

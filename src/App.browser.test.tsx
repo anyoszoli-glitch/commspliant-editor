@@ -449,6 +449,52 @@ describe('App persistence', () => {
     )
   })
 
+  it('stacks Columns at the displayed 667px authoring breakpoint and restores the saved grid', async () => {
+    await page.viewport(1440, 900)
+    localStorage.removeItem('puck-sidebar-widths')
+    const editorDocument = createDocument('responsive-columns')
+    editorDocument.data.content = [{
+      type: 'ColumnsBlock',
+      props: {
+        id: 'responsive-columns-block',
+        columns: [
+          { id: 'left', slot: 'leftColumn' },
+          { id: 'right', slot: 'rightColumn' },
+        ],
+        layout: { widthPreset: '50-50' },
+        leftColumn: [],
+        rightColumn: [],
+        thirdColumn: [],
+        fourthColumn: [],
+      },
+    }]
+
+    container = document.createElement('div')
+    document.body.append(container)
+    root = createRoot(container)
+    root.render(
+      <EmbeddedEditorHarness initialDocument={editorDocument} changes={[]} saves={[]} />,
+    )
+    await puckContent()
+
+    const displayedFrameWidth = () =>
+      document.querySelector<HTMLIFrameElement>('#preview-frame')!.getBoundingClientRect().width
+    const stackedState = () =>
+      document.querySelector<HTMLIFrameElement>('#preview-frame')?.contentDocument
+        ?.querySelector('[data-columns-block]')?.getAttribute('data-columns-stacked')
+
+    await expect.poll(displayedFrameWidth).toBeGreaterThanOrEqual(667)
+    expect(stackedState()).toBeNull()
+
+    await page.viewport(1200, 900)
+    await expect.poll(displayedFrameWidth).toBeLessThan(667)
+    await expect.poll(stackedState).toBe('true')
+
+    await page.viewport(1440, 900)
+    await expect.poll(displayedFrameWidth).toBeGreaterThanOrEqual(667)
+    await expect.poll(stackedState).toBeNull()
+  })
+
   it('keeps editor page indicators out of Preview output', async () => {
     await page.viewport(1440, 900)
     mountApp()
@@ -646,6 +692,11 @@ describe('App persistence', () => {
     const backgroundSettingsButton = page.getByRole('button', { name: 'Background settings' })
 
     await userEvent.click(pageSetupButton)
+    expect(
+      document.querySelector('.document-editor__layout-settings-close')!.getBoundingClientRect().bottom,
+    ).toBeLessThanOrEqual(
+      document.querySelector('.document-editor__layout-settings-fields')!.firstElementChild!.getBoundingClientRect().top,
+    )
     await userEvent.fill(page.getByRole('spinbutton', { name: 'Top margin' }), '24')
     await userEvent.tab()
     await expect.poll(() => changes.at(-1)?.layout).toMatchObject({
@@ -657,6 +708,11 @@ describe('App persistence', () => {
     expect(document.querySelector('#layout-settings-panel')).toBeNull()
 
     await userEvent.click(backgroundSettingsButton)
+    expect(
+      document.querySelector('.document-editor__background-settings-close')!.getBoundingClientRect().bottom,
+    ).toBeLessThanOrEqual(
+      document.querySelector('.document-editor__background-settings-panel > .document-editor__background-field')!.getBoundingClientRect().top,
+    )
     await userEvent.click(page.getByRole('button', { name: 'Light blue' }))
     await expect.poll(() => changes.at(-1)?.backgroundColour).toBe('#eaf0f4')
     await userEvent.click(page.getByRole('button', { name: 'Close Background settings' }))
