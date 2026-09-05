@@ -27,10 +27,14 @@
     "./logo.webp": {
       "types": "./logo.d.ts",
       "default": "./src/assets/TiliToliEditorLogo.webp"
+    },
+    "./contracts/email-contract.json": {
+      "default": "./contracts/email-contract.json"
     }
   },
   "files": [
     "dist-package",
+    "contracts",
     "src/assets/TiliToliEditorLogo.webp",
     "logo.d.ts",
     "styles.d.ts",
