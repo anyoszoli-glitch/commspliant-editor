@@ -133,6 +133,14 @@ pages. Each setting is attached to a stable content or page-break anchor, so ins
 removing neighbouring pages does not move its margins by page number. Pages without an entry
 continue to inherit `layout.margins`.
 
+## Email rendering contract
+
+`@commspliant/tili-toli-editor/contracts/email-contract.json` is an email-rendering
+policy/configuration asset for a future email output target. It is not the `LetterDocument`
+schema and does not change the paged or fluid editor layouts. The standalone demo does not
+currently perform email rendering or email export. A future email renderer or validator must
+explicitly interpret this policy.
+
 ## Responsibility boundary
 
 Tili-Toli owns only this exchange:

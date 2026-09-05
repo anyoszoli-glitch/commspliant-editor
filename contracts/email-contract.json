@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CommsPliantEmailContract",
+  "version": "1.0.0",
+  "description": "Validation contract for AI generators, WYSIWYG/Drag-and-Drop editors, and post-processing inliners.",
+  "global_rules": {
+    "layout_mode": "table-based",
+    "require_inlining": true,
+    "max_container_width_px": 600,
+    "strip_unknown_tags": true,
+    "strip_unknown_attributes": true
+  },
+  "html_elements": {
+    "allowed_tags": [
+      {
+        "tag": "table",
+        "required_attributes": {
+          "border": "0",
+          "cellpadding": "0",
+          "cellspacing": "0",
+          "role": "presentation"
+        },
+        "allowed_attributes": ["width", "align", "bgcolor", "style"],
+        "disallowed_css": ["margin"]
+      },
+      {
+        "tag": "td",
+        "allowed_attributes": ["width", "height", "align", "valign", "bgcolor", "colspan", "rowspan", "style"],
+        "recommended_css": ["padding", "background-color", "font-family"]
+      },
+      {
+        "tag": "img",
+        "required_attributes": {
+          "border": "0"
+        },
+        "allowed_attributes": ["src", "alt", "width", "height", "style"],
+        "forced_css": {
+          "display": "block",
+          "outline": "none",
+          "text-decoration": "none"
+        }
+      },
+      {
+        "tag": "a",
+        "allowed_attributes": ["href", "target", "title", "style"],
+        "default_attributes": {
+          "target": "_blank"
+        }
+      },
+      {
+        "tag": "tr",
+        "allowed_attributes": ["align", "valign", "bgcolor", "style"]
+      },
+      {
+        "tag": "p",
+        "allowed_attributes": ["align", "style"],
+        "disallowed_css": ["margin-top"]
+      },
+      {
+        "tag": "span",
+        "allowed_attributes": ["style"]
+      },
+      {
+        "tag": "div",
+        "status": "restricted",
+        "notes": "Allowed only for max-width wrappers; must not be used for primary layout structure.",
+        "allowed_attributes": ["align", "style"]
+      }
+    ],
+    "disallowed_tags": [
+      "script", "iframe", "form", "input", "button", "select", 
+      "textarea", "svg", "canvas", "video", "audio", "embed", "object"
+    ]
+  },
+  "css_properties": [
+    {
+      "property": "background-color",
+      "status": "allowed",
+      "support": {
+        "gmail": "full",
+        "outlook-desktop": "full",
+        "outlook-web": "full",
+        "apple-mail": "full"
+      },
+      "allowed_values": ["hex", "rgb"],
+      "disallowed_values": ["rgba", "hsl", "hsla"],
+      "fallback": null,
+      "transformation": "Add tag attribute 'bgcolor' on <table> and <td> elements as legacy fallback."
+    },
+    {
+      "property": "background-image",
+      "status": "restricted",
+      "support": {
+        "gmail": "full",
+        "outlook-desktop": "none",
+        "outlook-web": "full",
+        "apple-mail": "full"
+      },
+      "fallback_required": "background-color",
+      "transformation": "Require a solid background-color inline declaration; flag for MSO VML injection if Outlook desktop support is required."
+    },
+    {
+      "property": "padding",
+      "status": "allowed",
+      "support": {
+        "gmail": "full",
+        "outlook-desktop": "partial",
+        "outlook-web": "full",
+        "apple-mail": "full"
+      },
+      "restrictions": "Must only be applied to <td> tags. Outlook ignores padding applied to <div>, <p>, or <a> tags.",
+      "fallback": null
+    },
+    {
+      "property": "margin",
+      "status": "restricted",
+      "support": {
+        "gmail": "partial",
+        "outlook-desktop": "none",
+        "outlook-web": "partial",
+        "apple-mail": "full"
+      },
+      "restrictions": "Do not use for layout structural spacing. Use nested <td> padding instead.",
+      "fallback": "padding"
+    },
+    {
+      "property": "border-radius",
+      "status": "allowed_with_degradation",
+      "support": {
+        "gmail": "full",
+        "outlook-desktop": "none",
+        "outlook-web": "full",
+        "apple-mail": "full"
+      },
+      "restrictions": "Will render as square corners in Outlook desktop.",
+      "fallback": null
+    },
+    {
+      "property": "font-family",
+      "status": "allowed",
+      "support": {
+        "gmail": "full",
+        "outlook-desktop": "partial",
+        "outlook-web": "full",
+        "apple-mail": "full"
+      },
+      "allowed_values": ["Arial", "Helvetica", "Verdana", "Georgia", "Times New Roman", "Trebuchet MS", "sans-serif", "serif"],
+      "transformation": "Ensure web fonts have a standard system font fallback (e.g., 'Helvetica, Arial, sans-serif')."
+    },
+    {
+      "property": "display",
+      "status": "restricted",
+      "support": {
+        "gmail": "partial",
+        "outlook-desktop": "none",
+        "outlook-web": "partial",
+        "apple-mail": "full"
+      },
+      "allowed_values": ["block", "inline-block", "none"],
+      "disallowed_values": ["flex", "inline-flex", "grid", "inline-grid", "contents"],
+      "fallback": "table"
+    },
+    {
+      "property": "position",
+      "status": "disallowed",
+      "support": {
+        "gmail": "none",
+        "outlook-desktop": "none",
+        "outlook-web": "none",
+        "apple-mail": "partial"
+      },
+      "fallback": "table-alignment"
+    },
+    {
+      "property": "float",
+      "status": "disallowed",
+      "support": {
+        "gmail": "none",
+        "outlook-desktop": "none",
+        "outlook-web": "none",
+        "apple-mail": "partial"
+      },
+      "fallback": "align-attribute"
+    }
+  ]
+}
