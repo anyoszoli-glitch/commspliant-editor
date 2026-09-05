@@ -149,11 +149,11 @@ continue to inherit `layout.margins`.
 
 ## Email rendering contract
 
-`@commspliant/tili-toli-editor/contracts/email-contract.json` is an email-rendering
-policy/configuration asset for a future email output target. It is not the `LetterDocument`
-schema and does not change the paged or fluid editor layouts. The standalone demo does not
-currently perform email rendering or email export. A future email renderer or validator must
-explicitly interpret this policy.
+The authoritative email-rendering policy/configuration asset is owned by
+`@commspliant/data-contract` and exported as
+`@commspliant/data-contract/contracts/email-contract.json`. Tili-Toli currently neither ships nor
+interprets this policy. A future email renderer can consume Shared directly without making Shared
+depend on Tili-Toli.
 
 ## Responsibility boundary
 
