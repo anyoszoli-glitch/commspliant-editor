@@ -3,7 +3,7 @@ import { page, userEvent } from 'vitest/browser'
 import { flushSync } from 'react-dom'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, describe, expect, it } from 'vitest'
-import App, { STANDALONE_LOCALE_STORAGE_KEY } from './App'
+import App, { demoAiModels, STANDALONE_LOCALE_STORAGE_KEY } from './App'
 import { CommsPliantEditor } from './CommsPliantEditor'
 import {
   createDocument,
@@ -140,6 +140,25 @@ afterEach(() => {
 })
 
 describe('App persistence', () => {
+  it('shows local demo AI model choices without connecting an AI request handler', async () => {
+    await page.viewport(1440, 900)
+    mountApp()
+    await puckContent()
+
+    await userEvent.click(page.getByRole('tab', { name: '✨ AI Assistant' }))
+
+    const selector = page.getByRole('combobox', { name: 'AI tool' })
+    await expect.element(selector).toHaveValue('demo-writing-assistant')
+    await expect.element(page.getByRole('option', { name: 'Writing assistant (Demo)' })).toBeInTheDocument()
+    await userEvent.selectOptions(selector, 'demo-compliance-reviewer')
+    await expect.element(selector).toHaveValue('demo-compliance-reviewer')
+    await expect.element(page.getByRole('button', { name: 'Rewrite' })).toBeDisabled()
+    expect(demoAiModels).toEqual([
+      { id: 'demo-writing-assistant', displayName: 'Writing assistant (Demo)' },
+      { id: 'demo-compliance-reviewer', displayName: 'Compliance reviewer (Demo)' },
+    ])
+  })
+
   it('switches and persists the standalone locale without changing document data', async () => {
     const customerDocument = createDocument('localized-standalone')
     customerDocument.data.content = [

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CommsPliantEditor } from './CommsPliantEditor'
+import { CommsPliantEditor, type AiAssistantModelOption } from './CommsPliantEditor'
 import { DocumentIdentity } from './components/DocumentEditor/DocumentIdentity'
 import { loadDocument, saveDocument } from './document/documentStorage'
 import { applyDocumentLocale, I18nProvider, normalizeLocale, type SupportedLocale, useTranslation } from './i18n'
@@ -18,6 +18,17 @@ const previewValues = {
   emptyValue: '',
   htmlValue: '<img src=x onerror=alert(1)>',
 }
+
+export const demoAiModels: AiAssistantModelOption[] = [
+  {
+    id: 'demo-writing-assistant',
+    displayName: 'Writing assistant (Demo)',
+  },
+  {
+    id: 'demo-compliance-reviewer',
+    displayName: 'Compliance reviewer (Demo)',
+  },
+]
 
 export const STANDALONE_LOCALE_STORAGE_KEY = 'tili-toli.editor.locale'
 
@@ -83,6 +94,7 @@ function App() {
           document={document}
           variableDefinitions={variableDefinitions}
           previewValues={previewValues}
+          aiModels={demoAiModels}
           height="calc(100vh - 64px)"
           logoHref="https://commspliant.com"
           locale={locale}

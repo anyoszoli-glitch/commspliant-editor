@@ -11,7 +11,7 @@ const english = {
   documentName: 'Document name', documentDescription: 'Document description', addDescription: 'Add a description',
   documentStatus: 'Document status: {status}', draft: 'Draft',
   language: 'Language',
-  sidebarMode: 'Sidebar mode', properties: 'Properties', aiAssistant: 'AI Assistant',
+  sidebarMode: 'Sidebar mode', properties: 'Properties', aiAssistant: 'AI Assistant', aiTool: 'AI tool', aiToolsUnconfigured: 'No AI tools configured.',
   variablePresentation: 'Variable presentation', author: 'Author', preview: 'Preview',
   layout: 'Layout:', pagedA4: 'Paged / A4', fluid: 'Fluid', pageSetup: 'Page setup', backgroundSettings: 'Background settings', closePageSetup: 'Close Page setup', closeBackgroundSettings: 'Close Background settings',
   pages: 'Pages', blocks: 'Blocks', outline: 'Outline', noPagesYet: 'No pages yet', page: 'Page {page}', goToPage: 'Go to page {page}', selectPage: 'Select page {page}', pageNumberLabel: 'Page number {page}', documentContent: 'Document content', documentPage: 'Document page', fluidDocument: 'Fluid document',
@@ -159,6 +159,19 @@ Object.assign(translations.fr, {
 })
 Object.assign(translations.de, {
   columnCount: 'Spaltenanzahl', columnWidths: 'Spaltenbreiten', width50_50: '50 / 50', width25_75: '25 / 75', width75_25: '75 / 25', width33_67: '33 / 67', width67_33: '67 / 33', width33_33_33: '33 / 33 / 33', width25_50_25: '25 / 50 / 25', width25_25_25_25: '25 / 25 / 25 / 25', twoColumns: '2 Spalten', threeColumns: '3 Spalten', fourColumns: '4 Spalten', thirdColumn: 'Dritte Spalte', fourthColumn: 'Vierte Spalte', hiddenColumnsWarning: 'Inhalte ausgeblendeter Spalten bleiben erhalten und werden wiederhergestellt, wenn Sie die Spaltenanzahl erneut erhöhen.', hideAndPreserve: 'Ausblenden und behalten', cancel: 'Abbrechen',
+})
+
+Object.assign(translations.es, {
+  aiTool: 'Herramienta de IA', aiToolsUnconfigured: 'No hay herramientas de IA configuradas.',
+})
+Object.assign(translations.hu, {
+  aiTool: 'MI-eszköz', aiToolsUnconfigured: 'Nincsenek beállított MI-eszközök.',
+})
+Object.assign(translations.fr, {
+  aiTool: 'Outil d’IA', aiToolsUnconfigured: 'Aucun outil d’IA n’est configuré.',
+})
+Object.assign(translations.de, {
+  aiTool: 'KI-Werkzeug', aiToolsUnconfigured: 'Keine KI-Werkzeuge konfiguriert.',
 })
 
 export function normalizeLocale(locale: string | undefined): SupportedLocale {

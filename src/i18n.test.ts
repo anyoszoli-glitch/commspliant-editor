@@ -48,6 +48,19 @@ describe('i18n', () => {
     expect(createTranslator('de')('verticalAlignment')).toBe('Vertikale Ausrichtung')
   })
 
+  it('localizes the AI tool selector and unconfigured state in every supported language', () => {
+    expect(createTranslator('en')('aiTool')).toBe('AI tool')
+    expect(createTranslator('en')('aiToolsUnconfigured')).toBe('No AI tools configured.')
+    expect(createTranslator('es')('aiTool')).toBe('Herramienta de IA')
+    expect(createTranslator('es')('aiToolsUnconfigured')).toBe('No hay herramientas de IA configuradas.')
+    expect(createTranslator('hu')('aiTool')).toBe('MI-eszköz')
+    expect(createTranslator('hu')('aiToolsUnconfigured')).toBe('Nincsenek beállított MI-eszközök.')
+    expect(createTranslator('fr')('aiTool')).toBe('Outil d’IA')
+    expect(createTranslator('fr')('aiToolsUnconfigured')).toBe('Aucun outil d’IA n’est configuré.')
+    expect(createTranslator('de')('aiTool')).toBe('KI-Werkzeug')
+    expect(createTranslator('de')('aiToolsUnconfigured')).toBe('Keine KI-Werkzeuge konfiguriert.')
+  })
+
   it('normalizes document language metadata', () => {
     const documentElement = { lang: '' }
 
