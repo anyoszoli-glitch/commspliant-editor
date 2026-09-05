@@ -6,6 +6,7 @@ export {
   type AiAssistantAction,
   type AiAssistantBlockContext,
   type AiAssistantContext,
+  type AiAssistantModelOption,
   type AiAssistantRequest,
   type AiAssistantSuggestion,
   type AiAssistantSuggestionAction,

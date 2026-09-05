@@ -2,6 +2,20 @@ import { describe, expect, it } from 'vitest'
 import * as publicApi from './CommsPliantEditor'
 
 describe('reusable package boundary', () => {
+  it('exports the host-provided AI model option and request types', () => {
+    const model: publicApi.AiAssistantModelOption = {
+      id: 'writing-helper',
+      displayName: 'Writing helper',
+    }
+    const request: publicApi.AiAssistantRequest = {
+      action: 'rewrite',
+      context: 'document',
+      modelId: model.id,
+    }
+
+    expect(request.modelId).toBe('writing-helper')
+  })
+
   it('creates and validates shared-contract documents through the public API', () => {
     const document = publicApi.createDocument('public-boundary', undefined, {
       name: 'Public boundary document',

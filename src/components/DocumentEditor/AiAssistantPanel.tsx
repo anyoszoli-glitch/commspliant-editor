@@ -1,7 +1,9 @@
+import { useId } from 'react'
 import type {
   AiAssistantAction,
   AiAssistantBlockContext,
   AiAssistantContext,
+  AiAssistantModelOption,
   AiAssistantRequest,
   AiAssistantSuggestion,
   AiAssistantSuggestionAction,
@@ -13,6 +15,10 @@ type AiAssistantPanelProps = {
   onContextChange: (context: AiAssistantContext) => void
   selectedText?: string
   blockContext?: AiAssistantBlockContext
+  modelsConfigured: boolean
+  models: readonly AiAssistantModelOption[]
+  selectedModelId?: string
+  onSelectedModelIdChange: (modelId: string) => void
   suggestion?: AiAssistantSuggestion
   onRequest?: (request: AiAssistantRequest) => void
   onSuggestionAction?: (action: AiAssistantSuggestionAction, suggestion: AiAssistantSuggestion) => void
@@ -45,18 +51,27 @@ export function AiAssistantPanel({
   onContextChange,
   selectedText,
   blockContext,
+  modelsConfigured,
+  models,
+  selectedModelId,
+  onSelectedModelIdChange,
   suggestion,
   onRequest,
   onSuggestionAction,
   t,
 }: AiAssistantPanelProps) {
+  const modelSelectId = useId()
   const contexts: Array<{ value: AiAssistantContext; label: string }> = [
     { value: 'selection', label: t('selection') }, { value: 'block', label: t('block') }, { value: 'document', label: t('document') },
   ]
   const actions: Array<{ value: AiAssistantAction; label: string }> = [
     { value: 'rewrite', label: t('rewrite') }, { value: 'shorten', label: t('shorten') }, { value: 'plain-english', label: t('plainEnglish') }, { value: 'improve-clarity', label: t('improveClarity') }, { value: 'change-tone', label: t('changeTone') },
   ]
-  const canRequest = Boolean(onRequest) && (context !== 'selection' || Boolean(selectedText))
+  const hasSelectedModel = models.some((model) => model.id === selectedModelId)
+  const canRequest =
+    Boolean(onRequest) &&
+    (!modelsConfigured || hasSelectedModel) &&
+    (context !== 'selection' || Boolean(selectedText))
 
   const requestAction = (action: AiAssistantAction) => {
     if (!onRequest || !canRequest) return
@@ -66,6 +81,7 @@ export function AiAssistantPanel({
       context,
       selectedText: context === 'selection' ? selectedText : undefined,
       block: context === 'block' ? blockContext : undefined,
+      ...(modelsConfigured && hasSelectedModel && selectedModelId ? { modelId: selectedModelId } : {}),
     })
   }
 
@@ -75,6 +91,25 @@ export function AiAssistantPanel({
 
   return (
     <div className="document-editor__ai-panel" role="region" aria-label={t('aiAssistant')}>
+      {modelsConfigured && (
+        models.length > 0 ? (
+          <div className="document-editor__ai-model-field">
+            <label htmlFor={modelSelectId}>{t('aiTool')}</label>
+            <select
+              id={modelSelectId}
+              className="document-editor__ai-model-select"
+              value={selectedModelId ?? ''}
+              onChange={(event) => onSelectedModelIdChange(event.currentTarget.value)}
+            >
+              {models.map((model) => (
+                <option key={model.id} value={model.id}>{model.displayName}</option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <p className="document-editor__ai-hint" role="status">{t('aiToolsUnconfigured')}</p>
+        )
+      )}
       <div
         className="document-editor__ai-context-switch"
         role="tablist"

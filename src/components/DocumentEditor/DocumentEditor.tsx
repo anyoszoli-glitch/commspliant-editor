@@ -33,11 +33,14 @@ import { PageNavigator } from './PageNavigator'
 import type { ImagePicker } from '../ImageBlock/imageTypes'
 import { reorderPages } from './pageReordering'
 import tiliToliEditorLogo from '../../assets/TiliToliEditorLogo.webp'
-import type {
-  AiAssistantContext,
-  AiAssistantRequest,
-  AiAssistantSuggestion,
-  AiAssistantSuggestionAction,
+import {
+  normalizeAiAssistantModelOptions,
+  resolveSelectedAiAssistantModelId,
+  type AiAssistantModelOption,
+  type AiAssistantContext,
+  type AiAssistantRequest,
+  type AiAssistantSuggestion,
+  type AiAssistantSuggestionAction,
 } from '../../editor/aiAssistant'
 import {
   normalizeVariableDefinitions,
@@ -51,6 +54,7 @@ export type {
   AiAssistantAction,
   AiAssistantBlockContext,
   AiAssistantContext,
+  AiAssistantModelOption,
   AiAssistantRequest,
   AiAssistantSuggestion,
   AiAssistantSuggestionAction,
@@ -92,6 +96,7 @@ export type CommsPliantEditorProps = {
   variableDefinitions?: readonly VariableDefinition[]
   previewValues?: VariablePreviewValues
   height?: string
+  aiModels?: readonly AiAssistantModelOption[]
   onAiRequest?: (request: AiAssistantRequest) => void
   aiSuggestion?: AiAssistantSuggestion
   onAiSuggestionAction?: (action: AiAssistantSuggestionAction, suggestion: AiAssistantSuggestion) => void
@@ -116,6 +121,7 @@ function Editor({
   variableDefinitions = emptyVariableDefinitions,
   previewValues,
   height = '100vh',
+  aiModels,
   onAiRequest,
   aiSuggestion,
   onAiSuggestionAction,
@@ -131,6 +137,10 @@ function Editor({
   const [rightSidebarMode, setRightSidebarMode] = useState<'properties' | 'assistant'>('properties')
   const [aiContext, setAiContext] = useState<AiAssistantContext>('document')
   const [selectedText, setSelectedText] = useState<string>()
+  const validAiModels = useMemo(() => normalizeAiAssistantModelOptions(aiModels), [aiModels])
+  const [selectedAiModelId, setSelectedAiModelId] = useState<string | undefined>(
+    () => validAiModels[0]?.id,
+  )
   const [showMarginGuides, setShowMarginGuides] = useState(true)
   const [pagedPages, setPagedPages] = useState<PageDescriptor[]>([])
   const [selectedPageId, setSelectedPageId] = useState<string>()
@@ -343,6 +353,12 @@ function Editor({
     }
   }, [isPreview, previewValues])
 
+  useEffect(() => {
+    setSelectedAiModelId((current) =>
+      resolveSelectedAiAssistantModelId(current, validAiModels),
+    )
+  }, [validAiModels])
+
   const togglePreview = (nextPreview: boolean) => {
     if (nextPreview && previewValues === undefined) return
     if (nextPreview === isPreview) return
@@ -442,12 +458,16 @@ function Editor({
             children
           ) : (
               <AiAssistantPanel
-              context={aiContext}
-              onContextChange={setAiContext}
-              selectedText={selectedText}
-              blockContext={itemSelector ?? undefined}
-              suggestion={aiSuggestion}
-              onRequest={onAiRequest}
+                context={aiContext}
+                onContextChange={setAiContext}
+                selectedText={selectedText}
+                blockContext={itemSelector ?? undefined}
+                modelsConfigured={aiModels !== undefined}
+                models={validAiModels}
+                selectedModelId={selectedAiModelId}
+                onSelectedModelIdChange={setSelectedAiModelId}
+                suggestion={aiSuggestion}
+                onRequest={onAiRequest}
                 onSuggestionAction={onAiSuggestionAction}
                 t={t}
             />
@@ -549,6 +569,7 @@ function Editor({
     }),
     [
       aiContext,
+      aiModels,
       aiSuggestion,
       document.layout,
       isBackgroundSettingsOpen,
@@ -557,9 +578,11 @@ function Editor({
       onAiSuggestionAction,
       previewValues,
       rightSidebarMode,
+      selectedAiModelId,
       selectedText,
       showMarginGuides,
       t,
+      validAiModels,
     ],
   )
 

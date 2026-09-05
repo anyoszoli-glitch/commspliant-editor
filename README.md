@@ -74,10 +74,20 @@ Optional variable authoring and preview values are supplied by the host:
 The reusable editor also exposes an AI Assistant frontend shell. It is intentionally provider-neutral:
 
 ```tsx
+import type { AiAssistantModelOption } from '@commspliant/tili-toli-editor'
+
+const aiModels: AiAssistantModelOption[] = [
+  { id: 'writing-helper', displayName: 'Writing helper' },
+  { id: 'compliance-reviewer', displayName: 'Compliance reviewer' },
+]
+
 <CommsPliantEditor
   document={document}
   onChange={setDocument}
-  onAiRequest={(request) => hostAiService.request(request)}
+  aiModels={aiModels}
+  onAiRequest={(request) => {
+    hostAiService.request(request, request.modelId)
+  }}
   aiSuggestion={suggestion}
   onAiSuggestionAction={(action, currentSuggestion) => {
     hostSuggestionWorkflow.handle(action, currentSuggestion)
@@ -85,8 +95,12 @@ The reusable editor also exposes an AI Assistant frontend shell. It is intention
 />
 ```
 
-`onAiRequest` receives an `AiAssistantRequest` containing the selected context, action, and
-available selection or block context. `aiSuggestion` supplies host-generated `original` and
+`onAiRequest` receives an `AiAssistantRequest` containing the selected context, action, available
+selection or block context, and an optional `modelId`. Model IDs are opaque host-defined identifiers;
+their `displayName` values are user-facing. Tili-Toli never receives provider credentials. The selected
+model is editor session state and is not stored in `LetterDocument`. Omitting `aiModels` preserves the
+legacy integration behaviour; passing an explicit empty array shows that AI tools are currently
+unconfigured. `aiSuggestion` supplies host-generated `original` and
 `suggested` text for the comparison area; `onAiSuggestionAction` receives `accept` or `reject`.
 Without these optional host callbacks, the AI actions remain disabled placeholders and the
 editor makes no AI or network calls. The contextual sparkle control in rich-text editing opens
